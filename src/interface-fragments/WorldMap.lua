@@ -8,7 +8,7 @@ function WorldMap:initialize(config)
 	table.Merge(self, config)
 
 	self.camera = { x = 0, y = 0 }
-	self.cameraWorldScale = 2
+	self.cameraWorldScale = 1
 	self.dragging = false
 	self.dragStart = { x = 0, y = 0 }
 
