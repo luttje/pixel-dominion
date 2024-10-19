@@ -1,0 +1,15 @@
+{
+    "dependencies": {
+        "love.js": "^11.4.1"
+    },
+    "scripts": {
+        "build:love": "node ./tools/build-love.js ./src ./builds/rts.love",
+        "build:web": "node ./node_modules/love.js/index.js --title rts ./builds/rts.love ./builds/web && cp ./src-web/index.html ./builds/web/index.html",
+        "serve:web": "node ./tools/serve-web.js ./builds/web 8000",
+        "build": "npm run build:love && npm run build:web"
+    },
+    "devDependencies": {
+        "archiver": "^7.0.1",
+        "serve": "^14.2.3"
+    }
+}
