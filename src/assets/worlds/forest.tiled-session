@@ -29,11 +29,11 @@
             "scaleInEditor": 1
         },
         "forest.tmx": {
-            "scale": 3,
-            "selectedLayer": 1,
+            "scale": 0.5,
+            "selectedLayer": 3,
             "viewCenter": {
-                "x": 105,
-                "y": 318.3333333333333
+                "x": 442,
+                "y": 356
             }
         },
         "forest.tmx#debug": {
@@ -46,6 +46,9 @@
             "scaleInDock": 1
         },
         "forest.tmx#paths_dirt01": {
+            "scaleInDock": 1
+        },
+        "forest.tmx#rocks01": {
             "scaleInDock": 1
         },
         "forest.tmx#trees01": {
