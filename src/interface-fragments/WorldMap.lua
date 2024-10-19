@@ -159,17 +159,17 @@ function WorldMap:drawLayerTile(layer, tile, tileX, tileY)
 	end
 
 	if (not layer.withoutShadows) then
-		-- Draw simple shadow offset using scale and sheer on the image
-		love.graphics.setColor(0, 0, 0, 0.5)
+		-- Draw simple shadow offset using sheer on the image
+		love.graphics.setColor(0, 0, 0, 0.2)
 
 		love.graphics.draw(
 			tile.image,
-			(tileX * tileWidth) + tileWidth * 0.1,
-			(tileY * tileHeight) + tileHeight * 0.1,
+			(tileX * tileWidth) + (tileWidth * 2),
+			(tileY * tileHeight) - tileHeight,
 			0,
 			scaleX, scaleY,
 			0, 0,
-			0.2, 0.2)
+			-0.5, 0.5)
 	end
 
 	if (tile.color) then
