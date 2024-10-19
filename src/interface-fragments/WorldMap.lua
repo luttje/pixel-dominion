@@ -2,13 +2,13 @@
 --- @class WorldMap: InterfaceFragment
 local WorldMap = DeclareClassWithBase('WorldMap', InterfaceFragment)
 
-local TILE_SIZE = 32
+local TILE_SIZE = 8
 
 function WorldMap:initialize(config)
 	table.Merge(self, config)
 
 	self.camera = { x = 0, y = 0 }
-	self.cameraWorldScale = 1
+	self.cameraWorldScale = 4
 	self.dragging = false
 	self.dragStart = { x = 0, y = 0 }
 
@@ -18,7 +18,7 @@ function WorldMap:initialize(config)
 end
 
 function WorldMap:refreshMap()
-	SimpleTiled.loadMap("assets/worlds/forest.lua")
+	SimpleTiled.loadMap("assets/worlds/forest_8x8.lua")
 end
 
 function WorldMap:screenToWorld(x, y, snapToTile)

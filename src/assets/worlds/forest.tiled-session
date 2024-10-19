@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "forest.tmx",
+    "activeFile": "forest_8x8.tmx",
     "expandedProjectPaths": [
         "."
     ],
@@ -32,8 +32,8 @@
             "scale": 0.5,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 442,
-                "y": 356
+                "x": 479,
+                "y": 319
             }
         },
         "forest.tmx#debug": {
@@ -53,24 +53,43 @@
         },
         "forest.tmx#trees01": {
             "scaleInDock": 1
+        },
+        "forest_8x8.tmx": {
+            "scale": 2,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 59.5,
+                "y": 98
+            }
+        },
+        "forest_8x8.tmx#forest": {
+            "scaleInDock": 5.5
         }
     },
     "last.exportedFilePath": "E:/Projects/_Personal/Games/strategy/src/assets/worlds",
-    "last.imagePath": "E:/Projects/_Personal/Games/strategy/src/assets/images/world/rocks",
+    "last.imagePath": "E:/Projects/_Personal/Games/strategy/src/assets/images",
     "map.lastUsedExportFilter": "Lua files (*.lua)",
     "map.lastUsedFormat": "tmx",
     "map.orientation": null,
+    "map.tileHeight": 8,
+    "map.tileWidth": 8,
     "openFiles": [
-        "forest.tmx"
+        "forest.tmx",
+        "forest_8x8.tmx"
     ],
     "project": "forest.tiled-project",
     "recentFiles": [
         "forest.tmx",
+        "forest_8x8.tmx",
         "E:/Projects/_Personal/Games/strategy/src/assets/images/world/ground/paths_dirt.tsx",
         "E:/Projects/_Personal/Games/strategy/src/assets/images/world/ground/grass.tsx",
         "E:/Projects/_Personal/Games/strategy/src/assets/images/world/trees/trees.tsx",
         "E:/Projects/_Personal/Games/strategy/src/assets/images/world/trees/tree01.tsx"
     ],
     "tileset.embedInMap": true,
-    "tileset.lastUsedFormat": "tsx"
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 8,
+        "width": 8
+    }
 }
