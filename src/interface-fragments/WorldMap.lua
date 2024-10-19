@@ -8,6 +8,7 @@ function WorldMap:initialize(config)
 	table.Merge(self, config)
 
 	self.camera = { x = 0, y = 0 }
+	self.cameraWorldScale = 2
 	self.dragging = false
 	self.dragStart = { x = 0, y = 0 }
 
@@ -17,7 +18,8 @@ function WorldMap:initialize(config)
 end
 
 function WorldMap:refreshMap()
-	self.worldData, self.worldBounds = RegionManager:getWorldDataForPlayer(CurrentPlayer)
+	-- self.worldData, self.worldBounds = RegionManager:getWorldDataForPlayer(CurrentPlayer)
+	SimpleTiled.loadMap("assets/worlds/forest.lua")
 
 	-- Set initial camera position to center on the hut, noting that the bottom half of the screen
 	-- is covered by the interface
@@ -33,13 +35,13 @@ end
 function WorldMap:setFocalHeight(height, recenterCamera)
 	self.focalHeight = height
 
-	if (recenterCamera) then
-		self.camera.x = self.worldData.homePosition.x * TILE_SIZE - (self:getWidth() * .5)
-		self.camera.y = self.worldData.homePosition.y * TILE_SIZE -
-			(self.focalHeight * .6) -- TODO: Fix this so it's actually centered
+	-- if (recenterCamera) then
+	-- 	self.camera.x = self.worldData.homePosition.x * TILE_SIZE - (self:getWidth() * .5)
+	-- 	self.camera.y = self.worldData.homePosition.y * TILE_SIZE -
+	-- 		(self.focalHeight * .6) -- TODO: Fix this so it's actually centered
 
-		-- self:doCameraMoved()
-	end
+	-- 	-- self:doCameraMoved()
+	-- end
 end
 
 --- Returns the focal height of the map
@@ -92,6 +94,8 @@ end
 function WorldMap:performUpdate(deltaTime)
 	local pointerX, pointerY = Input.GetPointerPosition()
 
+	SimpleTiled.update(deltaTime)
+
 	if (CurrentPlayer:isInputBlocked()) then
 		return
 	end
@@ -106,13 +110,13 @@ function WorldMap:performUpdate(deltaTime)
 		end
 
 		self.dragging = true
-		self.dragStart.x = pointerX + self.camera.x
-		self.dragStart.y = pointerY + self.camera.y
+		self.dragStart.x = pointerX + self.camera.x * self.cameraWorldScale
+		self.dragStart.y = pointerY + self.camera.y * self.cameraWorldScale
 	end
 
 	if (self.dragging) then
-		local newX = self.dragStart.x - pointerX
-		local newY = self.dragStart.y - pointerY
+		local newX = (self.dragStart.x - pointerX) / self.cameraWorldScale
+		local newY = (self.dragStart.y - pointerY) / self.cameraWorldScale
 
 		-- Keep the camera within the unlocked area
 		-- local tileInCenterX = math.floor((newX + love.graphics.getWidth() * 0.5) / TILE_SIZE)
@@ -300,37 +304,45 @@ function WorldMap:drawInWorldSpace(drawFunction)
 end
 
 function WorldMap:performDraw(x, y, width, height)
-	self:prepareScenes()
+	-- self:prepareScenes()
+	local translateX, translateY, scaleX, scaleY
 
-	love.graphics.clear()
-	love.graphics.setFont(Fonts.debug)
+	translateX = -self.camera.x
+	translateY = -self.camera.y
+	scaleX = self.cameraWorldScale
+	scaleY = self.cameraWorldScale
 
-	self.tileOverlayDraws = {}
+	SimpleTiled.draw(translateX, translateY, scaleX, scaleY)
 
-	self:drawInWorldSpace(function()
-		love.graphics.setCanvas(self._scene)
+	-- love.graphics.clear()
+	-- love.graphics.setFont(Fonts.debug)
 
-		for _, layer in ipairs(self.worldData.layers) do
-			for _, tile in ipairs(layer.tiles) do
-				if (tile.untilX and tile.untilY) then
-					for tileX = tile.x, tile.untilX do
-						for tileY = tile.y, tile.untilY do
-							self:drawLayerTile(layer, tile, tileX, tileY)
-						end
-					end
-				else
-					self:drawLayerTile(layer, tile)
-				end
-			end
-		end
+	-- self.tileOverlayDraws = {}
 
-		love.graphics.setCanvas()
-	end)
+	-- self:drawInWorldSpace(function()
+	-- 	love.graphics.setCanvas(self._scene)
 
-	love.graphics.setColor(1, 1, 1, 1)
+	-- 	for _, layer in ipairs(self.worldData.layers) do
+	-- 		for _, tile in ipairs(layer.tiles) do
+	-- 			if (tile.untilX and tile.untilY) then
+	-- 				for tileX = tile.x, tile.untilX do
+	-- 					for tileY = tile.y, tile.untilY do
+	-- 						self:drawLayerTile(layer, tile, tileX, tileY)
+	-- 					end
+	-- 				end
+	-- 			else
+	-- 				self:drawLayerTile(layer, tile)
+	-- 			end
+	-- 		end
+	-- 	end
 
-	love.graphics.draw(self._scene, x, y, 0, width / self._scene:getWidth(),
-		height / self._scene:getHeight())
+	-- 	love.graphics.setCanvas()
+	-- end)
+
+	-- love.graphics.setColor(1, 1, 1, 1)
+
+	-- love.graphics.draw(self._scene, x, y, 0, width / self._scene:getWidth(),
+	-- 	height / self._scene:getHeight())
 end
 
 return WorldMap

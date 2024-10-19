@@ -1,0 +1,73 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "forest.tmx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "fileStates": {
+        "": {
+            "scaleInDock": 1
+        },
+        "E:/Projects/_Personal/Games/strategy/src/assets/images/world/ground/grass.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "E:/Projects/_Personal/Games/strategy/src/assets/images/world/ground/paths_dirt.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "E:/Projects/_Personal/Games/strategy/src/assets/images/world/trees/tree01.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "E:/Projects/_Personal/Games/strategy/src/assets/images/world/trees/trees.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "forest.tmx": {
+            "scale": 3,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 105,
+                "y": 318.3333333333333
+            }
+        },
+        "forest.tmx#debug": {
+            "scaleInDock": 1
+        },
+        "forest.tmx#grass": {
+            "scaleInEditor": 1
+        },
+        "forest.tmx#grass01": {
+            "scaleInDock": 1
+        },
+        "forest.tmx#paths_dirt01": {
+            "scaleInDock": 1
+        },
+        "forest.tmx#trees01": {
+            "scaleInDock": 1
+        }
+    },
+    "last.exportedFilePath": "E:/Projects/_Personal/Games/strategy/src/assets/worlds",
+    "last.imagePath": "E:/Projects/_Personal/Games/strategy/src/assets/images/world/ground",
+    "map.lastUsedExportFilter": "Lua files (*.lua)",
+    "map.lastUsedFormat": "tmx",
+    "map.orientation": null,
+    "openFiles": [
+        "forest.tmx"
+    ],
+    "project": "forest.tiled-project",
+    "recentFiles": [
+        "forest.tmx",
+        "E:/Projects/_Personal/Games/strategy/src/assets/images/world/ground/paths_dirt.tsx",
+        "E:/Projects/_Personal/Games/strategy/src/assets/images/world/ground/grass.tsx",
+        "E:/Projects/_Personal/Games/strategy/src/assets/images/world/trees/trees.tsx",
+        "E:/Projects/_Personal/Games/strategy/src/assets/images/world/trees/tree01.tsx"
+    ],
+    "tileset.embedInMap": true,
+    "tileset.lastUsedFormat": "tsx"
+}

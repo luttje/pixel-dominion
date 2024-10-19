@@ -30,13 +30,14 @@ end
 function love.update(deltaTime)
 	love.window.setTitle(GameConfig.name .. ' (FPS: ' .. love.timer.getFPS() .. ')')
 
-    StateManager:call('onUpdate', deltaTime)
+	StateManager:call('onUpdate', deltaTime)
 
 	Timer.updateAll(deltaTime)
 end
 
 function love.draw()
 	local windowWidth, windowHeight = love.graphics.getDimensions()
+
 	StateManager:call('onDraw', windowWidth, windowHeight)
 end
 
