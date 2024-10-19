@@ -19,7 +19,3 @@ RequireDirectory('states', function(fileWithoutExtension, module)
     SetModuleAsGlobal(fileWithoutExtension, module)
 	StateManager:registerState(module)
 end)
-
-RequireDirectory('regions', function(fileWithoutExtension, module)
-    RegionManager:registerRegion(module)
-end)
