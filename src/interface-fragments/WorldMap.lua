@@ -65,7 +65,15 @@ function WorldMap:performUpdate(deltaTime)
 	-- Debug only. If space is down, show the x, y of the mouse in the world
 	if (love.keyboard.isDown('space')) then
 		local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
-		print('World X:', worldX, 'World Y:', worldY)
+		local unitOrStructure = self.world:getEntityUnderPosition(worldX, worldY)
+
+		if (unitOrStructure) then
+			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
+				unitOrStructure:setSelected(not unitOrStructure.isSelected)
+			end)
+		end
+
+		print('World X:', worldX, 'World Y:', worldY, 'Unit:', unitOrStructure)
 	end
 end
 

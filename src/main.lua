@@ -17,7 +17,8 @@ function love.load()
 
     love.window.setMode(600, 920, config)
 
-    love.graphics.setBackgroundColor(0, 0, 0)
+	love.graphics.setBackgroundColor(0, 0, 0)
+	love.graphics.setDefaultFilter('nearest', 'nearest')
 
 	Fonts:registerFonts()
 

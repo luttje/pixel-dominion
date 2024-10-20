@@ -71,4 +71,24 @@ function World:spawnUnit(unitType, x, y)
 	return unit
 end
 
+--- Gets the unit or structure under the given world position
+--- @param x number
+--- @param y number
+--- @return Unit|Structure|nil
+function World:getEntityUnderPosition(x, y)
+	for _, unit in ipairs(self.units) do
+		if (unit:isInPosition(x, y)) then
+			return unit
+		end
+	end
+
+	for _, structure in ipairs(self.structures) do
+		if (structure:isInPosition(x, y)) then
+			return structure
+		end
+	end
+
+	return nil
+end
+
 return World

@@ -96,6 +96,10 @@ function UnitTypeRegistry.UnitRegistration:draw(unit, animationName)
 	local quad = animation:getCurrentQuad()
 	local x, y = unit.x * GameConfig.tileSize, unit.y * GameConfig.tileSize
 
+	local offsetX, offsetY = unit:getDrawOffset()
+	x = x + offsetX
+	y = y + offsetY
+
 	-- Let's draw a little shadow ellipse under the unit
 	-- TODO: Make this more dynamic per unit type
 	love.graphics.setColor(0, 0, 0, 0.5)
