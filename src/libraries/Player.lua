@@ -22,4 +22,16 @@ function Player:setInputBlocked(block)
 	self.inputBlocked = block
 end
 
+--- Sets the current player world
+--- @param world World
+function Player:setWorld(world)
+	self.world = world
+end
+
+--- Gets the current player world
+--- @return World
+function Player:getWorld()
+	return self.world
+end
+
 return Player

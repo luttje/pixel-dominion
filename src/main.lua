@@ -21,8 +21,22 @@ function love.load()
 
 	Fonts:registerFonts()
 
+	-- Now that the window is created we can initialize unit graphics
+	RequireDirectory('unit-types', function(fileWithoutExtension, module)
+		local id = module.id or fileWithoutExtension
+
+		UnitTypeRegistry:registerUnitType(id, module)
+	end)
+
 	-- TODO: Eventually we'll want to be able to load/restore player data, for now we just create a new player.
-    CurrentPlayer = Player()
+	CurrentPlayer = Player()
+
+	local world = World({
+		mapPath = 'assets/worlds/forest_8x8.lua'
+	})
+	world:spawnUnit(UnitTypeRegistry:getUnitType('builder'), 15, 8)
+
+	CurrentPlayer:setWorld(world)
 
     StateManager:setCurrentState(InGameState)
 end

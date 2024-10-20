@@ -2,9 +2,9 @@
 --- @class WorldMap: InterfaceFragment
 local WorldMap = DeclareClassWithBase('WorldMap', InterfaceFragment)
 
-local TILE_SIZE = 8
-
 function WorldMap:initialize(config)
+	assert(self.world, 'World is required.')
+
 	table.Merge(self, config)
 
 	self.camera = { x = 0, y = 0 }
@@ -18,28 +18,28 @@ function WorldMap:initialize(config)
 end
 
 function WorldMap:refreshMap()
-	SimpleTiled.loadMap("assets/worlds/forest_8x8.lua")
+	self.world:loadMap()
 end
 
 function WorldMap:screenToWorld(x, y, snapToTile)
 	if (snapToTile) then
-		return math.floor((x + self.camera.x * self.cameraWorldScale) / (TILE_SIZE * self.cameraWorldScale)),
-			math.floor((y + self.camera.y * self.cameraWorldScale) / (TILE_SIZE * self.cameraWorldScale))
+		return math.floor((x + self.camera.x * self.cameraWorldScale) / (GameConfig.tileSize * self.cameraWorldScale)),
+			math.floor((y + self.camera.y * self.cameraWorldScale) / (GameConfig.tileSize * self.cameraWorldScale))
 	end
 
-	return (x + self.camera.x * self.cameraWorldScale) / (TILE_SIZE * self.cameraWorldScale),
-		(y + self.camera.y * self.cameraWorldScale) / (TILE_SIZE * self.cameraWorldScale)
+	return (x + self.camera.x * self.cameraWorldScale) / (GameConfig.tileSize * self.cameraWorldScale),
+		(y + self.camera.y * self.cameraWorldScale) / (GameConfig.tileSize * self.cameraWorldScale)
 end
 
 function WorldMap:worldToScreen(x, y)
-	return x * TILE_SIZE * self.cameraWorldScale - self.camera.x * self.cameraWorldScale,
-		y * TILE_SIZE * self.cameraWorldScale - self.camera.y * self.cameraWorldScale
+	return x * GameConfig.tileSize * self.cameraWorldScale - self.camera.x * self.cameraWorldScale,
+		y * GameConfig.tileSize * self.cameraWorldScale - self.camera.y * self.cameraWorldScale
 end
 
 function WorldMap:performUpdate(deltaTime)
 	local pointerX, pointerY = Input.GetPointerPosition()
 
-	SimpleTiled.update(deltaTime)
+	self.world:update(deltaTime)
 
 	if (CurrentPlayer:isInputBlocked()) then
 		return
@@ -94,7 +94,7 @@ function WorldMap:performDraw(x, y, width, height)
 	scaleX = self.cameraWorldScale
 	scaleY = self.cameraWorldScale
 
-	SimpleTiled.draw(translateX, translateY, scaleX, scaleY)
+	self.world:draw(translateX, translateY, scaleX, scaleY)
 end
 
 return WorldMap

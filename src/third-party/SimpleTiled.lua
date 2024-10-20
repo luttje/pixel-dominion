@@ -8,7 +8,9 @@ local loadedWorld
 
 -- Load a map exported to Lua from Tiled
 function SimpleTiled.loadMap(mapPath)
-	loadedWorld = {}
+	loadedWorld = {
+		layerCallbacks = {}
+	}
 
 	loadedWorld.map = sti(mapPath, { "box2d" })
 
@@ -49,25 +51,74 @@ function SimpleTiled.loadMap(mapPath)
 	-- 	end
 	-- end
 
-	if (GameConfig.MapLayersToRemove) then
-		for _, layerName in ipairs(GameConfig.MapLayersToRemove) do
+	-- Call update and draw callbacks for these layers
+	local layersWithCallbacks = {
+		"Dynamic_Units",
+		"Dynamic_Structures"
+	}
+
+	for _, layerName in ipairs(layersWithCallbacks) do
+		local layer = loadedWorld.map.layers[layerName]
+
+		if (layer) then
+			function layer:update(dt)
+				if (not loadedWorld.layerCallbacks[layerName] or not loadedWorld.layerCallbacks[layerName].update) then
+					return
+				end
+
+				for _, callback in ipairs(loadedWorld.layerCallbacks[layerName].update) do
+					callback(dt)
+				end
+			end
+
+			function layer:draw()
+				if (not loadedWorld.layerCallbacks[layerName] or not loadedWorld.layerCallbacks[layerName].draw) then
+					return
+				end
+
+				for _, callback in ipairs(loadedWorld.layerCallbacks[layerName].draw) do
+					callback()
+				end
+			end
+		end
+	end
+
+	if (GameConfig.mapLayersToRemove) then
+		for _, layerName in ipairs(GameConfig.mapLayersToRemove) do
 			loadedWorld.map:removeLayer(layerName)
 		end
 	end
 end
 
--- Update the map
-function SimpleTiled.update(dt)
+function SimpleTiled.registerLayerCallback(layerName, callbackType, callback)
 	if (not loadedWorld) then
+		assert(false, "No map loaded.")
 		return
 	end
 
-	loadedWorld.map:update(dt)
+	if (not loadedWorld.layerCallbacks[layerName]) then
+		loadedWorld.layerCallbacks[layerName] = {}
+	end
+
+	if (not loadedWorld.layerCallbacks[layerName][callbackType]) then
+		loadedWorld.layerCallbacks[layerName][callbackType] = {}
+	end
+
+	table.insert(loadedWorld.layerCallbacks[layerName][callbackType], callback)
 end
 
--- Draw the map
+function SimpleTiled.update(deltaTime)
+	if (not loadedWorld) then
+		assert(false, "No map loaded.")
+		return
+	end
+
+	loadedWorld.map:update(deltaTime)
+end
+
 function SimpleTiled.draw(translateX, translateY, scaleX, scaleY)
 	if (not loadedWorld) then
+		assert(false, "No map loaded.")
 		return
 	end
 
@@ -78,6 +129,62 @@ function SimpleTiled.draw(translateX, translateY, scaleX, scaleY)
 	-- Draw Collision Map (useful for debugging)
 	love.graphics.setColor(1, 0, 0)
 	loadedWorld.map:box2d_draw(translateX, translateY, scaleX, scaleY)
+end
+
+--- Returns the collision map for the loaded map based on the "collidable" property of the layers.
+--- @return table<number, table<number, number>>
+function SimpleTiled.getCollisionMap()
+	local collisionMap = {}
+
+	if (not loadedWorld) then
+		assert(false, "No map loaded.")
+		return collisionMap
+	end
+
+	local map = loadedWorld.map
+
+	for y = 1, map.height do
+		collisionMap[y] = {}
+
+		for x = 1, map.width do
+			collisionMap[y][x] = 0
+		end
+	end
+
+	for _, layer in ipairs(map.layers) do
+		if (layer.properties.collidable) then
+			for y = 1, map.height do
+				for x = 1, map.width do
+					local tile = layer.data[y][x]
+
+					if (tile) then
+						-- If the tile has a property "collidable" set to true, then mark it as collidable
+						if (tile.properties.collidable) then
+							collisionMap[y][x] = 1
+						end
+
+						-- If the entire layer is collidable, then any tile will be marked as collidable
+						if (layer.properties.collidable) then
+							collisionMap[y][x] = 1
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- Print the collision map for debugging
+	-- for y, row in ipairs(collisionMap) do
+	-- 	local rowString = ""
+
+	-- 	for x, value in ipairs(row) do
+	-- 		rowString = rowString .. value
+	-- 	end
+
+	-- 	print(rowString)
+	-- end
+
+	return collisionMap
 end
 
 return SimpleTiled

@@ -15,9 +15,13 @@ GameConfig.name = 'Unnamed RTS'
 --- The names of layers to remove from the map.
 --- Useful to disable the ground grid or debug layers.
 --- @type table
-GameConfig.MapLayersToRemove = {
+GameConfig.mapLayersToRemove = {
 	-- "GroundGrid",
 }
+
+--- Width and height of the map tiles in pixels.
+--- @type number
+GameConfig.tileSize = 8
 
 --[[
 	Debug/testing options

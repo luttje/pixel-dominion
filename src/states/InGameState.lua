@@ -9,6 +9,7 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
 	self.worldMap = WorldMap({
 		anchorHorizontally = 'fill',
 		anchorVertically = 'fill',
+		world = CurrentPlayer:getWorld()
 	})
 	fragments:add(self.worldMap)
 end
