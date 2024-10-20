@@ -35,7 +35,7 @@ function love.load()
 	local world = World({
 		mapPath = 'assets/worlds/forest_8x8.lua'
 	})
-	world:spawnUnit(UnitTypeRegistry:getUnitType('builder'), 15, 8)
+	world:spawnUnit(UnitTypeRegistry:getUnitType('builder'), 16, 8)
 
 	CurrentPlayer:setWorld(world)
 

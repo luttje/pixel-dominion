@@ -2,7 +2,9 @@
 -- Modified for our use case.
 SimpleTiled = DeclareClass('SimpleTiled')
 
-local sti = require("third-party.sti")
+local Sti = require("third-party.sti")
+local Grid = require("third-party.jumper.grid")
+local Pathfinder = require("third-party.jumper.pathfinder")
 
 local loadedWorld
 
@@ -12,44 +14,13 @@ function SimpleTiled.loadMap(mapPath)
 		layerCallbacks = {}
 	}
 
-	loadedWorld.map = sti(mapPath, { "box2d" })
+	loadedWorld.map = Sti(mapPath, { "box2d" })
 
 	-- Prepare physics world with horizontal and vertical gravity
 	loadedWorld.world = love.physics.newWorld(0, 0)
 
 	-- Prepare collision objects
 	loadedWorld.map:box2d_init(loadedWorld.world)
-
-	-- -- Create a Custom Layer
-	-- loadedWorld.map:addCustomLayer("Sprite Layer", 3)
-
-	-- -- Add data to Custom Layer
-	-- local spriteLayer = loadedWorld.map.layers["Sprite Layer"]
-	-- spriteLayer.sprites = {
-	-- 	player = {
-	-- 		image = love.graphics.newImage("assets/sprites/player.png"),
-	-- 		x = 64,
-	-- 		y = 64,
-	-- 		r = 0,
-	-- 	}
-	-- }
-
-	-- -- Update callback for Custom Layer
-	-- function spriteLayer:update(dt)
-	-- 	for _, sprite in pairs(self.sprites) do
-	-- 		sprite.r = sprite.r + math.rad(90 * dt)
-	-- 	end
-	-- end
-
-	-- -- Draw callback for Custom Layer
-	-- function spriteLayer:draw()
-	-- 	for _, sprite in pairs(self.sprites) do
-	-- 		local x = math.floor(sprite.x)
-	-- 		local y = math.floor(sprite.y)
-	-- 		local r = sprite.r
-	-- 		love.graphics.draw(sprite.image, x, y, r)
-	-- 	end
-	-- end
 
 	-- Call update and draw callbacks for these layers
 	local layersWithCallbacks = {
@@ -88,8 +59,30 @@ function SimpleTiled.loadMap(mapPath)
 			loadedWorld.map:removeLayer(layerName)
 		end
 	end
+
+	-- Cache the static collision map
+	local collisionMap, walkable = SimpleTiled.getCollisionMap()
+
+	if (GameConfig.debugCollisionMap) then
+		for y, row in ipairs(collisionMap) do
+			local rowString = ""
+
+			for x, value in ipairs(row) do
+				rowString = rowString .. value
+			end
+
+			print(rowString)
+		end
+	end
+
+	loadedWorld.collisionGrid = Grid(collisionMap)
+	loadedWorld.pathfinder = Pathfinder(loadedWorld.collisionGrid, 'ASTAR', walkable)
 end
 
+--- Registers a callback for a specific layer and callback type.
+--- @param layerName string
+--- @param callbackType 'update' | 'draw'
+--- @param callback function
 function SimpleTiled.registerLayerCallback(layerName, callbackType, callback)
 	if (not loadedWorld) then
 		assert(false, "No map loaded.")
@@ -132,7 +125,8 @@ function SimpleTiled.draw(translateX, translateY, scaleX, scaleY)
 end
 
 --- Returns the collision map for the loaded map based on the "collidable" property of the layers.
---- @return table<number, table<number, number>>
+--- Additionally it returns the number representing a walkable tile (always 0).
+--- @return table<number, table<number, number>>, number
 function SimpleTiled.getCollisionMap()
 	local collisionMap = {}
 
@@ -142,30 +136,27 @@ function SimpleTiled.getCollisionMap()
 	end
 
 	local map = loadedWorld.map
+	local walkable, notWalkable = 0, 1
 
 	for y = 1, map.height do
 		collisionMap[y] = {}
 
 		for x = 1, map.width do
-			collisionMap[y][x] = 0
+			collisionMap[y][x] = walkable
 		end
 	end
 
 	for _, layer in ipairs(map.layers) do
-		if (layer.properties.collidable) then
+		if (layer.data) then
 			for y = 1, map.height do
 				for x = 1, map.width do
 					local tile = layer.data[y][x]
 
 					if (tile) then
 						-- If the tile has a property "collidable" set to true, then mark it as collidable
-						if (tile.properties.collidable) then
-							collisionMap[y][x] = 1
-						end
-
-						-- If the entire layer is collidable, then any tile will be marked as collidable
-						if (layer.properties.collidable) then
-							collisionMap[y][x] = 1
+						-- Or if the entire layer is collidable, then any tile will be marked as collidable
+						if (tile.properties.collidable or layer.properties.collidable) then
+							collisionMap[y][x] = notWalkable
 						end
 					end
 				end
@@ -173,18 +164,41 @@ function SimpleTiled.getCollisionMap()
 		end
 	end
 
-	-- Print the collision map for debugging
-	-- for y, row in ipairs(collisionMap) do
-	-- 	local rowString = ""
+	return collisionMap, walkable
+end
 
-	-- 	for x, value in ipairs(row) do
-	-- 		rowString = rowString .. value
-	-- 	end
+--- Uses the pathfinder to find a path from the start to the end position.
+--- @param startX number # The start X (0-based)
+--- @param startY number # The start Y (0-based)
+--- @param endX number # The end X (0-based)
+--- @param endY number # The end Y (0-based)
+--- @return table<number, table<number, number>> | nil # A table of path points (0-based) or nil if no path was found
+function SimpleTiled.findPath(startX, startY, endX, endY)
+	if (not loadedWorld) then
+		assert(false, "No map loaded.")
+		return
+	end
 
-	-- 	print(rowString)
-	-- end
+	-- The path finder works with 1-based indexes while the map is 0-based
+	startX = startX + 1
+	startY = startY + 1
+	endX = endX + 1
+	endY = endY + 1
 
-	return collisionMap
+	local path = loadedWorld.pathfinder:getPath(startX, startY, endX, endY)
+
+	if (not path) then
+		return nil
+	end
+
+	-- Convert back to 0-based indexes
+	local points = {}
+
+	for node, count in path:nodes() do
+		table.insert(points, { x = node:getX() - 1, y = node:getY() - 1 })
+	end
+
+	return points
 end
 
 return SimpleTiled

@@ -70,6 +70,18 @@ function WorldMap:performUpdate(deltaTime)
 		if (unitOrStructure) then
 			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
 				unitOrStructure:setSelected(not unitOrStructure.isSelected)
+
+				-- testing pathfinding
+				local pathPoints = SimpleTiled.findPath(unitOrStructure.x, unitOrStructure.y, 12, 7)
+
+				if (pathPoints) then
+					print('Path found!')
+					for _, point in ipairs(pathPoints) do
+						print(('Step: %d - x: %d - y: %d'):format(_, point.x, point.y))
+					end
+				else
+					print('No path found!')
+				end
 			end)
 		end
 

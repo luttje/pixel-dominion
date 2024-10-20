@@ -1,7 +1,6 @@
 --- Represents a world that contains units and structures
 --- @class World
 --- @field mapPath string # The path to the map file
---- @field staticCollisionMap table # Collision map for static map objects/tiles
 --- @field units table<number, Unit> # The units in the world
 --- @field structures table<number, Structure> # The structures in the world
 local World = DeclareClass('World')
@@ -34,8 +33,6 @@ function World:loadMap()
 			unit:update(deltaTime)
 		end
 	end)
-
-	self.staticCollisionMap = SimpleTiled.getCollisionMap()
 end
 
 --- Updates the world
