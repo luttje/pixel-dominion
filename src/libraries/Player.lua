@@ -2,12 +2,14 @@
 --- @field inputBlocked boolean
 --- @field world World
 --- @field faction Faction
+--- @field selectedInteractables InteractableGroup
 local Player = DeclareClass('Player')
 
 function Player:initialize(config)
 	config = config or {}
 
-	self.inputBlocked = false
+    self.inputBlocked = false
+	self.selectedInteractables = InteractableGroup()
 
 	table.Merge(self, config)
 end
@@ -46,7 +48,25 @@ end
 --- Gets the player faction
 --- @return Faction
 function Player:getFaction()
-	return self.faction
+    return self.faction
+end
+
+--- Adds the given interactable to the selected interactables
+--- @param interactable Interactable
+function Player:addSelectedInteractable(interactable)
+    self.selectedInteractables:add(interactable)
+end
+
+--- Removes the given interactable from the selected interactables
+--- @param interactable Interactable
+function Player:removeSelectedInteractable(interactable)
+    self.selectedInteractables:remove(interactable)
+end
+
+--- Gets the selected interactables
+--- @return InteractableGroup
+function Player:getSelectedInteractables()
+	return self.selectedInteractables:getAll()
 end
 
 return Player

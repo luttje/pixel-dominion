@@ -110,6 +110,22 @@ function UnitTypeRegistry.UnitRegistration:draw(unit, animationName)
 	love.graphics.draw(self.image, quad, x, y)
 end
 
+--- Draws the unit hud icon
+--- @param x number
+--- @param y number
+--- @param width number
+--- @param height number
+function UnitTypeRegistry.UnitRegistration:drawHudIcon(x, y, width, height)
+    local quad = self.animations.idle:getCurrentQuad()
+
+	local imageWidth, imageHeight = GameConfig.tileSize, GameConfig.tileSize
+    local scaleX = width / imageWidth
+	local scaleY = height / imageHeight
+
+	love.graphics.setColor(1, 1, 1)
+	love.graphics.draw(self.image, quad, x, y, 0, scaleX, scaleY)
+end
+
 --[[
 	Registry methods
 --]]

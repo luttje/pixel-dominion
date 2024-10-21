@@ -61,13 +61,14 @@ function World:getEntityUnderPosition(x, y)
 		end
 	end
 
-    for _, faction in ipairs(self.factions) do
-		for _, structure in ipairs(faction:getStructures()) do
-			if (structure:isInPosition(x, y)) then
-				return structure
-			end
-		end
-	end
+	-- TODO:
+    -- for _, faction in ipairs(self.factions) do
+	-- 	for _, structure in ipairs(faction:getStructures()) do
+	-- 		if (structure:isInPosition(x, y)) then
+	-- 			return structure
+	-- 		end
+	-- 	end
+	-- end
 
 	return nil
 end

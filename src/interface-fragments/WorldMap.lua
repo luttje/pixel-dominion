@@ -49,8 +49,34 @@ function WorldMap:performUpdate(deltaTime)
     local wantsToDrag = (love.mouse.isDown(1) and love.mouse.isDown(2))
         or (#love.touch.getTouches() == 2)
 
-	if (not wantsToDrag) then
-		self.dragging = false
+    if (not wantsToDrag) then
+		if (self.dragging) then
+            self.dragging = false
+        elseif (love.mouse.isDown(1)) then
+			local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
+			local unitOrStructure = self.world:getEntityUnderPosition(worldX, worldY)
+
+			if (unitOrStructure) then
+				TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
+					unitOrStructure:setSelected(not unitOrStructure.isSelected)
+
+					-- testing pathfinding
+					local pathPoints = SimpleTiled.findPath(unitOrStructure.x, unitOrStructure.y, 12, 7)
+
+					if (pathPoints) then
+						print('Path found!')
+						for _, point in ipairs(pathPoints) do
+							print(('Step: %d - x: %d - y: %d'):format(_, point.x, point.y))
+						end
+					else
+						print('No path found!')
+					end
+				end)
+			end
+
+			print('World X:', worldX, 'World Y:', worldY, 'Unit:', unitOrStructure)
+		end
+
 		return
 	elseif (not self.dragging) then
 		self.dragging = true
@@ -64,32 +90,6 @@ function WorldMap:performUpdate(deltaTime)
 
 		self.camera.x = newX
 		self.camera.y = newY
-	end
-
-	-- Debug only. If space is down, show the x, y of the mouse in the world
-	if (love.keyboard.isDown('space')) then
-		local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
-		local unitOrStructure = self.world:getEntityUnderPosition(worldX, worldY)
-
-		if (unitOrStructure) then
-			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
-				unitOrStructure:setSelected(not unitOrStructure.isSelected)
-
-				-- testing pathfinding
-				local pathPoints = SimpleTiled.findPath(unitOrStructure.x, unitOrStructure.y, 12, 7)
-
-				if (pathPoints) then
-					print('Path found!')
-					for _, point in ipairs(pathPoints) do
-						print(('Step: %d - x: %d - y: %d'):format(_, point.x, point.y))
-					end
-				else
-					print('No path found!')
-				end
-			end)
-		end
-
-		print('World X:', worldX, 'World Y:', worldY, 'Unit:', unitOrStructure)
 	end
 end
 

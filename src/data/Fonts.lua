@@ -15,6 +15,7 @@ function Fonts:registerFonts()
 	local boldMassive = love.graphics.newFont('assets/fonts/Spectral-ExtraBold.ttf', 32)
 
 	Fonts.default = defaultMedium
+	Fonts.defaultHud = boldMedium
 	Fonts.buttonText = boldMedium
 	Fonts.debug = defaultTiny
 

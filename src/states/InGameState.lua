@@ -20,7 +20,19 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
 		height = 64,
 		world = CurrentPlayer:getWorld()
 	})
-	fragments:add(resourceBar)
+    fragments:add(resourceBar)
+
+    -- Bottom right selection box
+	local selectionBox = SelectionBox({
+		anchorHorizontally = 'end',
+		anchorVertically = 'center',
+
+		anchorMargins = Sizes.margin(),
+
+        alignHorizontally = 'end',
+        alignVertically = 'center',
+	})
+	fragments:add(selectionBox)
 end
 
 function InGameState:onEnter()

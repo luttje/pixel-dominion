@@ -1,15 +1,14 @@
+require('libraries.Interactable')
+
 --- Represents a unit in the game
---- @class Unit
+--- @class Unit : Interactable
 --- @field unitType UnitTypeRegistry.UnitRegistration
 --- @field faction Faction
---- @field x number # The x position of the unit
---- @field y number # The y position of the unit
 --- @field targetX number # The x position the unit is moving towards
 --- @field targetY number # The y position the unit is moving towards
 --- @field health number # The health of the unit
 --- @field currentAction string # The current action the unit is performing
---- @field isSelected boolean # Whether the unit is selected
-local Unit = DeclareClass('Unit')
+local Unit = DeclareClassWithBase('Unit', Interactable)
 
 --- Initializes the unit
 --- @param config table
@@ -33,7 +32,16 @@ end
 
 --- Draws the unit
 function Unit:draw()
-	self.unitType:draw(self, self.currentAction)
+    self.unitType:draw(self, self.currentAction)
+end
+
+--- Draws the unit hud icon
+--- @param x number
+--- @param y number
+--- @param width number
+--- @param height number
+function Unit:drawHudIcon(x, y, width, height)
+	self.unitType:drawHudIcon(x, y, width, height)
 end
 
 --- Updates the unit
@@ -64,20 +72,6 @@ end
 --- @return boolean
 function Unit:isMoving()
 	return self.x ~= self.targetX or self.y ~= self.targetY
-end
-
---- Checks if the unit is in the given position
---- @param x number
---- @param y number
---- @return boolean
-function Unit:isInPosition(x, y)
-	return self.x == x and self.y == y
-end
-
---- Selects the unit
---- @param selected boolean
-function Unit:setSelected(selected)
-	self.isSelected = selected
 end
 
 return Unit
