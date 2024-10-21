@@ -4,7 +4,7 @@ local Sti = require("third-party.sti")
 local Grid = require("third-party.jumper.grid")
 local Pathfinder = require("third-party.jumper.pathfinder")
 
-local WALKABLE, NOT_WALKABLE = 0, 1
+WALKABLE, NOT_WALKABLE = 0, 1
 
 --- Represents a world that contains factions
 --- @class World
@@ -73,7 +73,7 @@ function World:loadMap()
 	end
 
 	-- Cache the static collision map
-	local collisionMap = self:updateEntireCollisionMap()
+	local collisionMap = self:updateCollisionMap()
 
 	if (GameConfig.debugCollisionMap) then
 		for y, row in ipairs(collisionMap) do
@@ -87,12 +87,10 @@ function World:loadMap()
 		end
 	end
 
-    self.collisionMap = collisionMap
-
     -- Go through all resource types and check all layers for a match of spawnAtTileId
     local map = self.map
 	for _, resourceType in ipairs(ResourceTypeRegistry:getAllResourceTypes()) do
-		for _, layer in ipairs(map.layers) do
+		for __, layer in ipairs(map.layers) do
 			if (layer.data) then
 				for y = 1, map.height do
 					for x = 1, map.width do
@@ -184,7 +182,7 @@ end
 --- Returns the collision map for the loaded map based on the "collidable" property of the layers.
 --- Additionally it returns the number representing
 --- @return table<number, table<number, number>>
-function World:updateEntireCollisionMap()
+function World:updateCollisionMap()
 	local collisionMap = {}
 
 	if (not self) then
@@ -213,6 +211,8 @@ function World:updateEntireCollisionMap()
 						-- Or if the entire layer is collidable, then any tile will be marked as collidable
 						if (tile.properties.collidable or layer.properties.collidable) then
 							collisionMap[y][x] = NOT_WALKABLE
+						else
+							collisionMap[y][x] = WALKABLE
 						end
 					end
 				end
@@ -220,47 +220,9 @@ function World:updateEntireCollisionMap()
 		end
 	end
 
+    self.collisionMap = collisionMap
+
 	return collisionMap
-end
-
---- Updates the collision map for the specified layer.
---- @param layerName string
---- @param isFullUpdate? boolean
-function World:updateCollisionMap(layerName, isFullUpdate)
-	if (isFullUpdate == nil) then
-		isFullUpdate = false
-	end
-
-	if (not self) then
-		assert(false, "No map loaded.")
-		return
-	end
-
-	local map = self.map
-    local collisionMap = self.collisionMap
-
-    local layer = map.layers[layerName]
-
-    if (layer.data) then
-        for y = 1, map.height do
-            for x = 1, map.width do
-                local tile = layer.data[y][x]
-
-                if (tile) then
-                    -- If the tile has a property "collidable" set to true, then mark it as collidable
-                    -- Or if the entire layer is collidable, then any tile will be marked as collidable
-                    if (tile.properties.collidable or layer.properties.collidable) then
-                        collisionMap[y][x] = NOT_WALKABLE
-					elseif (isFullUpdate) then
-                        collisionMap[y][x] = WALKABLE
-                    end
-                end
-            end
-        end
-    end
-
-    self.collisionGrid = Grid(collisionMap)
-	self.pathfinder = Pathfinder(self.collisionGrid, 'ASTAR', WALKABLE)
 end
 
 --- Uses the pathfinder to find a path from the start to the end position.
@@ -280,6 +242,15 @@ function World:findPath(startX, startY, endX, endY)
     startY = startY + 1
     endX = endX + 1
     endY = endY + 1
+
+    -- Ensure its within bounds of the map
+    if (startX < 1 or startY < 1 or endX < 1 or endY < 1) then
+        return nil
+    end
+
+	if (startX > self.map.width or startY > self.map.height or endX > self.map.width or endY > self.map.height) then
+		return nil
+	end
 
     local path = self.pathfinder:getPath(startX, startY, endX, endY)
 
@@ -323,10 +294,44 @@ function World:addTile(layerName, tilesetIndex, tileIndex, x, y)
     self.map:setLayerTile(layerName, x + 1, y + 1, gid)
 end
 
+--- Removes the tile at the given position from the specified layer.
+--- @param layerName string
+--- @param x number
+--- @param y number
+function World:removeTile(layerName, x, y)
+	if (not self) then
+		assert(false, "No map loaded.")
+		return
+	end
+
+	local layer = self.map.layers[layerName]
+
+	if (not layer) then
+		assert(false, "Layer not found: " .. layerName)
+		return
+	end
+
+    x = x + 1
+	y = y + 1
+
+    self.map:setLayerTile(layerName, x, y, nil)
+end
+
 --- Adds a resource instance to the world
 --- @param resourceInstance ResourceInstance
 function World:addResourceInstance(resourceInstance)
 	table.insert(self.resourceInstances, resourceInstance)
+end
+
+--- Removes the given resource instance from the world
+--- @param resourceInstance ResourceInstance
+function World:removeResourceInstance(resourceInstance)
+	for i, instance in ipairs(self.resourceInstances) do
+        if (instance == resourceInstance) then
+			table.remove(self.resourceInstances, i)
+			return
+		end
+	end
 end
 
 --- Gets the unit or structure under the given world position
@@ -352,7 +357,7 @@ function World:getInteractableUnderPosition(x, y)
 	-- end
 
 	for _, resourceInstance in ipairs(self.resourceInstances) do
-		if (resourceInstance:isInPosition(x, y)) then
+        if (resourceInstance:isInPosition(x, y)) then
 			return resourceInstance
 		end
 	end

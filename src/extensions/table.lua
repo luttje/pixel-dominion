@@ -75,3 +75,13 @@ function table.Empty(source)
 		source[key] = nil
 	end
 end
+
+--- Returns a random value from a table.
+--- @param source table
+--- @return any # The random value
+function table.Random(source)
+	local keys = table.Keys(source)
+	local randomKey = keys[math.random(1, #keys)]
+
+	return source[randomKey]
+end

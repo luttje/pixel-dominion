@@ -2,8 +2,7 @@
 --- @class ResourceInstance : Interactable
 --- @field resourceType ResourceTypeRegistry.ResourceRegistration
 --- @field supply number
---- @field tileWidth number
---- @field tileHeight number
+--- @field tiles table
 local ResourceInstance = DeclareClassWithBase('ResourceInstance', Interactable)
 
 --- Initializes the faction
@@ -12,6 +11,7 @@ function ResourceInstance:initialize(config)
     config = config or {}
 
 	self.isSelectable = false
+	self.supply = 100
 
 	table.Merge(self, config)
 end
@@ -34,7 +34,20 @@ function ResourceInstance:interact(interactable)
 	interactable.currentAction = {
 		animation = 'action',
 		targetInteractable = self,
-	}
+    }
+
+    local world = CurrentPlayer:getWorld()
+	assert(world, 'World is required.')
+
+	-- TODO: Only do this after the supply (slowly) runs out
+    -- Remove all tiles from the world
+    for _, tile in pairs(self.tiles) do
+        world:removeTile(tile.layerName, tile.x, tile.y)
+    end
+	interactable:getFaction():addResources(self.resourceType, self.supply)
+
+	world:removeResourceInstance(self)
+	world:updateCollisionMap()
 end
 
 return ResourceInstance

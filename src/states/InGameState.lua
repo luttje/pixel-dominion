@@ -38,7 +38,6 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
 end
 
 function InGameState:onEnter()
-	self.worldMap:refreshMap()
 end
 
 function InGameState:onUpdate(deltaTime)

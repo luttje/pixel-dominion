@@ -51,39 +51,38 @@ function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
     assert(self.spawnAtTileId, 'Resource spawnAtTileId is required.')
     assert(self.worldTilesetInfo, 'Resource worldTilesetInfo is required.')
 
-    local changedLayers = {}
+	local tiles = {}
+	local treeInfo = table.Random(self.worldTilesetInfo)
 
-    local tileWidth = 1
-    local tileHeight = 1
+	for _, tileInfo in ipairs(treeInfo) do
+		local worldX = x + (tileInfo.offsetX or 0)
+		local worldY = y + (tileInfo.offsetY or 0)
 
-    for _, treeInfo in ipairs(self.worldTilesetInfo) do
-        for _, tileInfo in ipairs(treeInfo) do
-            world:addTile(
-                tileInfo.targetLayer,
-                tileInfo.tilesetId,
-                tileInfo.tileId,
-                x + (tileInfo.offsetX or 0),
-                y + (tileInfo.offsetY or 0)
-            )
+		world:addTile(
+			tileInfo.targetLayer,
+			tileInfo.tilesetId,
+			tileInfo.tileId,
+			worldX,
+			worldY
+		)
 
-            -- Increase tile size if offset shows that we span multiple tiles
-            tileWidth = math.max(tileWidth, tileInfo.offsetX + 1)
-			tileHeight = math.max(tileHeight, tileInfo.offsetY + 1)
+		-- Track the tiles that belong to this resource so they can be removed later
+		tiles[#tiles + 1] = {
+			layerName = tileInfo.targetLayer,
+			tilesetId = tileInfo.tilesetId,
+			tileId = tileInfo.tileId,
+			x = worldX,
+			y = worldY
+		}
+	end
 
-            changedLayers[tileInfo.targetLayer] = true
-        end
-    end
-
-    for layerName, _ in pairs(changedLayers) do
-        world:updateCollisionMap(layerName)
-    end
+	world:updateCollisionMap()
 
 	return ResourceInstance({
 		resourceType = self,
 		x = x,
         y = y,
-        tileWidth = tileWidth,
-		tileHeight = tileHeight
+		tiles = tiles
 	})
 end
 

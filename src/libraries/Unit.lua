@@ -92,6 +92,7 @@ end
 
 --- Called when the unit reaches its target
 function Unit:reachedTarget()
+	print('Unit reached target!')
 	-- If we have a target interactable, interact with it
 	if (self.currentAction.targetInteractable) then
 		self.currentAction.targetInteractable:interact(self)
@@ -169,10 +170,13 @@ function Unit:commandTo(targetX, targetY, interactable)
 		end
     end
 
+	if (#pathPoints > 1) then
+		self.currentAction.animation = 'idle'
+	end
+
 	if (interactable) then
 		self.currentAction.targetInteractable = interactable
     else
-		self.currentAction.animation = 'idle'
 		self.currentAction.targetInteractable = nil
 	end
 

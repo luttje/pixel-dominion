@@ -82,7 +82,42 @@ function Resources:registerResources()
 
 	ResourceTypeRegistry:registerResourceType('stone', {
         name = 'Stone',
-		imagePath = 'assets/images/resources/stone.png'
+		imagePath = 'assets/images/resources/stone.png',
+        spawnAtTileId = 27,
+		worldTilesetInfo = {
+			-- Stone 1
+            {
+                {
+					tilesetId = 1,
+					tileId = 400,
+                    targetLayer = 'Dynamic_Bottom',
+                },
+			},
+			-- Stone 2
+            {
+                {
+					tilesetId = 1,
+					tileId = 401,
+                    targetLayer = 'Dynamic_Bottom',
+                },
+			},
+			-- Stone 3
+            {
+                {
+					tilesetId = 1,
+					tileId = 402,
+                    targetLayer = 'Dynamic_Bottom',
+                },
+            },
+			-- Stone 4
+            {
+                {
+					tilesetId = 1,
+					tileId = 403,
+                    targetLayer = 'Dynamic_Bottom',
+                },
+            },
+		},
 	})
 
 	ResourceTypeRegistry:registerResourceType('gold', {
