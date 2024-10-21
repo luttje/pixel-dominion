@@ -17,7 +17,7 @@ function ResourceTypeRegistry.ResourceRegistration:initialize(config)
 	assert(config.id, 'Resource id is required.')
 	assert(config.imagePath, 'Resource imagePath is required.')
 
-	self.image = ImageCache:get(config.imagePath)
+    self.image = ImageCache:get(config.imagePath)
 
 	config = config or {}
 
@@ -39,7 +39,35 @@ end
 --- @param width number
 --- @param height number
 function ResourceTypeRegistry.ResourceRegistration:draw(x, y, width, height)
-	love.graphics.draw(self.image, x, y, 0, width / self.image:getWidth(), height / self.image:getHeight())
+    love.graphics.draw(self.image, x, y, 0, width / self.image:getWidth(), height / self.image:getHeight())
+end
+
+--- Spawns this resource at the given tile position
+--- @param x number
+--- @param y number
+function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(x, y)
+    assert(self.spawnAtTileId, 'Resource spawnAtTileId is required.')
+    assert(self.worldTilesetInfo, 'Resource worldTilesetInfo is required.')
+
+	local changedLayers = {}
+
+    for _, treeInfo in ipairs(self.worldTilesetInfo) do
+        for _, tileInfo in ipairs(treeInfo) do
+            SimpleTiled.addTile(
+                tileInfo.targetLayer,
+                tileInfo.tilesetId,
+                tileInfo.tileId,
+                x + (tileInfo.offsetX or 0),
+                y + (tileInfo.offsetY or 0)
+            )
+
+            changedLayers[tileInfo.targetLayer] = true
+        end
+    end
+
+	for layerName, _ in pairs(changedLayers) do
+		SimpleTiled.updateCollisionMap(layerName)
+	end
 end
 
 --[[

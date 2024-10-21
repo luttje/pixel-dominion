@@ -7,6 +7,7 @@ local Grid = require("third-party.jumper.grid")
 local Pathfinder = require("third-party.jumper.pathfinder")
 
 local loadedWorld
+local WALKABLE, NOT_WALKABLE = 0, 1
 
 -- Load a map exported to Lua from Tiled
 function SimpleTiled.loadMap(mapPath)
@@ -54,14 +55,8 @@ function SimpleTiled.loadMap(mapPath)
 		end
 	end
 
-	if (GameConfig.mapLayersToRemove) then
-		for _, layerName in ipairs(GameConfig.mapLayersToRemove) do
-			loadedWorld.map:removeLayer(layerName)
-		end
-	end
-
 	-- Cache the static collision map
-	local collisionMap, walkable = SimpleTiled.getCollisionMap()
+	local collisionMap = SimpleTiled.updateEntireCollisionMap()
 
 	if (GameConfig.debugCollisionMap) then
 		for y, row in ipairs(collisionMap) do
@@ -75,8 +70,34 @@ function SimpleTiled.loadMap(mapPath)
 		end
 	end
 
+    loadedWorld.collisionMap = collisionMap
+
+    -- Go through all resource types and check all layers for a match of spawnAtTileId
+    local map = loadedWorld.map
+	for _, resourceType in ipairs(ResourceTypeRegistry:getAllResourceTypes()) do
+		for _, layer in ipairs(map.layers) do
+			if (layer.data) then
+				for y = 1, map.height do
+					for x = 1, map.width do
+						local tile = layer.data[y][x]
+
+                        if (tile and tile.id == resourceType.spawnAtTileId) then
+							resourceType:spawnAtTile(x - 1, y - 1)
+						end
+					end
+				end
+			end
+		end
+	end
+
+	if (GameConfig.mapLayersToRemove) then
+		for _, layerName in ipairs(GameConfig.mapLayersToRemove) do
+			loadedWorld.map:removeLayer(layerName)
+		end
+	end
+
 	loadedWorld.collisionGrid = Grid(collisionMap)
-	loadedWorld.pathfinder = Pathfinder(loadedWorld.collisionGrid, 'ASTAR', walkable)
+	loadedWorld.pathfinder = Pathfinder(loadedWorld.collisionGrid, 'ASTAR', WALKABLE)
 end
 
 --- Registers a callback for a specific layer and callback type.
@@ -126,9 +147,9 @@ function SimpleTiled.draw(translateX, translateY, scaleX, scaleY)
 end
 
 --- Returns the collision map for the loaded map based on the "collidable" property of the layers.
---- Additionally it returns the number representing a walkable tile (always 0).
---- @return table<number, table<number, number>>, number
-function SimpleTiled.getCollisionMap()
+--- Additionally it returns the number representing
+--- @return table<number, table<number, number>>
+function SimpleTiled.updateEntireCollisionMap()
 	local collisionMap = {}
 
 	if (not loadedWorld) then
@@ -137,13 +158,12 @@ function SimpleTiled.getCollisionMap()
 	end
 
 	local map = loadedWorld.map
-	local walkable, notWalkable = 0, 1
 
 	for y = 1, map.height do
 		collisionMap[y] = {}
 
 		for x = 1, map.width do
-			collisionMap[y][x] = walkable
+			collisionMap[y][x] = WALKABLE
 		end
 	end
 
@@ -157,7 +177,7 @@ function SimpleTiled.getCollisionMap()
 						-- If the tile has a property "collidable" set to true, then mark it as collidable
 						-- Or if the entire layer is collidable, then any tile will be marked as collidable
 						if (tile.properties.collidable or layer.properties.collidable) then
-							collisionMap[y][x] = notWalkable
+							collisionMap[y][x] = NOT_WALKABLE
 						end
 					end
 				end
@@ -165,7 +185,42 @@ function SimpleTiled.getCollisionMap()
 		end
 	end
 
-	return collisionMap, walkable
+	return collisionMap
+end
+
+--- Updates the collision map for the specified layer.
+--- @param layerName string
+function SimpleTiled.updateCollisionMap(layerName)
+	if (not loadedWorld) then
+		assert(false, "No map loaded.")
+		return
+	end
+
+	local map = loadedWorld.map
+    local collisionMap = loadedWorld.collisionMap
+
+    local layer = map.layers[layerName]
+
+    if (layer.data) then
+        for y = 1, map.height do
+            for x = 1, map.width do
+                local tile = layer.data[y][x]
+
+                if (tile) then
+                    -- If the tile has a property "collidable" set to true, then mark it as collidable
+                    -- Or if the entire layer is collidable, then any tile will be marked as collidable
+                    if (tile.properties.collidable or layer.properties.collidable) then
+                        collisionMap[y][x] = NOT_WALKABLE
+                    else
+                        collisionMap[y][x] = WALKABLE
+                    end
+                end
+            end
+        end
+    end
+
+    loadedWorld.collisionGrid = Grid(collisionMap)
+	loadedWorld.pathfinder = Pathfinder(loadedWorld.collisionGrid, 'ASTAR', WALKABLE)
 end
 
 --- Uses the pathfinder to find a path from the start to the end position.
@@ -175,31 +230,57 @@ end
 --- @param endY number # The end Y (0-based)
 --- @return table<number, table<number, number>> | nil # A table of path points (0-based) or nil if no path was found
 function SimpleTiled.findPath(startX, startY, endX, endY)
+    if (not loadedWorld) then
+        assert(false, "No map loaded.")
+        return
+    end
+
+    -- The path finder works with 1-based indexes while the map is 0-based
+    startX = startX + 1
+    startY = startY + 1
+    endX = endX + 1
+    endY = endY + 1
+
+    local path = loadedWorld.pathfinder:getPath(startX, startY, endX, endY)
+
+    if (not path) then
+        return nil
+    end
+
+    -- Convert back to 0-based indexes
+    local points = {}
+
+    for node, count in path:nodes() do
+        table.insert(points, { x = node:getX() - 1, y = node:getY() - 1 })
+    end
+
+    return points
+end
+
+--- Adds the given tile to the specified layer at the given position.
+--- @param layerName string
+--- @param tilesetIndex number
+--- @param tileIndex number
+--- @param x number
+--- @param y number
+function SimpleTiled.addTile(layerName, tilesetIndex, tileIndex, x, y)
 	if (not loadedWorld) then
 		assert(false, "No map loaded.")
 		return
 	end
 
-	-- The path finder works with 1-based indexes while the map is 0-based
-	startX = startX + 1
-	startY = startY + 1
-	endX = endX + 1
-	endY = endY + 1
+    local layer = loadedWorld.map.layers[layerName]
 
-	local path = loadedWorld.pathfinder:getPath(startX, startY, endX, endY)
-
-	if (not path) then
-		return nil
+	if (not layer) then
+		assert(false, "Layer not found: " .. layerName)
+		return
 	end
 
-	-- Convert back to 0-based indexes
-	local points = {}
+	-- Calculate the global tile ID (gid)
+	local firstgid = loadedWorld.map.tilesets[tilesetIndex].firstgid
+    local gid = firstgid + tileIndex
 
-	for node, count in path:nodes() do
-		table.insert(points, { x = node:getX() - 1, y = node:getY() - 1 })
-	end
-
-	return points
+    loadedWorld.map:setLayerTile(layerName, x + 1, y + 1, gid)
 end
 
 return SimpleTiled

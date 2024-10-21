@@ -16,7 +16,8 @@ GameConfig.name = 'Unnamed RTS'
 --- Useful to disable the ground grid or debug layers.
 --- @type table
 GameConfig.mapLayersToRemove = {
-	-- "GroundGrid",
+    -- "GroundGrid",
+	"DesignTimeOnly",
 }
 
 --- Width and height of the map tiles in pixels.

@@ -897,15 +897,15 @@ function Map:draw(tx, ty, sx, sy)
 	-- Map is translated to correct position so the right section is drawn
 	lg.push()
 	lg.origin()
-	
+
 	--[[
 		This snippet comes from 'monolifed' on the Love2D forums,
-		however it was more or less exactly the same code I was already writing 
-		to implement the same parallax scrolling. I found his before 
+		however it was more or less exactly the same code I was already writing
+		to implement the same parallax scrolling. I found his before
 		testing and polishing mine
 		https://love2d.org/forums/viewtopic.php?p=238378#p238378
 
-		previous code commented below the new. 
+		previous code commented below the new.
 
 	]]
 
@@ -950,7 +950,7 @@ end
 function Map.drawLayer(_, layer)
 	local r,g,b,a = lg.getColor()
 	-- if the layer has a tintcolor set
-	if layer.tintcolor then 
+	if layer.tintcolor then
 		r, g, b, a = unpack(layer.tintcolor)
 		a = a or 255 -- alpha may not be specified
 		lg.setColor(r/255, g/255, b/255, a/255) -- Tiled uses 0-255
@@ -1078,12 +1078,12 @@ function Map:drawImageLayer(layer)
 		if layer.repeaty then
 			local x = imagewidth
 			local y = imageheight
-			while y < self.height * self.tileheight do 
+			while y < self.height * self.tileheight do
 				lg.draw(layer.image, x, y)
 				-- if we are *also* repeating on X
-				if layer.repeatx then 
+				if layer.repeatx then
 					x = x + imagewidth
-					while x < self.width * self.tilewidth do 
+					while x < self.width * self.tilewidth do
 						lg.draw(layer.image, x, y)
 						x = x + imagewidth
 					end
@@ -1093,7 +1093,7 @@ function Map:drawImageLayer(layer)
 		-- if we're repeating on X alone...
 		elseif layer.repeatx then
 			local x = imagewidth
-			while x < self.width * self.tilewidth do 
+			while x < self.width * self.tilewidth do
 				lg.draw(layer.image, x, layer.y)
 				x = x + imagewidth
 			end
@@ -1271,7 +1271,7 @@ function Map:setLayerTile(layer, x, y, gid)
 	if instance then
 		self:swapTile(instance, tile)
 	else
-		self:addNewLayerTile(layer, tile, x, y)
+		self:addNewLayerTile(layer, chunk, tile, x, y)
 	end
 	layer.data[y][x] = tile
 end

@@ -59,7 +59,6 @@ function WorldMap:performUpdate(deltaTime)
 			if (unitOrStructure) then
 				TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_INPUT, Times.clickInterval, function()
 					unitOrStructure:setSelected(not unitOrStructure.isSelected)
-					print('Unit or structure selection changed:', unitOrStructure, 'at World X:', worldX, 'World Y:', worldY, 'Selected:', unitOrStructure.isSelected)
 				end)
 			else
 				TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_COMMAND, Times.clickInterval, function()
