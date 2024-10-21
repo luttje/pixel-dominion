@@ -54,7 +54,9 @@ function ResourceInstance:updateInteract(deltaTime, interactable)
 
     if (self.harvestTimer < GameConfig.resourceHarvestTimeInSeconds) then
         return
-	end
+    end
+
+	self.harvestTimer = 0
 
     local resourceHarvested = math.min(self.supply, inventory:getRemainingResourceSpace())
 

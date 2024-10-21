@@ -28,6 +28,8 @@ function Unit:initialize(config)
     self.moveTimer = 0
     self.nextX = self.x
     self.nextY = self.y
+
+	self:reachedTarget()
 end
 
 --- Sets the current action
@@ -89,20 +91,8 @@ function Unit:update(deltaTime)
     -- If we have a target interactable, interact with it if we are at the same position
     local targetInteractable = self:getCurrentActionInteractable()
 
-	if (targetInteractable and targetInteractable:isInPosition(self.x, self.y)) then
+    if (targetInteractable and not self:isMoving() and targetInteractable:getDistanceTo(self.x, self.y) < 2) then
 		targetInteractable:updateInteract(deltaTime, self)
-	end
-
-	-- Check if the next position is occupied
-	if (self:isPositionOccupied(self.nextX, self.nextY)) then
-		-- Check if our current position is occupied, if so find a new empty spot to stand
-		self.nextX, self.nextY = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
-
-		if (self:isMoving()) then
-            self.maxSteps = self.maxSteps - 1
-        else
-			self:commandTo(self.nextX, self.nextY, targetInteractable, self.formation)
-		end
 	end
 
     if (not self:isMoving()) then
@@ -119,45 +109,11 @@ function Unit:update(deltaTime)
 
 	-- Time to move to the next tile
 	self.moveTimer = self.moveTimer - GameConfig.unitMoveTimeInSeconds
-	-- self.x = self.nextX
-	-- self.y = self.nextY
-
-	-- -- Find the next tile in the path
-    -- local pathPoints = CurrentWorld:findPath(self.x, self.y, self.targetX, self.targetY)
-
-	-- if (pathPoints) then
-	-- 	if (#pathPoints > 1) then
-	-- 		-- The next point in the path becomes our immediate target
-	-- 		self.nextX = pathPoints[2].x
-    --         self.nextY = pathPoints[2].y
-
-	-- 		-- TODO: Commented because too glitchy, need to fix
-	-- 		-- local formation = self.formation
-
-	-- 		-- if (formation.centerUnit ~= self) then
-    --         -- local centerX, centerY = formation.centerUnit.x, formation.centerUnit.y
-	-- 		-- 	if (formation.type == 'circle') then
-	-- 		-- 		self.nextX, self.nextY = self:calculateCircleFormationPosition(centerX, centerY, 1, formation.index, formation.size)
-	-- 		-- 	elseif (formation.type == 'square') then
-	-- 		-- 		self.nextX, self.nextY = self:calculateSquareFormationPosition(centerX, centerY, math.ceil(math.sqrt(formation.size)), formation.index)
-	-- 		-- 	end
-	-- 		-- end
-	-- 	else
-	-- 		-- We've reached the target
-	-- 		self.targetX = nil
-	-- 		self.targetY = nil
-	-- 		self.nextX = self.x
-	-- 		self.nextY = self.y
-
-	-- 		self:reachedTarget()
-	-- 	end
-	-- end
-
     self.x, self.y = self.nextX, self.nextY
 
 	-- Update next position
 	if (self.x ~= self.targetX or self.y ~= self.targetY) then
-        local pathPoints = CurrentWorld:findPath(self.x, self.y, self.targetX, self.targetY)
+        local pathPoints = self:findPathTo(self.targetX, self.targetY)
 
 		if (pathPoints and #pathPoints > 1) then
             self.maxSteps = self.maxSteps - 1
@@ -169,10 +125,8 @@ function Unit:update(deltaTime)
             end
 
 			self.nextX, self.nextY = pathPoints[2].x, pathPoints[2].y
-		else
-			self:reachedTarget()
 		end
-	else
+    else
 		self:reachedTarget()
 	end
 end
@@ -180,7 +134,21 @@ end
 --- Called when the unit reaches its target
 function Unit:reachedTarget()
     self.targetX = nil
-	self.targetY = nil
+    self.targetY = nil
+
+	-- Check if the next position is occupied
+	if (self:isPositionOccupied(self.nextX, self.nextY)) then
+		-- Check if our current position is occupied, if so find a new empty spot to stand
+		self.nextX, self.nextY = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
+
+        if (self:isMoving()) then
+			if (self.maxSteps) then
+            	self.maxSteps = self.maxSteps - 1
+			end
+        else
+			self:commandTo(self.nextX, self.nextY, targetInteractable, self.formation)
+		end
+	end
 end
 
 --- Returns the draw offset of the unit. We will bounce when moving or while selected
@@ -199,10 +167,6 @@ function Unit:getDrawOffset()
 
         -- Add bouncing effect with our formation index as a bit of an offset so units never exactly overlap
         bounceY = bounceY + math.sin(love.timer.getTime() * 10 + ((self.formation and self.formation.index or 1) * 2)) * -1
-    elseif (targetInteractable) then
-        -- Set us to be at the interactable's position
-        bounceX = (targetInteractable.x - self.x) * GameConfig.tileSize
-		bounceY = (targetInteractable.y - self.y) * GameConfig.tileSize
 	end
 
 	return bounceX, bounceY
@@ -232,31 +196,6 @@ function Unit:isPositionOccupied(x, y)
     return false
 end
 
---- Finds the nearest unoccupied position to the target
---- @param targetX number
---- @param targetY number
---- @return number, number
-function Unit:findNearestUnoccupiedPosition(targetX, targetY)
-    local checkRadius = 1
-    local maxRadius = 5 -- Adjust this value based on your game's needs
-
-    while (checkRadius <= maxRadius) do
-        for dy = -checkRadius, checkRadius do
-            for dx = -checkRadius, checkRadius do
-                local newX, newY = targetX + dx, targetY + dy
-
-                if (not self:isPositionOccupied(newX, newY)) then
-                    return newX, newY
-                end
-            end
-        end
-
-        checkRadius = checkRadius + 1
-    end
-
-    return targetX, targetY -- Return original target if no free position found
-end
-
 --- Calculates the position in a circle formation
 --- @param centerX number The x-coordinate of the formation center
 --- @param centerY number The y-coordinate of the formation center
@@ -284,6 +223,38 @@ function Unit:calculateSquareFormationPosition(centerX, centerY, size, formation
     return math.floor(centerX + x + 0.5), math.floor(centerY + y + 0.5)  -- Round to nearest tile
 end
 
+--- Finds a path to or near the target position
+function Unit:findPathTo(targetX, targetY)
+    assert(CurrentWorld, 'World is required.')
+
+	local pathPoints = CurrentWorld:findPath(self.x, self.y, targetX, targetY)
+
+    if (not pathPoints) then
+		-- Look further and further away until we find a free tile is found around the target.
+		for range = 1, math.huge do
+			for _, offset in ipairs(GameConfig.unitPathingOffsets) do
+				local offsetX = targetX + (offset.x * range)
+				local offsetY = targetY + (offset.y * range)
+
+                pathPoints = CurrentWorld:findPath(self.x, self.y, offsetX, offsetY)
+
+				if (pathPoints) then
+					targetX = offsetX
+					targetY = offsetY
+					break
+				end
+			end
+
+            if (pathPoints or range > 100) then
+				-- Give up after 100 tries
+				break
+			end
+		end
+	end
+
+	return pathPoints, targetX, targetY
+end
+
 --- Handles a command to target the given position
 --- @param targetX number
 --- @param targetY number
@@ -291,10 +262,6 @@ end
 --- @param formation table
 --- @return boolean
 function Unit:commandTo(targetX, targetY, interactable, formation)
-	self.targetX = targetX
-	self.targetY = targetY
-	self.formation = formation
-
     -- If it's the same position, do nothing
     if (self.x == targetX and self.y == targetY) then
         return false
@@ -302,32 +269,21 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
 
     assert(CurrentWorld, 'World is required.')
 
-    local pathPoints = CurrentWorld:findPath(self.x, self.y, targetX, targetY)
+	local pathPoints
+    pathPoints, targetX, targetY = self:findPathTo(targetX, targetY)
 
     -- TODO: play a sound or something on fail/succeed walking
 
-    if (not pathPoints) then
-		-- Find a path somewhere around the interactable
-		if (interactable) then
-			for _, offset in ipairs(GameConfig.unitPathingOffsets) do
-				local offsetX = interactable.x + offset.x
-				local offsetY = interactable.y + offset.y
-
-				pathPoints = CurrentWorld:findPath(self.x, self.y, offsetX, offsetY)
-
-                if (pathPoints) then
-                    targetX = offsetX
-					targetY = offsetY
-					break
-				end
-			end
-		end
-
-		if (not pathPoints) then
-        	print('No path found!')
-        	return false
-		end
+    if (not pathPoints or #pathPoints == 1) then
+        self.targetX = nil
+		self.targetY = nil
+		self.formation = nil
+        return false
     end
+
+	self.targetX = targetX
+	self.targetY = targetY
+	self.formation = formation
 
 	if (#pathPoints > 1) then
 		self:setCurrentAction('idle', interactable)

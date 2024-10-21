@@ -45,6 +45,14 @@ function Interactable:isInPosition(x, y)
 	return self.x == x and self.y == y
 end
 
+--- Get the distance to the given position. Returned as a squared value for performance reasons.
+--- @param x number
+--- @param y number
+--- @return number
+function Interactable:getDistanceTo(x, y)
+	return math.pow(self.x - x, 2) + math.pow(self.y - y, 2)
+end
+
 --- Selects the interactable
 --- @param selected boolean
 function Interactable:setSelected(selected)
