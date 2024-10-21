@@ -42,7 +42,7 @@ end
 --- @class UnitTypeRegistry.UnitRegistration
 --- @field id string The unique id of the unit.
 --- @field name string The name of the unit.
---- @field image Image The Image used to efficiently render the unit.
+--- @field image Image The Image used to render the unit.
 --- @field animations table<string, UnitTypeRegistry.UnitAnimation> The animations used to render the unit.
 UnitTypeRegistry.UnitRegistration = DeclareClass('UnitTypeRegistry.UnitRegistration')
 

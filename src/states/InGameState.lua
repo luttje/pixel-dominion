@@ -11,7 +11,16 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
 		anchorVertically = 'fill',
 		world = CurrentPlayer:getWorld()
 	})
-	fragments:add(self.worldMap)
+    fragments:add(self.worldMap)
+
+    -- Resource bar
+	local resourceBar = ResourceBar({
+		anchorHorizontally = 'fill',
+        anchorVertically = 'start',
+		height = 48,
+		world = CurrentPlayer:getWorld()
+	})
+	fragments:add(resourceBar)
 end
 
 function InGameState:onEnter()

@@ -1,4 +1,7 @@
 --- @class Player
+--- @field inputBlocked boolean
+--- @field world World
+--- @field faction Faction
 local Player = DeclareClass('Player')
 
 function Player:initialize(config)
@@ -22,16 +25,28 @@ function Player:setInputBlocked(block)
 	self.inputBlocked = block
 end
 
---- Sets the current player world
+--- Sets the player world
 --- @param world World
 function Player:setWorld(world)
 	self.world = world
 end
 
---- Gets the current player world
+--- Gets the player world
 --- @return World
 function Player:getWorld()
 	return self.world
+end
+
+--- Sets the player faction
+--- @param faction Faction
+function Player:setFaction(faction)
+    self.faction = faction
+end
+
+--- Gets the player faction
+--- @return Faction
+function Player:getFaction()
+	return self.faction
 end
 
 return Player

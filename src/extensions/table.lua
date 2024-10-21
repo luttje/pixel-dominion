@@ -29,15 +29,41 @@ function table.Copy(source)
 end
 
 --- Checks if a table contains a value.
---- @param table table
+--- @param source table
 --- @param value any
 --- @return boolean, number|nil # Whether the table contains the value, and the index of the value.
-function table.HasValue(table, value)
-	for i, v in pairs(table) do
-		if (v == value) then
-			return true, i
-		end
+function table.HasValue(source, value)
+    for i, v in pairs(source) do
+        if (v == value) then
+            return true, i
+        end
+    end
+
+    return false, nil
+end
+
+--- Returns only the keys of a table.
+--- @param source table
+--- @return table # The keys of the table
+function table.Keys(source)
+    local keys = {}
+
+    for key, _ in pairs(source) do
+        table.insert(keys, key)
+    end
+
+    return keys
+end
+
+--- Returns only the values of a table.
+--- @param source table
+--- @return table # The values of the table
+function table.Values(source)
+	local values = {}
+
+	for _, value in pairs(source) do
+		table.insert(values, value)
 	end
 
-	return false, nil
+	return values
 end

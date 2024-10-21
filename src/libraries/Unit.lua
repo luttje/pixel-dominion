@@ -1,7 +1,7 @@
---- Represents a unit in the game, controller by a controller, which can be a player or an AI
+--- Represents a unit in the game
 --- @class Unit
---- @field controller UnitController
 --- @field unitType UnitTypeRegistry.UnitRegistration
+--- @field faction Faction
 --- @field x number # The x position of the unit
 --- @field y number # The y position of the unit
 --- @field targetX number # The x position the unit is moving towards
@@ -19,16 +19,16 @@ function Unit:initialize(config)
 	table.Merge(self, config)
 end
 
---- Gets who/what is controlling the unit
---- @return UnitController
-function Unit:getController()
-	return self.controller
-end
-
 --- Gets the type of unit
 --- @return UnitTypeRegistry.UnitRegistration
 function Unit:getUnitType()
 	return self.unitType
+end
+
+--- Gets the faction
+--- @return Faction
+function Unit:getFaction()
+	return self.faction
 end
 
 --- Draws the unit

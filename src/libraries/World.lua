@@ -48,13 +48,14 @@ end
 
 --- Spawns a unit of the given type at the given position
 --- @param unitType UnitTypeRegistry.UnitRegistration
+--- @param faction Faction
 --- @param x number
 --- @param y number
 --- @return Unit
-function World:spawnUnit(unitType, x, y)
+function World:spawnUnit(unitType, faction, x, y)
 	local unit = Unit({
-		controller = CurrentPlayer,
-		unitType = unitType,
+        unitType = unitType,
+		faction = faction,
 		x = x,
 		y = y,
 		targetX = x,

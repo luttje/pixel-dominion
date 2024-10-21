@@ -22,20 +22,33 @@ function love.load()
 
 	Fonts:registerFonts()
 
-	-- Now that the window is created we can initialize unit graphics
+	-- Now that the window is created we can initialize unit and resource graphics
 	RequireDirectory('unit-types', function(fileWithoutExtension, module)
 		local id = module.id or fileWithoutExtension
 
 		UnitTypeRegistry:registerUnitType(id, module)
 	end)
 
+	Resources:registerResources()
+
 	-- TODO: Eventually we'll want to be able to load/restore player data, for now we just create a new player.
 	CurrentPlayer = Player()
 
+	-- TODO: Currently hard-coded, just for testing our systems
 	local world = World({
 		mapPath = 'assets/worlds/forest_8x8.lua'
-	})
-	world:spawnUnit(UnitTypeRegistry:getUnitType('builder'), 16, 8)
+    })
+    local playerFaction = Faction({
+		factionType = FactionTypeRegistry:getFactionType('homelanders'),
+    })
+
+	CurrentPlayer:setFaction(playerFaction)
+
+	world:spawnUnit(
+        UnitTypeRegistry:getUnitType('builder'),
+		playerFaction,
+        16, 8
+	)
 
 	CurrentPlayer:setWorld(world)
 

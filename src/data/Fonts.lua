@@ -18,7 +18,9 @@ function Fonts:registerFonts()
 	Fonts.buttonText = boldMedium
 	Fonts.debug = defaultTiny
 
-	Fonts.hint = defaultMedium
+    Fonts.hint = defaultMedium
+
+	Fonts.resourceValue = boldMedium
 end
 
 return Fonts

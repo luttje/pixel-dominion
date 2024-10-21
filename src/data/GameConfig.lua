@@ -29,7 +29,7 @@ GameConfig.tileSize = 8
 
 --- Dump the collision map to the console for debugging.
 --- @type boolean
-GameConfig.debugCollisionMap = true
+GameConfig.debugCollisionMap = false
 
 --- Disable the tutorial for quick testing.
 --- @type boolean

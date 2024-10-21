@@ -19,3 +19,9 @@ RequireDirectory('states', function(fileWithoutExtension, module)
     SetModuleAsGlobal(fileWithoutExtension, module)
 	StateManager:registerState(module)
 end)
+
+RequireDirectory('factions', function(fileWithoutExtension, module)
+	local id = module.id or fileWithoutExtension
+
+	FactionTypeRegistry:registerFactionType(id, module)
+end)
