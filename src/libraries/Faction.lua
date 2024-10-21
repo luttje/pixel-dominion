@@ -2,6 +2,8 @@
 --- @class Faction
 --- @field factionType FactionTypeRegistry.FactionRegistration
 --- @field resourceValues ResourceValue[] # How many resources the faction has
+--- @field units table<number, Unit> # The units in the world
+--- @field structures table<number, Structure> # The structures in the world
 local Faction = DeclareClass('Faction')
 
 --- Initializes the faction
@@ -10,12 +12,11 @@ function Faction:initialize(config)
 	config = config or {}
 
 	self.resourceValues = {}
+	self.units = {}
+	self.structures = {}
 
 	for _, resourceType in pairs(ResourceTypeRegistry:getAllResourceTypes()) do
-		self.resourceValues[resourceType.id] = ResourceValue({
-			resourceType = resourceType,
-			value = 0
-		})
+		self.resourceValues[resourceType.id] = resourceType:newValue()
 	end
 
     table.Merge(self, config)
@@ -60,6 +61,34 @@ end
 --- @return ResourceValue[]
 function Faction:getResourceValues()
 	return self.resourceValues
+end
+
+--- Spawns a unit of the given type at the given position
+--- @param unitType UnitTypeRegistry.UnitRegistration
+--- @param x number
+--- @param y number
+--- @return Unit
+function Faction:spawnUnit(unitType, x, y)
+	local unit = Unit({
+        unitType = unitType,
+		faction = self,
+		x = x,
+		y = y,
+		targetX = x,
+		targetY = y,
+		health = 100,
+		currentAction = 'idle'
+	})
+
+	table.insert(self.units, unit)
+
+	return unit
+end
+
+--- Returns all units
+--- @return Unit[]
+function Faction:getUnits()
+    return self.units
 end
 
 return Faction

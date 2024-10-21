@@ -119,9 +119,10 @@ function SimpleTiled.draw(translateX, translateY, scaleX, scaleY)
 	love.graphics.setColor(1, 1, 1)
 	loadedWorld.map:draw(translateX, translateY, scaleX, scaleY)
 
-	-- Draw Collision Map (useful for debugging)
-	love.graphics.setColor(1, 0, 0)
-	loadedWorld.map:box2d_draw(translateX, translateY, scaleX, scaleY)
+	if (GameConfig.debugCollisionMap) then
+		love.graphics.setColor(1, 0, 0)
+		loadedWorld.map:box2d_draw(translateX, translateY, scaleX, scaleY)
+	end
 end
 
 --- Returns the collision map for the loaded map based on the "collidable" property of the layers.

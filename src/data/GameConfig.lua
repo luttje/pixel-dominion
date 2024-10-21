@@ -27,7 +27,8 @@ GameConfig.tileSize = 8
 	Debug/testing options
 --]]
 
---- Dump the collision map to the console for debugging.
+--- Dump the collision map to the console for debugging and draw the tiled
+--- collision map in red on the map.
 --- @type boolean
 GameConfig.debugCollisionMap = false
 

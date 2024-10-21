@@ -35,22 +35,21 @@ function love.load()
 	CurrentPlayer = Player()
 
 	-- TODO: Currently hard-coded, just for testing our systems
-	local world = World({
-		mapPath = 'assets/worlds/forest_8x8.lua'
-    })
     local playerFaction = Faction({
 		factionType = FactionTypeRegistry:getFactionType('homelanders'),
     })
 
-	CurrentPlayer:setFaction(playerFaction)
-
-	world:spawnUnit(
+	playerFaction:spawnUnit(
         UnitTypeRegistry:getUnitType('builder'),
-		playerFaction,
         16, 8
 	)
+	CurrentPlayer:setFaction(playerFaction)
 
-	CurrentPlayer:setWorld(world)
+	local world = World({
+		mapPath = 'assets/worlds/forest_8x8.lua'
+    })
+	world:addFaction(playerFaction)
+    CurrentPlayer:setWorld(world)
 
     StateManager:setCurrentState(InGameState)
 end

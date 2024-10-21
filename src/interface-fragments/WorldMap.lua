@@ -45,7 +45,11 @@ function WorldMap:performUpdate(deltaTime)
 		return
 	end
 
-	if (not love.mouse.isDown(1)) then
+    -- Require both mouse buttons to be down to drag the camera (or two fingers on a touch screen)
+    local wantsToDrag = (love.mouse.isDown(1) and love.mouse.isDown(2))
+        or (#love.touch.getTouches() == 2)
+
+	if (not wantsToDrag) then
 		self.dragging = false
 		return
 	elseif (not self.dragging) then

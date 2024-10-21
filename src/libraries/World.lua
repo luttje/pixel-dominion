@@ -1,8 +1,7 @@
---- Represents a world that contains units and structures
+--- Represents a world that contains factions
 --- @class World
 --- @field mapPath string # The path to the map file
---- @field units table<number, Unit> # The units in the world
---- @field structures table<number, Structure> # The structures in the world
+--- @field factions Faction[] # The factions in the world
 local World = DeclareClass('World')
 
 --- Initializes the world
@@ -12,8 +11,7 @@ function World:initialize(config)
 
 	assert(config.mapPath, 'Map path is required.')
 
-	self.units = {}
-	self.structures = {}
+    self.factions = {}
 
 	table.Merge(self, config)
 end
@@ -22,15 +20,19 @@ end
 function World:loadMap()
 	SimpleTiled.loadMap(self.mapPath)
 
-	SimpleTiled.registerLayerCallback('Dynamic_Units', 'draw', function()
-		for _, unit in ipairs(self.units) do
-			unit:draw()
+    SimpleTiled.registerLayerCallback('Dynamic_Units', 'draw', function()
+		for _, faction in ipairs(self.factions) do
+			for _, unit in ipairs(faction:getUnits()) do
+				unit:draw()
+			end
 		end
 	end)
 
 	SimpleTiled.registerLayerCallback('Dynamic_Units', 'update', function(deltaTime)
-		for _, unit in ipairs(self.units) do
-			unit:update(deltaTime)
+		for _, faction in ipairs(self.factions) do
+			for _, unit in ipairs(faction:getUnits()) do
+				unit:update(deltaTime)
+			end
 		end
 	end)
 end
@@ -46,47 +48,34 @@ function World:draw(translateX, translateY, scaleX, scaleY)
 	SimpleTiled.draw(translateX, translateY, scaleX, scaleY)
 end
 
---- Spawns a unit of the given type at the given position
---- @param unitType UnitTypeRegistry.UnitRegistration
---- @param faction Faction
---- @param x number
---- @param y number
---- @return Unit
-function World:spawnUnit(unitType, faction, x, y)
-	local unit = Unit({
-        unitType = unitType,
-		faction = faction,
-		x = x,
-		y = y,
-		targetX = x,
-		targetY = y,
-		health = 100,
-		currentAction = 'idle'
-	})
-
-	table.insert(self.units, unit)
-
-	return unit
-end
-
 --- Gets the unit or structure under the given world position
 --- @param x number
 --- @param y number
 --- @return Unit|Structure|nil
 function World:getEntityUnderPosition(x, y)
-	for _, unit in ipairs(self.units) do
-		if (unit:isInPosition(x, y)) then
-			return unit
+	for _, faction in ipairs(self.factions) do
+		for _, unit in ipairs(faction:getUnits()) do
+			if (unit:isInPosition(x, y)) then
+				return unit
+			end
 		end
 	end
 
-	for _, structure in ipairs(self.structures) do
-		if (structure:isInPosition(x, y)) then
-			return structure
+    for _, faction in ipairs(self.factions) do
+		for _, structure in ipairs(faction:getStructures()) do
+			if (structure:isInPosition(x, y)) then
+				return structure
+			end
 		end
 	end
 
 	return nil
+end
+
+--- Adds a faction to the world
+--- @param faction Faction
+function World:addFaction(faction)
+	table.insert(self.factions, faction)
 end
 
 return World

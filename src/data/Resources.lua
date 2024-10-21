@@ -23,7 +23,13 @@ function Resources:registerResources()
 
 	ResourceTypeRegistry:registerResourceType('housing', {
         name = 'Housing',
-		imagePath = 'assets/images/resources/housing.png'
+        imagePath = 'assets/images/resources/housing.png',
+		defaultValue = 5,
+		formatValue = function(value)
+            local units = CurrentPlayer:getFaction():getUnits()
+
+			return ('%d/%d'):format(#units, value)
+		end
 	})
 end
 

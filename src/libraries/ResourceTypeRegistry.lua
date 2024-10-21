@@ -9,6 +9,8 @@ local ResourceTypeRegistry = DeclareClass('ResourceTypeRegistry')
 --- @field id string The unique id of the resource type.
 --- @field name string The name of the resource type.
 --- @field image Image The image representing the resource type.
+--- @field defaultValue number The default value of the resource type.
+--- @field formatValue fun(value: number): string A function that formats the value of the resource type.
 ResourceTypeRegistry.ResourceRegistration = DeclareClass('ResourceTypeRegistry.ResourceRegistration')
 
 function ResourceTypeRegistry.ResourceRegistration:initialize(config)
@@ -20,6 +22,15 @@ function ResourceTypeRegistry.ResourceRegistration:initialize(config)
 	config = config or {}
 
 	table.Merge(self, config)
+end
+
+--- Creates a new resource value instance
+--- @return ResourceValue
+function ResourceTypeRegistry.ResourceRegistration:newValue()
+	return ResourceValue({
+		resourceType = self,
+		value = self.defaultValue or 0
+	})
 end
 
 --- Draws the resource type icon
@@ -36,32 +47,40 @@ end
 --]]
 
 local registeredResourceTypes = {}
+local registeredResourceTypeMap = {}
 
 function ResourceTypeRegistry:registerResourceType(resourceId, config)
 	config = config or {}
 	config.id = resourceId
 
-	registeredResourceTypes[resourceId] = ResourceTypeRegistry.ResourceRegistration(config)
+    local index = #registeredResourceTypes + 1
+    registeredResourceTypes[index] = ResourceTypeRegistry.ResourceRegistration(config)
+	registeredResourceTypeMap[resourceId] = index
 
 	return registeredResourceTypes[resourceId]
 end
 
 function ResourceTypeRegistry:removeResourceType(resourceId)
-	registeredResourceTypes[resourceId] = nil
+	local index = registeredResourceTypeMap[resourceId]
+
+	if (index) then
+		registeredResourceTypes[index] = nil
+		registeredResourceTypeMap[resourceId] = nil
+	end
 end
 
 function ResourceTypeRegistry:getResourceType(resourceId)
-	return registeredResourceTypes[resourceId]
+	local index = registeredResourceTypeMap[resourceId]
+
+	if (index) then
+		return registeredResourceTypes[index]
+	end
+
+	return nil
 end
 
 function ResourceTypeRegistry:getAllResourceTypes()
-	local resourceConfigs = {}
-
-	for _, config in pairs(registeredResourceTypes) do
-		table.insert(resourceConfigs, config)
-	end
-
-	return resourceConfigs
+	return registeredResourceTypes
 end
 
 return ResourceTypeRegistry

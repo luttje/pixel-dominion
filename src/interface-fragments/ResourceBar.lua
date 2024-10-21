@@ -140,22 +140,29 @@ function ResourceBar:refreshResources()
 end
 
 function ResourceBar:performDraw(x, y, width, height)
-	local resourcesValues = table.Values(self.resourceValues)
+	local resourcesTypes = ResourceTypeRegistry:getAllResourceTypes()
     local resourceX = x
     local resourceY = y
-    local resourceWidth = width / #resourcesValues
-    local resourceHeight = height
+    local resourceWidth = width / #resourcesTypes
+	local shadowHeight = 5
+    local resourceHeight = height - shadowHeight
 
-    -- Draw a background for the resource bar
+    -- TODO: Draw a nice textured  background for the resource bar
+    love.graphics.setColor(0, 0, 0, 0.2)
+	love.graphics.rectangle('fill', x, y, width, height) -- shadow
     love.graphics.setColor(0.2, 0.5, 0.5)
-    love.graphics.rectangle('fill', x, y, width, height)
+    love.graphics.rectangle('fill', x, y, width, resourceHeight)
 
     love.graphics.setFont(Fonts.resourceValue)
 	local fontHeight = love.graphics.getFont():getHeight()
 
-    for _, resourceValue in ipairs(resourcesValues) do
-        local resourceType = resourceValue:getResourceType()
+    for _, resourceType in pairs(resourcesTypes) do
+        local resourceValue = self.resourceValues[resourceType.id]
         local resourceAmount = resourceValue.value
+
+		if (resourceType.formatValue) then
+			resourceAmount = resourceType.formatValue(resourceAmount)
+		end
 
         -- Draw the resource icon on the center-left
         local iconSize = resourceHeight * 0.8

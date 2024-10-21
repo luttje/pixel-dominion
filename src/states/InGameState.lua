@@ -17,7 +17,7 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
 	local resourceBar = ResourceBar({
 		anchorHorizontally = 'fill',
         anchorVertically = 'start',
-		height = 48,
+		height = 64,
 		world = CurrentPlayer:getWorld()
 	})
 	fragments:add(resourceBar)
