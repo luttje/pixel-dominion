@@ -24,9 +24,21 @@ GameConfig.mapLayersToRemove = {
 --- @type number
 GameConfig.tileSize = 8
 
---- How long it takes for a unit to move from one tile to another in milliseconds.
+--- How long it takes for a unit to move from one tile to another in seconds.
 --- @type number
 GameConfig.unitMoveTimeInSeconds = 0.5
+
+--- How long in between animation frames in seconds.
+--- @type number
+GameConfig.animationFrameTimeInSeconds = 0.2
+
+--- The pathing offsets for looking around interactables.
+GameConfig.unitPathingOffsets = {
+	{ x = 0, y = -1 },
+	{ x = 1, y = 0 },
+	{ x = 0, y = 1 },
+	{ x = -1, y = 0 },
+}
 
 --[[
 	Debug/testing options

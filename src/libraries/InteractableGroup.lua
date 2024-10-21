@@ -30,6 +30,16 @@ function InteractableGroup:remove(interactable)
     end
 end
 
+--- Clears all interactables from the group
+function InteractableGroup:clear()
+    -- Set the interactables all to not be selected
+	for _, interactable in ipairs(self.interactables) do
+		interactable:setSelected(false)
+	end
+
+	table.Empty(self.interactables)
+end
+
 --- Gets all interactables in the group
 --- @return Interactable[]
 function InteractableGroup:getAll()

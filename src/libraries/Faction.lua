@@ -77,7 +77,6 @@ function Faction:spawnUnit(unitType, x, y)
 		targetX = x,
 		targetY = y,
 		health = 100,
-		currentAction = 'idle'
 	})
 
 	table.insert(self.units, unit)

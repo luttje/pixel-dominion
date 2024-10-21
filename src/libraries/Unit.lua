@@ -7,13 +7,18 @@ require('libraries.Interactable')
 --- @field targetX number # The x position the unit is moving towards
 --- @field targetY number # The y position the unit is moving towards
 --- @field health number # The health of the unit
---- @field currentAction string # The current action the unit is performing
+--- @field currentAction table # The current action the unit is performing
 local Unit = DeclareClassWithBase('Unit', Interactable)
 
 --- Initializes the unit
 --- @param config table
 function Unit:initialize(config)
 	config = config or {}
+
+    self.currentAction = {
+        animation = 'idle',
+		targetInteractable = nil,
+	}
 
     table.Merge(self, config)
 
@@ -36,7 +41,7 @@ end
 
 --- Draws the unit
 function Unit:draw()
-    self.unitType:draw(self, self.currentAction)
+    self.unitType:draw(self, self.currentAction.animation)
 end
 
 --- Draws the unit hud icon
@@ -55,6 +60,9 @@ function Unit:update(deltaTime)
         return
     end
 
+	local world = CurrentPlayer:getWorld()
+	assert(world, 'World is required.')
+
     self.moveTimer = self.moveTimer + deltaTime
 
     if (self.moveTimer < GameConfig.unitMoveTimeInSeconds) then
@@ -67,7 +75,7 @@ function Unit:update(deltaTime)
 	self.y = self.nextY
 
 	-- Find the next tile in the path
-    local pathPoints = SimpleTiled.findPath(self.x, self.y, self.targetX, self.targetY)
+    local pathPoints = world:findPath(self.x, self.y, self.targetX, self.targetY)
 
 	if (pathPoints and #pathPoints > 1) then
 		-- The next point in the path becomes our immediate target
@@ -76,7 +84,17 @@ function Unit:update(deltaTime)
 	else
 		-- We've reached the target or there's no path
 		self.nextX = self.targetX
-		self.nextY = self.targetY
+        self.nextY = self.targetY
+
+		self:reachedTarget()
+	end
+end
+
+--- Called when the unit reaches its target
+function Unit:reachedTarget()
+	-- If we have a target interactable, interact with it
+	if (self.currentAction.targetInteractable) then
+		self.currentAction.targetInteractable:interact(self)
 	end
 end
 
@@ -95,6 +113,10 @@ function Unit:getDrawOffset()
 
         -- Add bouncing effect
         bounceY = bounceY + math.sin(love.timer.getTime() * 10) * -1
+    elseif (self.currentAction.targetInteractable) then
+        -- Set us to be at the interactable's position
+        bounceX = (self.currentAction.targetInteractable.x - self.x) * GameConfig.tileSize
+		bounceY = (self.currentAction.targetInteractable.y - self.y) * GameConfig.tileSize
 	end
 
 	return bounceX, bounceY
@@ -109,7 +131,7 @@ end
 --- Handles a command to target the given position
 --- @param targetX number
 --- @param targetY number
---- @param interactable Interactable # TODO: Always nil for now. Fix that to be an interactable at the target position
+--- @param interactable Interactable
 --- @return boolean
 function Unit:commandTo(targetX, targetY, interactable)
     -- If its the same position, do nothing
@@ -117,14 +139,42 @@ function Unit:commandTo(targetX, targetY, interactable)
         return false
     end
 
-	local pathPoints = SimpleTiled.findPath(self.x, self.y, targetX, targetY)
+	local world = CurrentPlayer:getWorld()
+	assert(world, 'World is required.')
+
+	local pathPoints = world:findPath(self.x, self.y, targetX, targetY)
 
     -- TODO: play a sound or something on fail/succeed walking
 
     if (not pathPoints) then
-        print('No path found!')
-        return false
+		-- Find a path somewhere around the interactable
+		if (interactable) then
+			for _, offset in ipairs(GameConfig.unitPathingOffsets) do
+				local offsetX = interactable.x + offset.x
+				local offsetY = interactable.y + offset.y
+
+				pathPoints = world:findPath(self.x, self.y, offsetX, offsetY)
+
+                if (pathPoints) then
+                    targetX = offsetX
+					targetY = offsetY
+					break
+				end
+			end
+		end
+
+		if (not pathPoints) then
+        	print('No path found!')
+        	return false
+		end
     end
+
+	if (interactable) then
+		self.currentAction.targetInteractable = interactable
+    else
+		self.currentAction.animation = 'idle'
+		self.currentAction.targetInteractable = nil
+	end
 
     -- for _, point in ipairs(pathPoints) do
     --     print(('Step: %d - x: %d - y: %d'):format(_, point.x, point.y))

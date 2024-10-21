@@ -43,17 +43,22 @@ function ResourceTypeRegistry.ResourceRegistration:draw(x, y, width, height)
 end
 
 --- Spawns this resource at the given tile position
+--- @param world World The world to spawn the resource in
 --- @param x number
 --- @param y number
-function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(x, y)
+--- @return ResourceInstance
+function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
     assert(self.spawnAtTileId, 'Resource spawnAtTileId is required.')
     assert(self.worldTilesetInfo, 'Resource worldTilesetInfo is required.')
 
-	local changedLayers = {}
+    local changedLayers = {}
+
+    local tileWidth = 1
+    local tileHeight = 1
 
     for _, treeInfo in ipairs(self.worldTilesetInfo) do
         for _, tileInfo in ipairs(treeInfo) do
-            SimpleTiled.addTile(
+            world:addTile(
                 tileInfo.targetLayer,
                 tileInfo.tilesetId,
                 tileInfo.tileId,
@@ -61,13 +66,25 @@ function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(x, y)
                 y + (tileInfo.offsetY or 0)
             )
 
+            -- Increase tile size if offset shows that we span multiple tiles
+            tileWidth = math.max(tileWidth, tileInfo.offsetX + 1)
+			tileHeight = math.max(tileHeight, tileInfo.offsetY + 1)
+
             changedLayers[tileInfo.targetLayer] = true
         end
     end
 
-	for layerName, _ in pairs(changedLayers) do
-		SimpleTiled.updateCollisionMap(layerName)
-	end
+    for layerName, _ in pairs(changedLayers) do
+        world:updateCollisionMap(layerName)
+    end
+
+	return ResourceInstance({
+		resourceType = self,
+		x = x,
+        y = y,
+        tileWidth = tileWidth,
+		tileHeight = tileHeight
+	})
 end
 
 --[[

@@ -67,3 +67,11 @@ function table.Values(source)
 
 	return values
 end
+
+--- Empties a table.
+--- @param source table
+function table.Empty(source)
+	for key, _ in pairs(source) do
+		source[key] = nil
+	end
+end

@@ -15,10 +15,12 @@ UnitTypeRegistry.UnitAnimation = DeclareClass('UnitTypeRegistry.UnitAnimation')
 function UnitTypeRegistry.UnitAnimation:initialize(config)
 	config = config or {}
 
-	self.quads = {}
+    self.quads = {}
+	self.animationTimer = 0
+	self.currentQuadIndex = 1
+
 	table.Merge(self, config)
 
-	self.currentQuadIndex = 1
 end
 
 --- Gets the quad to render
@@ -89,8 +91,15 @@ end
 function UnitTypeRegistry.UnitRegistration:draw(unit, animationName)
 	local animation = self.animations[animationName]
 
-	if (not animation) then
-		error('No animation found with name ' .. animationName)
+    if (not animation) then
+        error('No animation found with name ' .. animationName)
+    end
+
+    animation.animationTimer = animation.animationTimer + love.timer.getDelta()
+
+	if (animation.animationTimer >= GameConfig.animationFrameTimeInSeconds) then
+		animation:advance()
+		animation.animationTimer = 0
 	end
 
 	local quad = animation:getCurrentQuad()
@@ -100,10 +109,10 @@ function UnitTypeRegistry.UnitRegistration:draw(unit, animationName)
 	x = x + offsetX
 	y = y + offsetY
 
-	-- Let's draw a little shadow ellipse under the unit
-	-- TODO: Make this more dynamic per unit type
-	love.graphics.setColor(0, 0, 0, 0.5)
-	love.graphics.ellipse('fill', x + GameConfig.tileSize * .5, y + GameConfig.tileSize, GameConfig.tileSize * .3, GameConfig.tileSize * .3)
+	-- -- Let's draw a little shadow ellipse under the unit
+	-- -- TODO: Make this more dynamic per unit type
+	-- love.graphics.setColor(0, 0, 0, 0.5)
+	-- love.graphics.ellipse('fill', x + GameConfig.tileSize * .5, y + GameConfig.tileSize, GameConfig.tileSize * .3, GameConfig.tileSize * .3)
 
 	-- TODO: Draw units using a sprite batch for performance
 	love.graphics.setColor(1, 1, 1)

@@ -54,17 +54,31 @@ function WorldMap:performUpdate(deltaTime)
             self.dragging = false
         elseif (love.mouse.isDown(1)) then
 			local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
-			local unitOrStructure = self.world:getEntityUnderPosition(worldX, worldY)
+            local interactable = self.world:getInteractableUnderPosition(worldX, worldY)
 
-			if (unitOrStructure) then
-				TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_INPUT, Times.clickInterval, function()
-					unitOrStructure:setSelected(not unitOrStructure.isSelected)
-				end)
+            -- If we clicked on a unit, structure or resource instance, clear if our current selection is not the same
+            if (interactable and interactable.isSelectable) then
+				if (CurrentPlayer:isSameTypeAsSelected(interactable)) then
+					TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_INPUT, Times.clickInterval, function()
+						-- If the unit is selected, deselect it
+						if (interactable.isSelected) then
+							interactable:setSelected(false)
+						else
+							-- If the unit is not selected, select it
+							interactable:setSelected(true)
+						end
+					end)
+				else
+					-- If the unit is not the same type, deselect all units and select this one
+					TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_INPUT, Times.clickInterval, function()
+						CurrentPlayer:clearSelectedInteractables()
+						interactable:setSelected(not interactable.isSelected)
+					end)
+				end
 			else
 				TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_COMMAND, Times.clickInterval, function()
-					-- TODO: How do we handle having units interact with another structure if that is caught first?
-					-- If any unit is selected, move it to the clicked position
-					CurrentPlayer:sendCommandTo(worldX, worldY, unitOrStructure)-- unitOrStructure is now always nil :/
+					-- If any unit is selected, move it to the clicked position, give the interactable if it is not selectable (e.g: a tree)
+					CurrentPlayer:sendCommandTo(worldX, worldY, interactable)
 				end)
 			end
 		end

@@ -17,15 +17,19 @@ UNIT_TYPE.actionImageOffset = {
 	-- The positions of the 3 animation frames for the unit
 	{
 		x = 0,
-		y = 9,
+		y = 8,
 	},
 	{
-		x = 9,
-		y = 9,
+		x = 8,
+		y = 8,
 	},
 	{
-		x = 18,
-		y = 9,
+		x = 16,
+		y = 8,
+	},
+	{
+		x = 8,
+		y = 8,
 	},
 }
 

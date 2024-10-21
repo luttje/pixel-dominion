@@ -3,6 +3,7 @@
 --- @field x number # The x position of the interactable
 --- @field y number # The y position of the interactable
 --- @field isSelected boolean # Whether the interactable is selected
+--- @field isSelectable boolean # Whether the interactable is selectable
 local Interactable = DeclareClass('Interactable')
 
 --- Initializes the interactable
@@ -10,7 +11,15 @@ local Interactable = DeclareClass('Interactable')
 function Interactable:initialize(config)
     config = config or {}
 
+	self.isSelectable = true
+
 	table.Merge(self, config)
+end
+
+--- When an interactable is interacted with
+--- @param interactable Interactable
+function Interactable:interact(interactable)
+	-- Override this in the child class
 end
 
 --- Draws the interactable on the hud
@@ -39,6 +48,10 @@ end
 --- Selects the interactable
 --- @param selected boolean
 function Interactable:setSelected(selected)
+    if (not self.isSelectable) then
+        return
+    end
+
     assert(CurrentPlayer, 'Selecting only supported for the current player.')
 
     self.isSelected = selected

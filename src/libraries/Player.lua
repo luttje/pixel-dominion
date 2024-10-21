@@ -63,6 +63,23 @@ function Player:removeSelectedInteractable(interactable)
     self.selectedInteractables:remove(interactable)
 end
 
+--- Clears the selected interactables
+function Player:clearSelectedInteractables()
+	self.selectedInteractables:clear()
+end
+
+--- Checks if the given interactable is of the same type as those in the selected interactables
+--- @param interactable Interactable
+--- @return boolean
+function Player:isSameTypeAsSelected(interactable)
+	if (#self.selectedInteractables:getAll() == 0) then
+		return true
+	end
+
+	local firstInteractable = self.selectedInteractables:getAll()[1]
+	return firstInteractable:isOfType(getmetatable(interactable))
+end
+
 --- Gets the selected interactables
 --- @return InteractableGroup
 function Player:getSelectedInteractables()
@@ -73,10 +90,11 @@ end
 --- Units will use this to move to a target position, attack a target, etc.
 --- @param targetX number
 --- @param targetY number
-function Player:sendCommandTo(targetX, targetY)
+--- @param targetInteractable Interactable
+function Player:sendCommandTo(targetX, targetY, targetInteractable)
 	for _, interactable in ipairs(self.selectedInteractables:getAll()) do
 		if (interactable.commandTo) then
-			interactable:commandTo(targetX, targetY)
+			interactable:commandTo(targetX, targetY, targetInteractable)
 		end
 	end
 end
