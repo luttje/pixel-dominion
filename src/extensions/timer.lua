@@ -4,6 +4,9 @@ local cooldowns = {}
 --- @enum
 COMMON_COOLDOWNS = {
     POINTER_INPUT = 'POINTER_INPUT',
+
+    WORLD_INPUT = 'WORLD_INPUT',
+	WORLD_COMMAND = 'WORLD_COMMAND',
 }
 
 --- Cooldown function so we can delay actions with a certain amount of time.

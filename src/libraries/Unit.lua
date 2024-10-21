@@ -95,10 +95,6 @@ function Unit:getDrawOffset()
 
         -- Add bouncing effect
         bounceY = bounceY + math.sin(love.timer.getTime() * 10) * -1
-	elseif (self.isSelected) then
-		-- Rotate in a circle
-		bounceX = math.sin(love.timer.getTime() * 10) * 1
-        bounceY = math.cos(love.timer.getTime() * 10) * 1
 	end
 
 	return bounceX, bounceY

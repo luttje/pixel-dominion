@@ -53,19 +53,21 @@ function WorldMap:performUpdate(deltaTime)
 		if (self.dragging) then
             self.dragging = false
         elseif (love.mouse.isDown(1)) then
-			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
-				local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
-				local unitOrStructure = self.world:getEntityUnderPosition(worldX, worldY)
+			local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
+			local unitOrStructure = self.world:getEntityUnderPosition(worldX, worldY)
 
-				if (unitOrStructure) then
-						unitOrStructure:setSelected(not unitOrStructure.isSelected)
-						print('Unit or structure selection changed:', unitOrStructure, 'at World X:', worldX, 'World Y:', worldY, 'Selected:', unitOrStructure.isSelected)
-				else
+			if (unitOrStructure) then
+				TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_INPUT, Times.clickInterval, function()
+					unitOrStructure:setSelected(not unitOrStructure.isSelected)
+					print('Unit or structure selection changed:', unitOrStructure, 'at World X:', worldX, 'World Y:', worldY, 'Selected:', unitOrStructure.isSelected)
+				end)
+			else
+				TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_COMMAND, Times.clickInterval, function()
 					-- TODO: How do we handle having units interact with another structure if that is caught first?
 					-- If any unit is selected, move it to the clicked position
 					CurrentPlayer:sendCommandTo(worldX, worldY, unitOrStructure)-- unitOrStructure is now always nil :/
-				end
-			end)
+				end)
+			end
 		end
 
 		return
@@ -86,7 +88,8 @@ end
 
 function WorldMap:pushWorldSpace()
 	love.graphics.push()
-	love.graphics.translate(-self.camera.x, -self.camera.y)
+    love.graphics.translate(-self.camera.x * self.cameraWorldScale, -self.camera.y * self.cameraWorldScale)
+	love.graphics.scale(self.cameraWorldScale, self.cameraWorldScale)
 end
 
 function WorldMap:popWorldSpace()
@@ -109,7 +112,17 @@ function WorldMap:performDraw(x, y, width, height)
 	scaleX = self.cameraWorldScale
 	scaleY = self.cameraWorldScale
 
-	self.world:draw(translateX, translateY, scaleX, scaleY)
+    self.world:draw(translateX, translateY, scaleX, scaleY)
+
+	-- Draw a rectangle around the current mouse tile (if there is one)
+	if (love.mouse.isCursorSupported()) then
+		local pointerX, pointerY = Input.GetPointerPosition()
+		local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
+		local screenX, screenY = self:worldToScreen(worldX, worldY)
+
+		love.graphics.setColor(1, 1, 1)
+		love.graphics.rectangle('line', screenX, screenY, GameConfig.tileSize * scaleX, GameConfig.tileSize * scaleY)
+	end
 end
 
 return WorldMap

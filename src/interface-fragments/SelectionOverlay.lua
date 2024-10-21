@@ -1,8 +1,8 @@
 --- Shows all currently selected interactables of the player
---- @class SelectionBox: InterfaceFragment
-local SelectionBox = DeclareClassWithBase('SelectionBox', InterfaceFragment)
+--- @class SelectionOverlay: InterfaceFragment
+local SelectionOverlay = DeclareClassWithBase('SelectionOverlay', InterfaceFragment)
 
-function SelectionBox:initialize(config)
+function SelectionOverlay:initialize(config)
     assert(CurrentPlayer, 'Player is required.')
 
 	-- We calculate this based on the content
@@ -17,11 +17,11 @@ function SelectionBox:initialize(config)
     return self
 end
 
-function SelectionBox:refreshSelection()
+function SelectionOverlay:refreshSelection()
     self.selectedInteractables = CurrentPlayer:getSelectedInteractables()
 end
 
-function SelectionBox:performDraw(x, y)
+function SelectionOverlay:performDraw(x, y)
     local interactableSize = GameConfig.tileSize * 4
     local interactablesPerRow = 2
     local totalInteractables = #self.selectedInteractables
@@ -63,7 +63,31 @@ function SelectionBox:performDraw(x, y)
             interactableX = x
             interactableY = interactableY + interactableSize
         end
+
+        -- If the unit is selected, draw a selection marker above it in the world
+        local worldX, worldY = interactable:getWorldPosition()
+        worldX = worldX * GameConfig.tileSize
+        worldY = worldY * GameConfig.tileSize
+
+		if (interactable.getDrawOffset) then
+			local offsetX, offsetY = interactable:getDrawOffset()
+			worldX = worldX + offsetX
+			worldY = worldY + offsetY
+		end
+
+        love.graphics.setColor(Colors.selectedMarker())
+		local arrowSize = GameConfig.tileSize * .3
+
+		self.worldMap:drawInWorldSpace(function()
+			-- arrow-like shape
+			love.graphics.polygon(
+                'fill',
+                worldX + GameConfig.tileSize * .5, worldY - arrowSize,
+                worldX + GameConfig.tileSize * .5 - arrowSize, worldY - arrowSize * 2,
+                worldX + GameConfig.tileSize * .5 + arrowSize, worldY - arrowSize * 2
+			)
+		end)
     end
 end
 
-return SelectionBox
+return SelectionOverlay

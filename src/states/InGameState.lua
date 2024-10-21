@@ -23,7 +23,7 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
     fragments:add(resourceBar)
 
     -- Bottom right selection box
-	local selectionBox = SelectionBox({
+	local selectionOverlay = SelectionOverlay({
 		anchorHorizontally = 'end',
 		anchorVertically = 'center',
 
@@ -31,8 +31,10 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
 
         alignHorizontally = 'end',
         alignVertically = 'center',
+
+		worldMap = self.worldMap
 	})
-	fragments:add(selectionBox)
+	fragments:add(selectionOverlay)
 end
 
 function InGameState:onEnter()

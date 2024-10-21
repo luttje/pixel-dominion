@@ -43,4 +43,7 @@ Colors.hintHighlight = Colors.fromRgb(24, 54, 145)
 Colors.summaryHeadingText = Colors.fromRgb(0, 0, 0)
 Colors.summaryText = Colors.summaryHeadingText
 
+-- Colors.selectedFriendly = Colors.fromRgb(47, 236, 108)
+Colors.selectedMarker = Colors.fromRgb(193, 0, 78)
+
 return Colors
