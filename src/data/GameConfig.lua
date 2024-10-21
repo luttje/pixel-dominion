@@ -23,6 +23,10 @@ GameConfig.mapLayersToRemove = {
 --- @type number
 GameConfig.tileSize = 8
 
+--- How long it takes for a unit to move from one tile to another in milliseconds.
+--- @type number
+GameConfig.unitMoveTimeInSeconds = 0.5
+
 --[[
 	Debug/testing options
 --]]

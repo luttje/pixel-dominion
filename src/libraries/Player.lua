@@ -66,7 +66,19 @@ end
 --- Gets the selected interactables
 --- @return InteractableGroup
 function Player:getSelectedInteractables()
-	return self.selectedInteractables:getAll()
+    return self.selectedInteractables:getAll()
+end
+
+--- Sends a command to any interactables that can handle it.
+--- Units will use this to move to a target position, attack a target, etc.
+--- @param targetX number
+--- @param targetY number
+function Player:sendCommandTo(targetX, targetY)
+	for _, interactable in ipairs(self.selectedInteractables:getAll()) do
+		if (interactable.commandTo) then
+			interactable:commandTo(targetX, targetY)
+		end
+	end
 end
 
 return Player

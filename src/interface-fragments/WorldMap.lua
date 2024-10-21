@@ -53,28 +53,19 @@ function WorldMap:performUpdate(deltaTime)
 		if (self.dragging) then
             self.dragging = false
         elseif (love.mouse.isDown(1)) then
-			local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
-			local unitOrStructure = self.world:getEntityUnderPosition(worldX, worldY)
+			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
+				local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
+				local unitOrStructure = self.world:getEntityUnderPosition(worldX, worldY)
 
-			if (unitOrStructure) then
-				TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
-					unitOrStructure:setSelected(not unitOrStructure.isSelected)
-
-					-- testing pathfinding
-					local pathPoints = SimpleTiled.findPath(unitOrStructure.x, unitOrStructure.y, 12, 7)
-
-					if (pathPoints) then
-						print('Path found!')
-						for _, point in ipairs(pathPoints) do
-							print(('Step: %d - x: %d - y: %d'):format(_, point.x, point.y))
-						end
-					else
-						print('No path found!')
-					end
-				end)
-			end
-
-			print('World X:', worldX, 'World Y:', worldY, 'Unit:', unitOrStructure)
+				if (unitOrStructure) then
+						unitOrStructure:setSelected(not unitOrStructure.isSelected)
+						print('Unit or structure selection changed:', unitOrStructure, 'at World X:', worldX, 'World Y:', worldY, 'Selected:', unitOrStructure.isSelected)
+				else
+					-- TODO: How do we handle having units interact with another structure if that is caught first?
+					-- If any unit is selected, move it to the clicked position
+					CurrentPlayer:sendCommandTo(worldX, worldY, unitOrStructure)-- unitOrStructure is now always nil :/
+				end
+			end)
 		end
 
 		return
