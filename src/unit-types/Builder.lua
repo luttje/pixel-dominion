@@ -1,10 +1,10 @@
-local UNIT_TYPE = {}
+local UNIT = {}
 
-UNIT_TYPE.id = "builder"
-UNIT_TYPE.name = "Builder"
+UNIT.id = "builder"
+UNIT.name = "Builder"
 
-UNIT_TYPE.imagePath = "assets/images/tilemaps/units.png"
-UNIT_TYPE.idleImageOffset = {
+UNIT.imagePath = "assets/images/tilemaps/units.png"
+UNIT.idleImageOffset = {
 	{
 		x = 0,
 		y = 0,
@@ -13,7 +13,7 @@ UNIT_TYPE.idleImageOffset = {
 	}
 }
 
-UNIT_TYPE.actionImageOffset = {
+UNIT.actionImageOffset = {
 	-- The positions of the 3 animation frames for the unit
 	{
 		x = 0,
@@ -33,4 +33,4 @@ UNIT_TYPE.actionImageOffset = {
 	},
 }
 
-return UNIT_TYPE
+return UNIT

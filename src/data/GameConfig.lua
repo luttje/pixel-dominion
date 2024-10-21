@@ -59,6 +59,6 @@ GameConfig.debugCollisionMap = false
 
 --- Disable the tutorial for quick testing.
 --- @type boolean
-GameConfig.disableTutorial = true
+-- GameConfig.disableTutorial = true -- unused atm
 
 return GameConfig

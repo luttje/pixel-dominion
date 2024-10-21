@@ -12,13 +12,7 @@ function WorldMap:initialize(config)
 	self.dragging = false
 	self.dragStart = { x = 0, y = 0 }
 
-	self:refreshMap()
-
 	return self
-end
-
-function WorldMap:refreshMap()
-	self.world:loadMap()
 end
 
 function WorldMap:screenToWorld(x, y, snapToTile)

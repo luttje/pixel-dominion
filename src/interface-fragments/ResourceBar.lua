@@ -38,7 +38,7 @@ function ResourceBar:performDraw(x, y, width, height)
         local resourceAmount = resourceValue.value
 
 		if (resourceType.formatValue) then
-			resourceAmount = resourceType.formatValue(resourceAmount)
+			resourceAmount = resourceType:formatValue(resourceAmount)
 		end
 
         -- Draw the resource icon on the center-left

@@ -6,11 +6,15 @@ local ResourceTypeRegistry = DeclareClass('ResourceTypeRegistry')
 --]]
 
 --- @class ResourceTypeRegistry.ResourceRegistration
+---
 --- @field id string The unique id of the resource type.
 --- @field name string The name of the resource type.
 --- @field image Image The image representing the resource type.
 --- @field defaultValue number The default value of the resource type.
---- @field formatValue fun(value: number): string A function that formats the value of the resource type.
+--- @field formatValue fun(resourceType: ResourceTypeRegistry.ResourceRegistration, value: number): string A function that formats the value of the resource type.
+---
+--- @field worldTilesetInfo table<number, table> The tileset information used to render the resource in the world.
+--- @field spawnAtTileId string The id of the tileset to spawn the resource at.
 ResourceTypeRegistry.ResourceRegistration = DeclareClass('ResourceTypeRegistry.ResourceRegistration')
 
 function ResourceTypeRegistry.ResourceRegistration:initialize(config)
@@ -94,14 +98,28 @@ local registeredResourceTypes = {}
 local registeredResourceTypeMap = {}
 
 function ResourceTypeRegistry:registerResourceType(resourceId, config)
-	config = config or {}
-	config.id = resourceId
+    config = config or {}
+    config.id = resourceId
 
     local index = #registeredResourceTypes + 1
     registeredResourceTypes[index] = ResourceTypeRegistry.ResourceRegistration(config)
-	registeredResourceTypeMap[resourceId] = index
 
-	return registeredResourceTypes[resourceId]
+    self:sortByWeight()
+    self:updateMap()
+
+    return registeredResourceTypes[resourceId]
+end
+
+function ResourceTypeRegistry:sortByWeight()
+	table.sort(registeredResourceTypes, function(a, b)
+		return a.orderWeight < b.orderWeight
+	end)
+end
+
+function ResourceTypeRegistry:updateMap()
+	for index, resourceType in ipairs(registeredResourceTypes) do
+		registeredResourceTypeMap[resourceType.id] = index
+	end
 end
 
 function ResourceTypeRegistry:removeResourceType(resourceId)

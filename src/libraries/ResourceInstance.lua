@@ -1,3 +1,5 @@
+require('libraries.Interactable')
+
 --- Represents a resource value in the game
 --- @class ResourceInstance : Interactable
 --- @field resourceType ResourceTypeRegistry.ResourceRegistration
@@ -5,7 +7,7 @@
 --- @field tiles table
 local ResourceInstance = DeclareClassWithBase('ResourceInstance', Interactable)
 
---- Initializes the faction
+--- Initializes the resource
 --- @param config table
 function ResourceInstance:initialize(config)
     config = config or {}

@@ -29,7 +29,17 @@ function love.load()
 		UnitTypeRegistry:registerUnitType(id, module)
 	end)
 
-	Resources:registerResources()
+	RequireDirectory('resources', function(fileWithoutExtension, module)
+		local id = module.id or fileWithoutExtension
+
+		ResourceTypeRegistry:registerResourceType(id, module)
+	end)
+
+	RequireDirectory('structures', function(fileWithoutExtension, module)
+		local id = module.id or fileWithoutExtension
+
+		StructureTypeRegistry:registerStructureType(id, module)
+	end)
 
 	-- TODO: Eventually we'll want to be able to load/restore player data, for now we just create a new player.
 	CurrentPlayer = Player()
@@ -50,6 +60,10 @@ function love.load()
     })
 	world:addFaction(playerFaction)
     CurrentPlayer:setWorld(world)
+
+    local townHallStructure = StructureTypeRegistry:getStructureType('town_hall')
+    local townHall = townHallStructure:spawnAtTile(world, 12, 6)
+	print('Town Hall:', townHall)
 
     StateManager:setCurrentState(InGameState)
 end

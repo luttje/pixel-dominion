@@ -24,6 +24,8 @@ function World:initialize(config)
 	self.resourceInstances = {}
 
 	table.Merge(self, config)
+
+	self:loadMap()
 end
 
 -- Load a map exported to Lua from Tiled
@@ -75,20 +77,9 @@ function World:loadMap()
 	-- Cache the static collision map
 	local collisionMap = self:updateCollisionMap()
 
-	if (GameConfig.debugCollisionMap) then
-		for y, row in ipairs(collisionMap) do
-			local rowString = ""
-
-			for x, value in ipairs(row) do
-				rowString = rowString .. value
-			end
-
-			print(rowString)
-		end
-	end
-
     -- Go through all resource types and check all layers for a match of spawnAtTileId
     local map = self.map
+
 	for _, resourceType in ipairs(ResourceTypeRegistry:getAllResourceTypes()) do
 		for __, layer in ipairs(map.layers) do
 			if (layer.data) then
@@ -113,9 +104,6 @@ function World:loadMap()
 		end
 	end
 
-	self.collisionGrid = Grid(collisionMap)
-    self.pathfinder = Pathfinder(self.collisionGrid, 'ASTAR', WALKABLE)
-
     self:registerLayerCallback('Dynamic_Units', 'draw', function()
 		for _, faction in ipairs(self.factions) do
 			for _, unit in ipairs(faction:getUnits()) do
@@ -138,7 +126,7 @@ end
 --- @param callbackType 'update' | 'draw'
 --- @param callback function
 function World:registerLayerCallback(layerName, callbackType, callback)
-	if (not self) then
+	if (not self.map) then
 		assert(false, "No map loaded.")
 		return
 	end
@@ -155,7 +143,7 @@ function World:registerLayerCallback(layerName, callbackType, callback)
 end
 
 function World:update(deltaTime)
-	if (not self) then
+	if (not self.map) then
 		assert(false, "No map loaded.")
 		return
 	end
@@ -164,7 +152,7 @@ function World:update(deltaTime)
 end
 
 function World:draw(translateX, translateY, scaleX, scaleY)
-	if (not self) then
+	if (not self.map) then
 		assert(false, "No map loaded.")
 		return
 	end
@@ -185,7 +173,7 @@ end
 function World:updateCollisionMap()
 	local collisionMap = {}
 
-	if (not self) then
+	if (not self.map) then
 		assert(false, "No map loaded.")
 		return collisionMap
 	end
@@ -221,6 +209,22 @@ function World:updateCollisionMap()
 	end
 
     self.collisionMap = collisionMap
+	self.collisionGrid = Grid(collisionMap)
+    self.pathfinder = Pathfinder(self.collisionGrid, 'ASTAR', WALKABLE)
+	self.pathfinder:setMode('ORTHOGONAL')
+
+    if (GameConfig.debugCollisionMap) then
+		print('\nCollision Map:\n')
+		for y, row in ipairs(collisionMap) do
+			local rowString = ""
+
+			for x, value in ipairs(row) do
+				rowString = rowString .. value
+			end
+
+			print(rowString)
+		end
+	end
 
 	return collisionMap
 end
@@ -232,7 +236,7 @@ end
 --- @param endY number # The end Y (0-based)
 --- @return table<number, table<number, number>> | nil # A table of path points (0-based) or nil if no path was found
 function World:findPath(startX, startY, endX, endY)
-    if (not self) then
+    if (not self.map) then
         assert(false, "No map loaded.")
         return
     end
@@ -275,7 +279,7 @@ end
 --- @param x number
 --- @param y number
 function World:addTile(layerName, tilesetIndex, tileIndex, x, y)
-    if (not self) then
+    if (not self.map) then
         assert(false, "No map loaded.")
         return
     end
@@ -299,7 +303,7 @@ end
 --- @param x number
 --- @param y number
 function World:removeTile(layerName, x, y)
-	if (not self) then
+	if (not self.map) then
 		assert(false, "No map loaded.")
 		return
 	end
