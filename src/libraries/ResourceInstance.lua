@@ -12,6 +12,7 @@ function ResourceInstance:initialize(config)
 
 	self.isSelectable = false
 	self.supply = 100
+	self.harvestTimer = 0
 
 	table.Merge(self, config)
 end
@@ -23,31 +24,55 @@ function ResourceInstance:getResourceType()
 end
 
 --- When an interactable is interacted with
+--- @param deltaTime number
 --- @param interactable Interactable
-function ResourceInstance:interact(interactable)
+function ResourceInstance:updateInteract(deltaTime, interactable)
     if (not interactable:isOfType(Unit)) then
         print('Cannot interact with resource as it is not a unit.')
         return
     end
 
-    -- Set the action to 'action'
-	interactable.currentAction = {
-		animation = 'action',
-		targetInteractable = self,
-    }
+	local inventory = interactable:getResourceInventory()
+
+    -- If our inventory is full, we cannot harvest more
+    if (inventory:getRemainingResourceSpace() <= 0) then
+        -- Stop the action
+		-- TODO: and go towards the resource camp
+		interactable:setCurrentAction('idle', nil)
+
+		return
+	end
+
+    -- Set the action active and on the current interactable
+	interactable:setCurrentAction('action', self)
 
     local world = CurrentPlayer:getWorld()
-	assert(world, 'World is required.')
+    assert(world, 'World is required.')
 
-	-- TODO: Only do this after the supply (slowly) runs out
-    -- Remove all tiles from the world
-    for _, tile in pairs(self.tiles) do
-        world:removeTile(tile.layerName, tile.x, tile.y)
-    end
-	interactable:getFaction():addResources(self.resourceType, self.supply)
+	self.harvestTimer = self.harvestTimer + deltaTime
 
-	world:removeResourceInstance(self)
-	world:updateCollisionMap()
+    if (self.harvestTimer < GameConfig.resourceHarvestTimeInSeconds) then
+        return
+	end
+
+    local resourceHarvested = math.min(self.supply, inventory:getRemainingResourceSpace())
+
+	print('Harvesting ' .. resourceHarvested .. ' supplies from resource.')
+
+	inventory:add(self.resourceType, resourceHarvested)
+	self.supply = self.supply - resourceHarvested
+
+	-- Check if the resource supply is depleted
+	if (self.supply <= 0) then
+		-- Remove all tiles from the world when supply runs out
+        for _, tile in pairs(self.tiles) do
+            world:removeTile(tile.layerName, tile.x, tile.y)
+        end
+
+        world:removeResourceInstance(self)
+
+		world:updateCollisionMap()
+	end
 end
 
 return ResourceInstance

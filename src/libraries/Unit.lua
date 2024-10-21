@@ -8,23 +8,46 @@ require('libraries.Interactable')
 --- @field targetY number # The y position the unit is moving towards
 --- @field health number # The health of the unit
 --- @field currentAction table # The current action the unit is performing
+--- @field resourceInventory ResourceInventory
 local Unit = DeclareClassWithBase('Unit', Interactable)
 
 --- Initializes the unit
 --- @param config table
 function Unit:initialize(config)
-	config = config or {}
+    config = config or {}
 
-    self.currentAction = {
-        animation = 'idle',
-		targetInteractable = nil,
-	}
+	self:setCurrentAction('idle', nil)
+
+    self.resourceInventory = ResourceInventory({
+        maxResources = GameConfig.unitSupplyCapacity,
+    })
 
     table.Merge(self, config)
 
     self.moveTimer = 0
     self.nextX = self.x
     self.nextY = self.y
+end
+
+--- Sets the current action
+--- @param animation string
+--- @param targetInteractable Interactable|nil
+function Unit:setCurrentAction(animation, targetInteractable)
+    self.currentAction = self.currentAction or {}
+    self.currentAction.animation = animation
+    self.currentAction.targetInteractable = targetInteractable
+end
+
+--- Gets the current action interactable
+--- @return Interactable|nil
+function Unit:getCurrentActionInteractable()
+    return self.currentAction.targetInteractable
+end
+
+--- Gets the current action animation
+--- @return string
+function Unit:getCurrentActionAnimation()
+	return self.currentAction.animation
 end
 
 --- Gets the type of unit
@@ -39,9 +62,15 @@ function Unit:getFaction()
 	return self.faction
 end
 
+--- Gets the resource inventory
+--- @return ResourceInventory
+function Unit:getResourceInventory()
+	return self.resourceInventory
+end
+
 --- Draws the unit
 function Unit:draw()
-    self.unitType:draw(self, self.currentAction.animation)
+    self.unitType:draw(self, self:getCurrentActionAnimation())
 end
 
 --- Draws the unit hud icon
@@ -56,6 +85,13 @@ end
 --- Updates the unit
 --- @param deltaTime number
 function Unit:update(deltaTime)
+    -- If we have a target interactable, interact with it if we are at the same position
+    local targetInteractable = self:getCurrentActionInteractable()
+
+	if (targetInteractable and targetInteractable:isInPosition(self.x, self.y)) then
+		targetInteractable:updateInteract(deltaTime, self)
+	end
+
     if (not self:isMoving()) then
         return
     end
@@ -93,15 +129,12 @@ end
 --- Called when the unit reaches its target
 function Unit:reachedTarget()
 	print('Unit reached target!')
-	-- If we have a target interactable, interact with it
-	if (self.currentAction.targetInteractable) then
-		self.currentAction.targetInteractable:interact(self)
-	end
 end
 
 --- Returns the draw offset of the unit. We will bounce when moving or while selected
 --- @return number, number
 function Unit:getDrawOffset()
+    local targetInteractable = self:getCurrentActionInteractable()
 	local bounceX, bounceY = 0, 0
 
 	if (self:isMoving()) then
@@ -114,10 +147,10 @@ function Unit:getDrawOffset()
 
         -- Add bouncing effect
         bounceY = bounceY + math.sin(love.timer.getTime() * 10) * -1
-    elseif (self.currentAction.targetInteractable) then
+    elseif (targetInteractable) then
         -- Set us to be at the interactable's position
-        bounceX = (self.currentAction.targetInteractable.x - self.x) * GameConfig.tileSize
-		bounceY = (self.currentAction.targetInteractable.y - self.y) * GameConfig.tileSize
+        bounceX = (targetInteractable.x - self.x) * GameConfig.tileSize
+		bounceY = (targetInteractable.y - self.y) * GameConfig.tileSize
 	end
 
 	return bounceX, bounceY
@@ -171,13 +204,11 @@ function Unit:commandTo(targetX, targetY, interactable)
     end
 
 	if (#pathPoints > 1) then
-		self.currentAction.animation = 'idle'
+		self:setCurrentAction('idle', interactable)
 	end
 
-	if (interactable) then
-		self.currentAction.targetInteractable = interactable
-    else
-		self.currentAction.targetInteractable = nil
+	if (not interactable) then
+		self:setCurrentAction('idle', nil)
 	end
 
     -- for _, point in ipairs(pathPoints) do

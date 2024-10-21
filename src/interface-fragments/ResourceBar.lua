@@ -13,7 +13,7 @@ end
 function ResourceBar:refreshResources()
     local faction = CurrentPlayer:getFaction()
 
-    self.resourceValues = faction:getResourceValues()
+    self.resourceValues = faction:getResourceInventory():getAll()
 end
 
 function ResourceBar:performDraw(x, y, width, height)

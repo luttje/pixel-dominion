@@ -28,6 +28,14 @@ GameConfig.tileSize = 8
 --- @type number
 GameConfig.unitMoveTimeInSeconds = 0.5
 
+--- How long it takes to take a single supply from a resource in seconds.
+--- @type number
+GameConfig.resourceHarvestTimeInSeconds = 1
+
+--- How many supplies a unit can carry.
+--- @type number
+GameConfig.unitSupplyCapacity = 5
+
 --- How long in between animation frames in seconds.
 --- @type number
 GameConfig.animationFrameTimeInSeconds = 0.2
