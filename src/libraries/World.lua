@@ -1,8 +1,8 @@
 -- Original Source: https://github.com/karai17/Simple-Tiled-Implementation
 -- Modified for our use case.
-local Sti = require("third-party.sti")
-local Grid = require("third-party.jumper.grid")
-local Pathfinder = require("third-party.jumper.pathfinder")
+local Sti = require('third-party.sti')
+local Grid = require('third-party.jumper.grid')
+local Pathfinder = require('third-party.jumper.pathfinder')
 
 WALKABLE, NOT_WALKABLE = 0, 1
 
@@ -34,7 +34,7 @@ function World:loadMap()
 
 	self.layerCallbacks = {}
 
-	self.map = Sti(mapPath, { "box2d" })
+	self.map = Sti(mapPath, { 'box2d' })
 
 	-- Prepare physics world with horizontal and vertical gravity
 	self.world = love.physics.newWorld(0, 0)
@@ -44,8 +44,8 @@ function World:loadMap()
 
 	-- Call update and draw callbacks for these layers
 	local layersWithCallbacks = {
-		"Dynamic_Units",
-		"Dynamic_Structures"
+		'Dynamic_Units',
+		'Dynamic_Structures'
 	}
 
 	for _, layerName in ipairs(layersWithCallbacks) do
@@ -127,7 +127,7 @@ end
 --- @param callback function
 function World:registerLayerCallback(layerName, callbackType, callback)
 	if (not self.map) then
-		assert(false, "No map loaded.")
+		assert(false, 'No map loaded.')
 		return
 	end
 
@@ -144,16 +144,21 @@ end
 
 function World:update(deltaTime)
 	if (not self.map) then
-		assert(false, "No map loaded.")
+		assert(false, 'No map loaded.')
 		return
 	end
 
 	self.map:update(deltaTime)
+
+    -- Update all factions
+	for _, faction in ipairs(self.factions) do
+		faction:update(deltaTime)
+	end
 end
 
 function World:draw(translateX, translateY, scaleX, scaleY)
 	if (not self.map) then
-		assert(false, "No map loaded.")
+		assert(false, 'No map loaded.')
 		return
 	end
 
@@ -167,14 +172,14 @@ function World:draw(translateX, translateY, scaleX, scaleY)
 	end
 end
 
---- Returns the collision map for the loaded map based on the "collidable" property of the layers.
+--- Returns the collision map for the loaded map based on the 'collidable' property of the layers.
 --- Additionally it returns the number representing
 --- @return table<number, table<number, number>>
 function World:updateCollisionMap()
 	local collisionMap = {}
 
 	if (not self.map) then
-		assert(false, "No map loaded.")
+		assert(false, 'No map loaded.')
 		return collisionMap
 	end
 
@@ -195,7 +200,7 @@ function World:updateCollisionMap()
 					local tile = layer.data[y][x]
 
 					if (tile) then
-						-- If the tile has a property "collidable" set to true, then mark it as collidable
+						-- If the tile has a property 'collidable' set to true, then mark it as collidable
 						-- Or if the entire layer is collidable, then any tile will be marked as collidable
 						if (tile.properties.collidable or layer.properties.collidable) then
 							collisionMap[y][x] = NOT_WALKABLE
@@ -216,7 +221,7 @@ function World:updateCollisionMap()
     if (GameConfig.debugCollisionMap) then
 		print('\nCollision Map:\n')
 		for y, row in ipairs(collisionMap) do
-			local rowString = ""
+			local rowString = ''
 
 			for x, value in ipairs(row) do
 				rowString = rowString .. value
@@ -237,7 +242,7 @@ end
 --- @return table<number, table<number, number>> | nil # A table of path points (0-based) or nil if no path was found
 function World:findPath(startX, startY, endX, endY)
     if (not self.map) then
-        assert(false, "No map loaded.")
+        assert(false, 'No map loaded.')
         return
     end
 
@@ -252,7 +257,7 @@ function World:findPath(startX, startY, endX, endY)
         return nil
     end
 
-	if (startX > self.map.width or startY > self.map.height or endX > self.map.width or endY > self.map.height) then
+    if (startX > self.map.width or startY > self.map.height or endX > self.map.width or endY > self.map.height) then
 		return nil
 	end
 
@@ -272,6 +277,29 @@ function World:findPath(startX, startY, endX, endY)
     return points
 end
 
+--- Checks if the tile at the given position is occupied.
+--- @param x number
+--- @param y number
+--- @return boolean
+function World:isTileOccupied(x, y)
+	if (not self.map) then
+		assert(false, 'No map loaded.')
+		return
+	end
+
+	local collisionMap = self.collisionMap
+
+	if (not collisionMap) then
+		return false
+	end
+
+	if (x < 0 or y < 0 or x >= #collisionMap[1] or y >= #collisionMap) then
+		return true
+	end
+
+	return collisionMap[y + 1][x + 1] == NOT_WALKABLE
+end
+
 --- Adds the given tile to the specified layer at the given position.
 --- @param layerName string
 --- @param tilesetIndex number
@@ -280,14 +308,14 @@ end
 --- @param y number
 function World:addTile(layerName, tilesetIndex, tileIndex, x, y)
     if (not self.map) then
-        assert(false, "No map loaded.")
+        assert(false, 'No map loaded.')
         return
     end
 
     local layer = self.map.layers[layerName]
 
     if (not layer) then
-        assert(false, "Layer not found: " .. layerName)
+        assert(false, 'Layer not found: ' .. layerName)
         return
     end
 
@@ -304,14 +332,14 @@ end
 --- @param y number
 function World:removeTile(layerName, x, y)
 	if (not self.map) then
-		assert(false, "No map loaded.")
+		assert(false, 'No map loaded.')
 		return
 	end
 
 	local layer = self.map.layers[layerName]
 
 	if (not layer) then
-		assert(false, "Layer not found: " .. layerName)
+		assert(false, 'Layer not found: ' .. layerName)
 		return
 	end
 

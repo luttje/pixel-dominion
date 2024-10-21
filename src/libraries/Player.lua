@@ -60,7 +60,7 @@ end
 --- Removes the given interactable from the selected interactables
 --- @param interactable Interactable
 function Player:removeSelectedInteractable(interactable)
-    self.selectedInteractables:remove(interactable)
+	self.selectedInteractables:remove(interactable)
 end
 
 --- Clears the selected interactables
@@ -92,9 +92,18 @@ end
 --- @param targetY number
 --- @param targetInteractable Interactable
 function Player:sendCommandTo(targetX, targetY, targetInteractable)
-	for _, interactable in ipairs(self.selectedInteractables:getAll()) do
+    local allSelectedInteractables = self.selectedInteractables:getAll()
+    local sizeOfAllSelectedInteractables = #allSelectedInteractables
+
+	for i, interactable in ipairs(allSelectedInteractables) do
 		if (interactable.commandTo) then
-			interactable:commandTo(targetX, targetY, targetInteractable)
+            interactable:commandTo(targetX, targetY, targetInteractable, {
+				-- formation
+				index = i,
+                type = 'circle',
+                size = sizeOfAllSelectedInteractables,
+				centerUnit = allSelectedInteractables[1]
+			})
 		end
 	end
 end

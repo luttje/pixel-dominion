@@ -48,8 +48,7 @@ function ResourceInstance:updateInteract(deltaTime, interactable)
     -- Set the action active and on the current interactable
 	interactable:setCurrentAction('action', self)
 
-    local world = CurrentPlayer:getWorld()
-    assert(world, 'World is required.')
+    assert(CurrentWorld, 'World is required.')
 
 	self.harvestTimer = self.harvestTimer + deltaTime
 
@@ -68,12 +67,11 @@ function ResourceInstance:updateInteract(deltaTime, interactable)
 	if (self.supply <= 0) then
 		-- Remove all tiles from the world when supply runs out
         for _, tile in pairs(self.tiles) do
-            world:removeTile(tile.layerName, tile.x, tile.y)
+            CurrentWorld:removeTile(tile.layerName, tile.x, tile.y)
         end
 
-        world:removeResourceInstance(self)
-
-		world:updateCollisionMap()
+        CurrentWorld:removeResourceInstance(self)
+		CurrentWorld:updateCollisionMap()
 	end
 end
 

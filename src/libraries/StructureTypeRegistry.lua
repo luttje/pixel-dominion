@@ -21,10 +21,11 @@ end
 
 --- Spawns this resource at the given tile position
 --- @param world World The world to spawn the resource in
+--- @param faction Faction The faction that owns the resource
 --- @param x number
 --- @param y number
---- @return StructureInstance
-function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, x, y)
+--- @return Structure
+function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction, x, y)
     assert(self.worldTilesetInfo, 'Resource worldTilesetInfo is required.')
 
 	local tiles = {}
@@ -54,8 +55,9 @@ function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, x, y)
 
 	world:updateCollisionMap()
 
-	return StructureInstance({
-		resourceType = self,
+	return Structure({
+		structureType = self,
+		faction = faction,
 		x = x,
         y = y,
 		tiles = tiles

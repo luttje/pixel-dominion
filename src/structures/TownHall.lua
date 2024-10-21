@@ -1,9 +1,9 @@
 local STRUCTURE = {}
 
-STRUCTURE.id = "town_hall"
-STRUCTURE.name = "Town Hall"
+STRUCTURE.id = 'town_hall'
+STRUCTURE.name = 'Town Hall'
 
-STRUCTURE.imagePath = "assets/images/structures/town-hall.png"
+STRUCTURE.imagePath = 'assets/images/structures/town-hall.png'
 
 STRUCTURE.worldTilesetInfo = {
 	-- Town Hall 1
@@ -54,5 +54,47 @@ STRUCTURE.worldTilesetInfo = {
 		},
     },
 }
+
+--- Called every time the structure updates (See GameConfig.structureUpdateTimeInSeconds)
+--- @param structure Structure
+function STRUCTURE:onTimedUpdate(structure)
+	if (not self.lastVillagerGenerationTime) then
+		self.lastVillagerGenerationTime = 0
+	end
+
+    self.lastVillagerGenerationTime = self.lastVillagerGenerationTime + GameConfig.structureUpdateTimeInSeconds
+
+	if (self.lastVillagerGenerationTime < GameConfig.townHallVillagerGenerationTimeInSeconds) then
+		return
+	end
+
+    self.lastVillagerGenerationTime = 0
+
+    self:generateVillager(structure)
+end
+
+--- Generates a villager
+--- @param structure Structure
+function STRUCTURE:generateVillager(structure)
+	local faction = structure:getFaction()
+    local units = faction:getUnits()
+	local housing = faction:getResourceInventory():getValue('housing')
+
+	if (#units >= housing) then
+		return
+	end
+
+    local x, y = structure:getFreeTileNearby()
+
+    if (not x or not y) then
+        print('No free tile found around the town hall.')
+        return
+    end
+
+	faction:spawnUnit(
+        UnitTypeRegistry:getUnitType('builder'),
+        x, y
+	)
+end
 
 return STRUCTURE

@@ -43,10 +43,12 @@ function ResourceInventory:getRemainingResourceSpace()
 end
 
 --- Gets the resource value for the given resource type
---- @param resourceType ResourceTypeRegistry.ResourceRegistration
---- @return ResourceValue
-function ResourceInventory:getValue(resourceType)
-	return self.resourceValues[resourceType.id]
+--- @param resourceTypeOrId ResourceTypeRegistry.ResourceRegistration|string
+--- @return number
+function ResourceInventory:getValue(resourceTypeOrId)
+    local resourceTypeId = type(resourceTypeOrId) == 'string' and resourceTypeOrId or resourceTypeOrId.id
+
+	return self.resourceValues[resourceTypeId].value
 end
 
 --- Adds the given amount of resources to the faction

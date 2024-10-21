@@ -59,4 +59,37 @@ function Faction:getUnits()
     return self.units
 end
 
+--- Spawns a structure of the given type at the given position
+--- @param structureType StructureTypeRegistry.StructureRegistration
+--- @param x number
+--- @param y number
+--- @return Structure
+function Faction:spawnStructure(structureType, x, y)
+    assert(CurrentWorld, 'World is required to spawn a structure.')
+
+	local structure = structureType:spawnAtTile(CurrentWorld, self, x, y)
+
+	table.insert(self.structures, structure)
+
+	return structure
+end
+
+--- Returns all structures
+--- @return Structure[]
+function Faction:getStructures()
+    return self.structures
+end
+
+--- Called to perform logic on the faction
+--- @param deltaTime number
+function Faction:update(deltaTime)
+	for _, unit in ipairs(self.units) do
+		unit:update(deltaTime)
+	end
+
+	for _, structure in ipairs(self.structures) do
+		structure:update(deltaTime)
+	end
+end
+
 return Faction

@@ -16,8 +16,8 @@ GameConfig.name = 'Unnamed RTS'
 --- Useful to disable the ground grid or debug layers.
 --- @type table
 GameConfig.mapLayersToRemove = {
-    -- "GroundGrid",
-	"DesignTimeOnly",
+    -- 'GroundGrid',
+	'DesignTimeOnly',
 }
 
 --- Width and height of the map tiles in pixels.
@@ -32,6 +32,14 @@ GameConfig.unitMoveTimeInSeconds = 0.5
 --- @type number
 GameConfig.resourceHarvestTimeInSeconds = 1
 
+--- How long between a structure calls its update function in seconds.
+--- @type number
+GameConfig.structureUpdateTimeInSeconds = 0.5 -- TODO: Increase this
+
+--- How many seconds to generate a villager
+--- @type number
+GameConfig.townHallVillagerGenerationTimeInSeconds = 1
+
 --- How many supplies a unit can carry.
 --- @type number
 GameConfig.unitSupplyCapacity = 5
@@ -42,10 +50,10 @@ GameConfig.animationFrameTimeInSeconds = 0.2
 
 --- The pathing offsets for looking around interactables.
 GameConfig.unitPathingOffsets = {
-	{ x = 0, y = -1 },
-	{ x = 1, y = 0 },
 	{ x = 0, y = 1 },
 	{ x = -1, y = 0 },
+	{ x = 1, y = 0 },
+	{ x = 0, y = -1 },
 }
 
 --[[

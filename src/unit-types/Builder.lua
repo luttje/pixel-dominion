@@ -1,9 +1,9 @@
 local UNIT = {}
 
-UNIT.id = "builder"
-UNIT.name = "Builder"
+UNIT.id = 'builder'
+UNIT.name = 'Builder'
 
-UNIT.imagePath = "assets/images/tilemaps/units.png"
+UNIT.imagePath = 'assets/images/tilemaps/units.png'
 UNIT.idleImageOffset = {
 	{
 		x = 0,

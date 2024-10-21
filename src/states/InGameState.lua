@@ -9,7 +9,7 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
 	self.worldMap = WorldMap({
 		anchorHorizontally = 'fill',
 		anchorVertically = 'fill',
-		world = CurrentPlayer:getWorld()
+		world = CurrentWorld
 	})
     fragments:add(self.worldMap)
 
@@ -18,7 +18,7 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
 		anchorHorizontally = 'fill',
         anchorVertically = 'start',
 		height = 64,
-		world = CurrentPlayer:getWorld()
+		world = CurrentWorld
 	})
     fragments:add(resourceBar)
 

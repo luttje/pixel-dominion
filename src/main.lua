@@ -48,22 +48,16 @@ function love.load()
     local playerFaction = Faction({
 		factionType = FactionTypeRegistry:getFactionType('homelanders'),
     })
-
-	playerFaction:spawnUnit(
-        UnitTypeRegistry:getUnitType('builder'),
-        16, 8
-	)
 	CurrentPlayer:setFaction(playerFaction)
 
-	local world = World({
+	CurrentWorld = World({
 		mapPath = 'assets/worlds/forest_8x8.lua'
     })
-	world:addFaction(playerFaction)
-    CurrentPlayer:setWorld(world)
+	CurrentWorld:addFaction(playerFaction)
+    CurrentPlayer:setWorld(CurrentWorld)
 
     local townHallStructure = StructureTypeRegistry:getStructureType('town_hall')
-    local townHall = townHallStructure:spawnAtTile(world, 12, 6)
-	print('Town Hall:', townHall)
+    playerFaction:spawnStructure(townHallStructure, 12, 6)
 
     StateManager:setCurrentState(InGameState)
 end
