@@ -1,5 +1,6 @@
 --- @class Player
 --- @field inputBlocked boolean
+--- @field worldInputBlocked boolean
 --- @field world World
 --- @field faction Faction
 --- @field selectedInteractables InteractableGroup
@@ -9,11 +10,11 @@ function Player:initialize(config)
 	config = config or {}
 
     self.inputBlocked = false
+	self.worldInputBlocked = false
 	self.selectedInteractables = InteractableGroup()
 
 	table.Merge(self, config)
 end
-
 
 --- Returns if the player is blocked from clicking buttons
 --- @return boolean
@@ -25,6 +26,18 @@ end
 --- @param block boolean
 function Player:setInputBlocked(block)
 	self.inputBlocked = block
+end
+
+--- Returns if the player is blocked from clicking the world
+--- @return boolean
+function Player:isWorldInputBlocked()
+	return self.worldInputBlocked
+end
+
+--- Blocks the player from clicking the world
+--- @param block boolean
+function Player:setWorldInputBlocked(block)
+	self.worldInputBlocked = block
 end
 
 --- Sets the player world

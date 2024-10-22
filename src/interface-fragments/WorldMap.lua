@@ -50,7 +50,7 @@ function WorldMap:performUpdate(deltaTime)
 
 	self.world:update(deltaTime)
 
-	if (CurrentPlayer:isInputBlocked()) then
+	if (CurrentPlayer:isWorldInputBlocked()) then
 		return
 	end
 
@@ -60,7 +60,7 @@ function WorldMap:performUpdate(deltaTime)
 
     if (not wantsToDrag) then
 		if (self.dragging) then
-			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_INPUT_RELEASED, Times.clickInterval, function()
+			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT_RELEASED, Times.clickInterval, function()
             	self.dragging = false
 			end)
         elseif (love.mouse.isDown(1)) then
@@ -70,7 +70,7 @@ function WorldMap:performUpdate(deltaTime)
             -- If we clicked on a unit, structure or resource instance, clear if our current selection is not the same
             if (interactable and interactable.isSelectable) then
 				if (CurrentPlayer:isSameTypeAsSelected(interactable)) then
-					TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_INPUT, Times.clickInterval, function()
+					TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
 						-- If the unit is selected, deselect it
 						if (interactable.isSelected) then
 							interactable:setSelected(false)
@@ -81,7 +81,7 @@ function WorldMap:performUpdate(deltaTime)
 					end)
 				else
 					-- If the unit is not the same type, deselect all units and select this one
-					TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_INPUT, Times.clickInterval, function()
+					TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
 						CurrentPlayer:clearSelectedInteractables()
 						interactable:setSelected(not interactable.isSelected)
 					end)

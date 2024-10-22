@@ -101,6 +101,8 @@ function Button:performUpdate(deltaTime)
 	self.isHovered = self:isPointerWithin()
 	local isDown = love.mouse.isDown(1)
 
+	CurrentPlayer:setWorldInputBlocked(self.isHovered)
+
 	if (not love.mouse.isCursorSupported()) then
 		if (isDown) then
 			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()

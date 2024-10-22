@@ -14,6 +14,20 @@ function SelectionOverlay:initialize(config)
 
     self:refreshSelection()
 
+	self.deselectButton = Button({
+		text = 'Deselect',
+		isClippingDisabled = true,
+		x = 0,
+		y = 0,
+		width = 64,
+		height = 32,
+		onClick = function()
+			CurrentPlayer:clearSelectedInteractables()
+		end
+	})
+
+	self.childFragments:add(self.deselectButton)
+
     return self
 end
 
@@ -23,18 +37,20 @@ end
 
 function SelectionOverlay:performDraw(x, y)
     local interactableSize = GameConfig.tileSize * 4
-    local interactablesPerRow = 2
+    local interactablesPerRow = 3
     local totalInteractables = #self.selectedInteractables
-    local shadowHeight = Sizes.padding()
+	local shadowHeight = Sizes.padding()
+
 
 	if (totalInteractables == 0) then
+		self.deselectButton:setVisible(false)
 		return
 	end
 
     -- Calculate width and height based on the number of interactables
     local rows = math.ceil(totalInteractables / interactablesPerRow)
     local width = interactableSize * interactablesPerRow + Sizes.padding(2)
-    local height = interactableSize * rows + shadowHeight + Fonts.default:getHeight() + Sizes.padding(2)
+    local height = interactableSize * rows + shadowHeight + Fonts.default:getHeight() + Sizes.padding(2) + (Sizes.padding() * (#self.selectedInteractables / interactablesPerRow)) + self.deselectButton.height
 
     -- Offset x so its right aligned
 	x = x - width - Sizes.padding()
@@ -60,8 +76,8 @@ function SelectionOverlay:performDraw(x, y)
         -- Increment position
         interactableX = interactableX + interactableSize
         if i % interactablesPerRow == 0 then
-            interactableX = x
-            interactableY = interactableY + interactableSize
+            interactableX = x + Sizes.padding()
+            interactableY = interactableY + Sizes.padding() + interactableSize
         end
 
         -- If the unit is selected, draw a selection marker above it in the world
@@ -88,6 +104,10 @@ function SelectionOverlay:performDraw(x, y)
 			)
 		end)
     end
+
+	self.deselectButton:setVisible(true)
+	self.deselectButton:setSize(width, 32)
+	self.deselectButton:setPosition(x + width * .5 - self.deselectButton.width * .5, y + height - self.deselectButton.height - shadowHeight)
 end
 
 return SelectionOverlay
