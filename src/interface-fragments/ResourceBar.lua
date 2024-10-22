@@ -11,9 +11,8 @@ function ResourceBar:initialize(config)
 end
 
 function ResourceBar:refreshResources()
-    local faction = CurrentPlayer:getFaction()
-
-    self.resourceValues = faction:getResourceInventory():getAll()
+	local faction = CurrentPlayer:getFaction()
+	self.resourceValues = faction:getResourceInventory():getAll()
 end
 
 function ResourceBar:performDraw(x, y, width, height)
@@ -23,6 +22,8 @@ function ResourceBar:performDraw(x, y, width, height)
     local resourceWidth = width / #resourcesTypes
 	local shadowHeight = Sizes.padding()
     local resourceHeight = height - shadowHeight
+
+    self:refreshResources()
 
     -- TODO: Draw a nice textured  background for the resource bar
     love.graphics.setColor(0, 0, 0, 0.2)
@@ -35,7 +36,7 @@ function ResourceBar:performDraw(x, y, width, height)
 
     for _, resourceType in pairs(resourcesTypes) do
         local resourceValue = self.resourceValues[resourceType.id]
-        local resourceAmount = resourceValue.value
+        local resourceAmount = resourceValue and resourceValue.value or 0
 
 		if (resourceType.formatValue) then
 			resourceAmount = resourceType:formatValue(resourceAmount)

@@ -38,7 +38,7 @@ GameConfig.structureUpdateTimeInSeconds = 0.5
 
 --- How many seconds to generate a villager
 --- @type number
-GameConfig.townHallVillagerGenerationTimeInSeconds = 0.1
+GameConfig.townHallVillagerGenerationTimeInSeconds = 5
 
 --- How many supplies a unit can carry.
 --- @type number

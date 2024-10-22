@@ -39,8 +39,9 @@ function ResourceInstance:updateInteract(deltaTime, interactable)
     -- If our inventory is full, we cannot harvest more
     if (inventory:getRemainingResourceSpace() <= 0) then
         -- Stop the action
-		-- TODO: and go towards the resource camp
-		interactable:setCurrentAction('idle', nil)
+		-- TODO: and go towards the resource camp, for now we will go to the town hall
+		local resourceCamp = CurrentPlayer:getFaction():getTownHall()
+		interactable:commandTo(resourceCamp.x, resourceCamp.y, resourceCamp)
 
 		return
 	end

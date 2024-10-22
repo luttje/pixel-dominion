@@ -33,7 +33,7 @@ end
 function ResourceTypeRegistry.ResourceRegistration:newValue()
 	return ResourceValue({
 		resourceType = self,
-		value = self.defaultValue or 0
+		value = 0
 	})
 end
 

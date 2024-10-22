@@ -14,7 +14,13 @@ function ResourceInventory:initialize(config)
 	self.currentResources = 0
 
     for _, resourceType in pairs(ResourceTypeRegistry:getAllResourceTypes()) do
-        self.resourceValues[resourceType.id] = resourceType:newValue()
+		local resourceValue = resourceType:newValue()
+
+		if (config.withDefaultValues) then
+			resourceValue.value = resourceType.defaultValue or 0
+		end
+
+        self.resourceValues[resourceType.id] = resourceValue
     end
 
 	table.Merge(self, config)
@@ -54,45 +60,74 @@ function ResourceInventory:getMaxResources()
 	return self.maxResources
 end
 
+--- @param resourceTypeOrId ResourceTypeRegistry.ResourceRegistration|string
+--- @return string
+function ResourceInventory:resolveResourceTypeId(resourceTypeOrId)
+	return type(resourceTypeOrId) == 'string' and resourceTypeOrId or resourceTypeOrId.id
+end
+
 --- Gets the resource value for the given resource type
 --- @param resourceTypeOrId ResourceTypeRegistry.ResourceRegistration|string
 --- @return number
 function ResourceInventory:getValue(resourceTypeOrId)
-    local resourceTypeId = type(resourceTypeOrId) == 'string' and resourceTypeOrId or resourceTypeOrId.id
+    local resourceTypeId = self:resolveResourceTypeId(resourceTypeOrId)
 
 	return self.resourceValues[resourceTypeId].value
 end
 
 --- Adds the given amount of resources to the faction
---- @param resourceType ResourceTypeRegistry.ResourceRegistration
+--- @param resourceTypeOrId ResourceTypeRegistry.ResourceRegistration|string
 --- @param amount number
-function ResourceInventory:add(resourceType, amount)
-    self.resourceValues[resourceType.id].value = self.resourceValues[resourceType.id].value + amount
+function ResourceInventory:add(resourceTypeOrId, amount)
+	local resourceTypeId = self:resolveResourceTypeId(resourceTypeOrId)
+
+    self.resourceValues[resourceTypeId].value = self.resourceValues[resourceTypeId].value + amount
 
 	self.currentResources = self.currentResources + amount
 end
 
 --- Removes the given amount of resources from the faction
---- @param resourceType ResourceTypeRegistry.ResourceRegistration
+--- @param resourceTypeOrId ResourceTypeRegistry.ResourceRegistration|string
 --- @param amount number
-function ResourceInventory:remove(resourceType, amount)
-	self.resourceValues[resourceType.id].value = self.resourceValues[resourceType.id].value - amount
+function ResourceInventory:remove(resourceTypeOrId, amount)
+	local resourceTypeId = self:resolveResourceTypeId(resourceTypeOrId)
+
+	self.resourceValues[resourceTypeId].value = self.resourceValues[resourceTypeId].value - amount
 
 	self.currentResources = self.currentResources - amount
 end
 
---- Checks if the faction has enough resources
---- @param resourceType ResourceTypeRegistry.ResourceRegistration
---- @param amount number
---- @return boolean
-function ResourceInventory:has(resourceType, amount)
-    return self.resourceValues[resourceType.id].value >= amount
+--- Clears the resource inventory
+function ResourceInventory:clear()
+	for _, resourceType in pairs(ResourceTypeRegistry:getAllResourceTypes()) do
+		self.resourceValues[resourceType.id].value = 0
+	end
+
+	self.currentResources = 0
 end
 
---- Returns all resource values
+--- Checks if the faction has enough resources
+--- @param resourceTypeOrId ResourceTypeRegistry.ResourceRegistration|string
+--- @param amount number
+--- @return boolean
+function ResourceInventory:has(resourceTypeOrId, amount)
+	local resourceTypeId = self:resolveResourceTypeId(resourceTypeOrId)
+
+    return self.resourceValues[resourceTypeId].value >= amount
+end
+
+--- Returns all resource values that are not zero
 --- @return ResourceValue[]
 function ResourceInventory:getAll()
-	return self.resourceValues
+	local resources = {}
+
+	for _, resourceValue in pairs(self.resourceValues) do
+		if (resourceValue.value > 0) then
+			resources[resourceValue.resourceType.id] = resourceValue
+		end
+	end
+
+	return resources
 end
 
 return ResourceInventory

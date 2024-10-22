@@ -19,9 +19,7 @@ end
 
 --- Centers the camera on the current player's faction's town hall
 function WorldMap:centerOnTownHall()
-	local townHall = CurrentPlayer:getFaction():getStructures()[1]
-
-	assert(townHall, 'No town hall found.')
+	local townHall = CurrentPlayer:getFaction():getTownHall()
 
 	self.camera.x = (townHall.x * GameConfig.tileSize) - (self:getWidth() * .5) / self.cameraWorldScale
 	self.camera.y = (townHall.y * GameConfig.tileSize) - (self:getHeight() * .4) / self.cameraWorldScale

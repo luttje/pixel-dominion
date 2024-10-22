@@ -71,7 +71,7 @@ function STRUCTURE:onTimedUpdate(structure)
     local units = faction:getUnits()
 	local housing = faction:getResourceInventory():getValue('housing')
 
-	if (#units >= housing) then
+	if (#units >= housing or not structure.lastVillagerGenerationTime) then
 		structure.lastVillagerGenerationTime = nil
 
 		return
@@ -140,9 +140,10 @@ end
 --- @param maxX number
 --- @param maxY number
 function STRUCTURE:postDrawOnScreen(structure, minX, minY, maxX, maxY)
-	if (not structure:getIsSelected()) then
-		return
-	end
+	-- Commented because its easier on mobile if structures can't be selected
+	-- if (not structure:getIsSelected()) then
+	-- 	return
+	-- end
 
 	if (structure.lastVillagerGenerationTime) then
 		local x = minX + (maxX - minX) * .5
@@ -151,6 +152,43 @@ function STRUCTURE:postDrawOnScreen(structure, minX, minY, maxX, maxY)
 
 		self:drawVillagerProgress(structure, x, y, radius)
 	end
+end
+
+--- When an structure is interacted with by a unit.
+--- @param structure Structure
+--- @param deltaTime number
+--- @param interactor Interactable
+function STRUCTURE:updateInteract(structure, deltaTime, interactor)
+	-- Take any resources from the unit and place them in the faction inventory
+	local inventory = interactor:getResourceInventory()
+
+	if (inventory:getCurrentResources() == 0) then
+		return
+	end
+
+	local faction = structure:getFaction()
+	local factionInventory = faction:getResourceInventory()
+	local lastResourceType
+
+	for resourceTypeId, resourceValue in pairs(inventory:getAll()) do
+		factionInventory:add(resourceTypeId, resourceValue.value)
+
+		lastResourceType = resourceValue:getResourceType()
+	end
+
+	inventory:clear()
+
+	if (not lastResourceType) then
+		return
+	end
+
+	local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(lastResourceType, structure.x, structure.y)
+
+	if (not nearestResourceInstance) then
+		return
+	end
+
+	interactor:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
 end
 
 return STRUCTURE

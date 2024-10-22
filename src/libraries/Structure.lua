@@ -13,6 +13,9 @@ local Structure = DeclareClassWithBase('Structure', Interactable)
 function Structure:initialize(config)
 	config = config or {}
 
+	-- Easier on mobile if not selectable
+	self.isSelectable = false
+
 	table.Merge(self, config)
 end
 
@@ -137,23 +140,16 @@ end
 
 --- When an interactable is interacted with
 --- @param deltaTime number
---- @param interactable Interactable
-function Structure:updateInteract(deltaTime, interactable)
-	if (not interactable:isOfType(Unit)) then
+--- @param interactor Interactable
+function Structure:updateInteract(deltaTime, interactor)
+	if (not interactor:isOfType(Unit)) then
 		print('Cannot interact with structure as it is not a unit.')
 		return
 	end
 
-	local inventory = interactable:getStructureInventory()
-
-	-- -- If our inventory is full, we cannot harvest more
-	-- if (inventory:getRemainingStructureSpace() <= 0) then
-	--     -- Stop the action
-	-- 	-- TODO: and go towards the structure camp
-	-- 	interactable:setCurrentAction('idle', nil)
-
-	-- 	return
-	-- end
+	if (self.structureType.updateInteract) then
+		self.structureType:updateInteract(self, deltaTime, interactor)
+	end
 end
 
 return Structure

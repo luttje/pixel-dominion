@@ -374,6 +374,29 @@ function World:addResourceInstance(resourceInstance)
 	table.insert(self.resourceInstances, resourceInstance)
 end
 
+--- Find nearest resource instance to the given position
+--- @param resourceType ResourceTypeRegistry.ResourceRegistration
+--- @param x number
+--- @param y number
+--- @return ResourceInstance|nil
+function World:findNearestResourceInstance(resourceType, x, y)
+	local nearestResourceInstance = nil
+	local nearestDistance = nil
+
+	for _, resourceInstance in ipairs(self.resourceInstances) do
+		if (resourceInstance.resourceType == resourceType) then
+			local distance = math.sqrt((resourceInstance.x - x) ^ 2 + (resourceInstance.y - y) ^ 2)
+
+			if (not nearestDistance or distance < nearestDistance) then
+				nearestResourceInstance = resourceInstance
+				nearestDistance = distance
+			end
+		end
+	end
+
+	return nearestResourceInstance
+end
+
 --- Removes the given resource instance from the world
 --- @param resourceInstance ResourceInstance
 function World:removeResourceInstance(resourceInstance)

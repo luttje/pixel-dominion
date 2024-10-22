@@ -13,7 +13,9 @@ local Faction = DeclareClass('Faction')
 function Faction:initialize(config)
 	config = config or {}
 
-	self.resourceInventory = ResourceInventory()
+	self.resourceInventory = ResourceInventory({
+		withDefaultValues = true,
+	})
 	self.units = {}
 	self.structures = {}
 
@@ -66,6 +68,7 @@ end
 --- @return Structure
 function Faction:spawnStructure(structureType, x, y)
     assert(CurrentWorld, 'World is required to spawn a structure.')
+	assert(structureType.id == 'town_hall' or #self.structures > 1, 'Town hall must be spawned first.')
 
 	local structure = structureType:spawnAtTile(CurrentWorld, self, x, y)
 
@@ -77,7 +80,17 @@ end
 --- Returns all structures
 --- @return Structure[]
 function Faction:getStructures()
-    return self.structures
+	return self.structures
+end
+
+--- Gets the town hall, always the first structure
+--- @return Structure
+function Faction:getTownHall()
+	local townHall = CurrentPlayer:getFaction():getStructures()[1]
+
+	assert(townHall, 'No town hall found.')
+
+	return townHall
 end
 
 --- Called to perform logic on the faction

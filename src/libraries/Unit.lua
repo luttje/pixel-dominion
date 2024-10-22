@@ -205,10 +205,9 @@ end
 --- Returns the draw offset of the unit. We will bounce when moving or while selected
 --- @return number, number
 function Unit:getDrawOffset()
-    local targetInteractable = self:getCurrentActionInteractable()
 	local bounceX, bounceY = 0, 0
 
-	if (self:isMoving() and not self:isPositionOccupied(self.nextX, self.nextY)) then
+	if (self:isMoving()) then
         -- Calculate interpolation factor between the current and next tile
         local factor = self.moveTimer / GameConfig.unitMoveTimeInSeconds
 
