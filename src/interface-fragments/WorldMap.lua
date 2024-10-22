@@ -88,6 +88,13 @@ function WorldMap:performUpdate(deltaTime)
 				TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_COMMAND, Times.clickInterval, function()
 					-- If any unit is selected, move it to the clicked position, give the interactable if it is not selectable (e.g: a tree)
 					CurrentPlayer:sendCommandTo(worldX, worldY, interactable)
+
+					-- Stop selecting if we sent a command
+					-- TODO: We aren't guaranteed to have successfully sent a command, so we should check that
+					if (interactable) then
+						CurrentPlayer:clearSelectedInteractables()
+						interactable:setSelected(true)
+					end
 				end)
 			end
 		end
@@ -146,20 +153,29 @@ function WorldMap:performDraw(x, y, width, height)
 		love.graphics.rectangle('line', screenX, screenY, GameConfig.tileSize * scaleX, GameConfig.tileSize * scaleY)
 	end
 
-	for _, faction in ipairs(self.world.factions) do
-        for _, interactable in ipairs(faction:getInteractables()) do
-            -- Check if the interactable is in the camera view, if so share that with the interactable
-            local screenInfo = interactable:isInCameraView(
-                self.camera.x * self.cameraWorldScale,
-                self.camera.y * self.cameraWorldScale,
-                width,
-				height,
-            	self.cameraWorldScale)
+	local function drawPostScreen(interactable)
+		-- Check if the interactable is in the camera view, if so share that with the interactable
+		local screenInfo = interactable:isInCameraView(
+			self.camera.x * self.cameraWorldScale,
+			self.camera.y * self.cameraWorldScale,
+			width,
+			height,
+			self.cameraWorldScale)
 
-            if (screenInfo) then
-				interactable:postDrawOnScreen(screenInfo.x, screenInfo.y, screenInfo.width, screenInfo.height, self.cameraWorldScale)
-			end
+		if (screenInfo) then
+			interactable:postDrawOnScreen(screenInfo.x, screenInfo.y, screenInfo.width, screenInfo.height,
+				self.cameraWorldScale)
 		end
+	end
+
+	for _, faction in ipairs(self.world.factions) do
+		for _, interactable in ipairs(faction:getInteractables()) do
+			drawPostScreen(interactable)
+		end
+	end
+
+	for _, interactable in ipairs(self.world:getResourceInstances()) do
+		drawPostScreen(interactable)
 	end
 end
 

@@ -135,7 +135,7 @@ function love.graphics.drawProgressCircle(x, y, radius, progress)
 	love.graphics.translate(x, y)
 
 	-- Draw the background circle
-	love.graphics.setColor(0.2, 0.2, 0.2)
+	love.graphics.setColor(0.2, 0.2, 0.2, 0.3)
 	love.graphics.circle('fill', 0, 0, radius)
 
 	-- Calculate the start and end angles
@@ -165,7 +165,7 @@ function love.graphics.drawProgressCircle(x, y, radius, progress)
 	end
 
 	-- Draw the progress arc
-	love.graphics.setColor(1, 1, 1, 0.5)
+	love.graphics.setColor(1, 1, 1, 0.6)
 
 	-- Only draw if we have at least 3 points (center + 2 points)
 	if (#points > 4) then

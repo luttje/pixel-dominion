@@ -148,7 +148,7 @@ function STRUCTURE:postDrawOnScreen(structure, minX, minY, maxX, maxY)
 	if (structure.lastVillagerGenerationTime) then
 		local x = minX + (maxX - minX) * .5
 		local y = minY + (maxY - minY) * .5
-		local radius = (maxX - minX) * .25
+		local radius = (maxX - minX) * .2
 
 		self:drawVillagerProgress(structure, x, y, radius)
 	end

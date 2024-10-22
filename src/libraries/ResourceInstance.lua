@@ -17,12 +17,23 @@ function ResourceInstance:initialize(config)
 	self.harvestTimer = 0
 
 	table.Merge(self, config)
+
+	self.startSupply = self.supply
 end
 
 --- Gets the type of resource
 --- @return ResourceTypeRegistry.ResourceRegistration
 function ResourceInstance:getResourceType()
-    return self.resourceType
+	return self.resourceType
+end
+
+--- Stop the unit from interacting with the resource
+--- @param interactable Interactable
+function ResourceInstance:stopInteract(interactable)
+	-- Stop the action
+	-- TODO: and go towards the resource camp, for now we will go to the town hall
+	local resourceCamp = CurrentPlayer:getFaction():getTownHall()
+	interactable:commandTo(resourceCamp.x, resourceCamp.y, resourceCamp)
 end
 
 --- When an interactable is interacted with
@@ -38,11 +49,7 @@ function ResourceInstance:updateInteract(deltaTime, interactable)
 
     -- If our inventory is full, we cannot harvest more
     if (inventory:getRemainingResourceSpace() <= 0) then
-        -- Stop the action
-		-- TODO: and go towards the resource camp, for now we will go to the town hall
-		local resourceCamp = CurrentPlayer:getFaction():getTownHall()
-		interactable:commandTo(resourceCamp.x, resourceCamp.y, resourceCamp)
-
+		self:stopInteract(interactable)
 		return
 	end
 
@@ -73,7 +80,25 @@ function ResourceInstance:updateInteract(deltaTime, interactable)
 
         CurrentWorld:removeResourceInstance(self)
 		CurrentWorld:updateCollisionMap()
+		self:stopInteract(interactable)
 	end
+end
+
+--- Called after the resource instance is drawn on screen
+--- @param x number
+--- @param y number
+--- @param width number
+--- @param height number
+--- @param cameraScale number
+function ResourceInstance:postDrawOnScreen(x, y, width, height, cameraScale)
+	if (self.supply == self.startSupply) then
+		return
+	end
+
+	local progress = self.supply / self.startSupply
+	local radius = width * .25
+
+	love.graphics.drawProgressCircle(x + width * .5, y + height * .5, radius, progress)
 end
 
 return ResourceInstance

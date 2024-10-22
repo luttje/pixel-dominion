@@ -408,6 +408,12 @@ function World:removeResourceInstance(resourceInstance)
 	end
 end
 
+--- Get all resource instances
+--- @return ResourceInstance[]
+function World:getResourceInstances()
+	return self.resourceInstances
+end
+
 --- Gets the unit or structure under the given world position
 --- @param x number
 --- @param y number
