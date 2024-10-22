@@ -188,16 +188,32 @@ function Unit:reachedTarget()
     self.targetY = nil
 
 	-- Check if the next position is occupied
-	if (self:isPositionOccupied(self.nextX, self.nextY)) then
-		-- Check if our current position is occupied, if so find a new empty spot to stand
-		self.nextX, self.nextY = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
+	local unitInTheWay = self:isPositionOccupied(self.nextX, self.nextY)
+	if (unitInTheWay) then
+		-- If someone is in the way and they are not moving, move them out of the way
+		if (not unitInTheWay:isMoving()) then
+			local x, y = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
 
-        if (self:isMoving()) then
-			if (self.maxSteps) then
-            	self.maxSteps = self.maxSteps - 1
+			if (not x or not y) then
+				print('No free tile found around the unit in the way.')
+				return
 			end
-        else
-			self:commandTo(self.nextX, self.nextY, targetInteractable, self.formation)
+
+			-- TODO: This currently has other units stopping work on the same resource, which is not ideal as the player would need to micro-manage that.
+			-- TODO: Have multiple units work on a resource from nearby places, or have them wait for eachother? The latter would be simpler to implement since it doesnt involve the pathinfidng.
+			print('Unit in the way, moving out of the way.', x, y)
+			unitInTheWay:commandTo(x, y, nil, self.formation)
+		else
+			print('Unit in the way, waiting for them to move.')
+			self.nextX, self.nextY = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
+
+			if (self:isMoving()) then
+				if (self.maxSteps) then
+					self.maxSteps = self.maxSteps - 1
+				end
+			else
+				self:commandTo(self.nextX, self.nextY, targetInteractable, self.formation)
+			end
 		end
 	end
 end
@@ -235,11 +251,11 @@ end
 --- Checks if the given position is occupied by another unit
 --- @param x number
 --- @param y number
---- @return boolean
+--- @return boolean|Unit
 function Unit:isPositionOccupied(x, y)
     for _, unit in ipairs(self:getFaction():getUnits()) do
         if (unit ~= self and unit.x == x and unit.y == y and not unit:isMoving()) then
-            return true
+            return unit
         end
     end
 
