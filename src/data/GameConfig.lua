@@ -34,11 +34,11 @@ GameConfig.resourceHarvestTimeInSeconds = 1
 
 --- How long between a structure calls its update function in seconds.
 --- @type number
-GameConfig.structureUpdateTimeInSeconds = 0.5 -- TODO: Increase this
+GameConfig.structureUpdateTimeInSeconds = 0.5
 
 --- How many seconds to generate a villager
 --- @type number
-GameConfig.townHallVillagerGenerationTimeInSeconds = 1
+GameConfig.townHallVillagerGenerationTimeInSeconds = 5
 
 --- How many supplies a unit can carry.
 --- @type number
@@ -49,11 +49,37 @@ GameConfig.unitSupplyCapacity = 5
 GameConfig.animationFrameTimeInSeconds = 0.2
 
 --- The pathing offsets for looking around interactables.
+--- @type table
 GameConfig.unitPathingOffsets = {
 	{ x = 0, y = 1 },
 	{ x = -1, y = 0 },
 	{ x = 1, y = 0 },
 	{ x = 0, y = -1 },
+}
+
+--- The tile ids that are spawnpoints for factions.
+--- @type table
+GameConfig.factionSpawnTileIds = {
+	{
+		tilesetId = 1, -- #forest
+		tileId = 226,
+	},
+	{
+		tilesetId = 1,
+		tileId = 227,
+	},
+	{
+		tilesetId = 1,
+		tileId = 228,
+	},
+	{
+		tilesetId = 1,
+		tileId = 229,
+	},
+	{
+		tilesetId = 1,
+		tileId = 230,
+	},
 }
 
 --[[

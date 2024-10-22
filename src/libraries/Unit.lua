@@ -68,7 +68,7 @@ end
 --- Gets the resource inventory
 --- @return ResourceInventory
 function Unit:getResourceInventory()
-	return self.resourceInventory
+    return self.resourceInventory
 end
 
 --- Draws the unit
@@ -82,7 +82,7 @@ end
 --- @param width number
 --- @param height number
 function Unit:drawHudIcon(x, y, width, height)
-	self.unitType:drawHudIcon(x, y, width, height)
+	self.unitType:drawHudIcon(self, x, y, width, height)
 end
 
 --- Updates the unit

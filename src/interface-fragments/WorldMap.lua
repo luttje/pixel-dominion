@@ -12,7 +12,22 @@ function WorldMap:initialize(config)
 	self.dragging = false
 	self.dragStart = { x = 0, y = 0 }
 
+	self:centerOnTownHall()
+
 	return self
+end
+
+--- Centers the camera on the current player's faction's town hall
+function WorldMap:centerOnTownHall()
+	local townHall = CurrentPlayer:getFaction():getStructures()[1]
+
+	assert(townHall, 'No town hall found.')
+
+	self.camera.x = (townHall.x * GameConfig.tileSize) - (self:getWidth() * .5) / self.cameraWorldScale
+	self.camera.y = (townHall.y * GameConfig.tileSize) - (self:getHeight() * .4) / self.cameraWorldScale
+
+	-- Let's select it so players see that that will give them information about villager generation
+	townHall:setSelected(true)
 end
 
 function WorldMap:screenToWorld(x, y, snapToTile)
@@ -45,7 +60,9 @@ function WorldMap:performUpdate(deltaTime)
 
     if (not wantsToDrag) then
 		if (self.dragging) then
-            self.dragging = false
+			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_INPUT_RELEASED, Times.clickInterval, function()
+            	self.dragging = false
+			end)
         elseif (love.mouse.isDown(1)) then
 			local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
             local interactable = self.world:getInteractableUnderPosition(worldX, worldY)
@@ -129,6 +146,22 @@ function WorldMap:performDraw(x, y, width, height)
 
 		love.graphics.setColor(1, 1, 1)
 		love.graphics.rectangle('line', screenX, screenY, GameConfig.tileSize * scaleX, GameConfig.tileSize * scaleY)
+	end
+
+    for _, faction in ipairs(self.world.factions) do
+        for _, structure in ipairs(faction:getStructures()) do
+            -- Check if the structure is in the camera view, if so share that with the structure
+            local screenInfo = structure:isInCameraView(
+                self.camera.x * self.cameraWorldScale,
+                self.camera.y * self.cameraWorldScale,
+                width,
+				height,
+            	self.cameraWorldScale)
+
+            if (screenInfo) then
+				structure:postDrawOnScreen(screenInfo.x, screenInfo.y, screenInfo.width, screenInfo.height, self.cameraWorldScale)
+			end
+		end
 	end
 end
 

@@ -11,6 +11,7 @@ WALKABLE, NOT_WALKABLE = 0, 1
 --- @field mapPath string # The path to the map file
 --- @field factions Faction[] # The factions in the world
 --- @field resourceInstances ResourceInstance[] # The resource instances in the world
+--- @field spawnPoints table<number, table<number, number>> # The spawn points for the factions
 local World = DeclareClass('World')
 
 --- Initializes the world
@@ -22,6 +23,7 @@ function World:initialize(config)
 
     self.factions = {}
 	self.resourceInstances = {}
+	self.spawnPoints = {}
 
 	table.Merge(self, config)
 
@@ -74,8 +76,25 @@ function World:loadMap()
 		end
 	end
 
+	-- Find all spawnpoints (GameConfig.factionSpawnTileIds)
+	for _, layer in ipairs(self.map.layers) do
+		if (layer.data) then
+			for y = 1, self.map.height do
+				for x = 1, self.map.width do
+					local tile = layer.data[y][x]
+
+					for _, spawnTile in ipairs(GameConfig.factionSpawnTileIds) do
+						if (tile and tile.id == spawnTile.tileId and tile.tileset == spawnTile.tilesetId) then
+							table.insert(self.spawnPoints, { x = x - 1, y = y - 1 })
+						end
+					end
+				end
+			end
+		end
+	end
+
 	-- Cache the static collision map
-	local collisionMap = self:updateCollisionMap()
+	self:updateCollisionMap()
 
     -- Go through all resource types and check all layers for a match of spawnAtTileId
     local map = self.map
@@ -166,10 +185,10 @@ function World:draw(translateX, translateY, scaleX, scaleY)
 	love.graphics.setColor(1, 1, 1)
 	self.map:draw(translateX, translateY, scaleX, scaleY)
 
-	if (GameConfig.debugCollisionMap) then
-		love.graphics.setColor(1, 0, 0)
-		self.map:box2d_draw(translateX, translateY, scaleX, scaleY)
-	end
+    if (GameConfig.debugCollisionMap) then
+        love.graphics.setColor(1, 0, 0)
+        self.map:box2d_draw(translateX, translateY, scaleX, scaleY)
+    end
 end
 
 --- Returns the collision map for the loaded map based on the 'collidable' property of the layers.
@@ -379,14 +398,13 @@ function World:getInteractableUnderPosition(x, y)
 		end
 	end
 
-	-- TODO:
-    -- for _, faction in ipairs(self.factions) do
-	-- 	for _, structure in ipairs(faction:getStructures()) do
-	-- 		if (structure:isInPosition(x, y)) then
-	-- 			return structure
-	-- 		end
-	-- 	end
-	-- end
+    for _, faction in ipairs(self.factions) do
+		for _, structure in ipairs(faction:getStructures()) do
+			if (structure:isInPosition(x, y)) then
+				return structure
+			end
+		end
+	end
 
 	for _, resourceInstance in ipairs(self.resourceInstances) do
         if (resourceInstance:isInPosition(x, y)) then
@@ -401,6 +419,38 @@ end
 --- @param faction Faction
 function World:addFaction(faction)
 	table.insert(self.factions, faction)
+end
+
+--- Checks if the faction is already in the world
+--- @param faction Faction
+--- @return boolean
+function World:hasFaction(faction)
+	for _, f in ipairs(self.factions) do
+		if (f == faction) then
+			return true
+		end
+	end
+
+	return false
+end
+
+--- Spawns a faction in a spawnpoint of the world, creating a town hall and a worker
+--- @param faction Faction
+function World:spawnFaction(faction)
+	if (not self.map) then
+		assert(false, 'No map loaded.')
+		return
+	end
+
+	local spawnpoint = self.spawnPoints[#self.factions + 1]
+
+	assert(spawnpoint, 'No spawnpoint found for faction.')
+
+	assert(not self:hasFaction(faction), 'Faction already in the world.')
+	self:addFaction(faction)
+
+    local townHallStructure = StructureTypeRegistry:getStructureType('town_hall')
+    faction:spawnStructure(townHallStructure, spawnpoint.x, spawnpoint.y)
 end
 
 return World

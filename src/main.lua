@@ -53,11 +53,9 @@ function love.load()
 	CurrentWorld = World({
 		mapPath = 'assets/worlds/forest_8x8.lua'
     })
-	CurrentWorld:addFaction(playerFaction)
     CurrentPlayer:setWorld(CurrentWorld)
-
-    local townHallStructure = StructureTypeRegistry:getStructureType('town_hall')
-    playerFaction:spawnStructure(townHallStructure, 12, 6)
+	CurrentWorld:spawnFaction(playerFaction)
+	-- TODO: End of hard-coded tests
 
     StateManager:setCurrentState(InGameState)
 end

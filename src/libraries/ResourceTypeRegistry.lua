@@ -76,7 +76,9 @@ function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
 			tilesetId = tileInfo.tilesetId,
 			tileId = tileInfo.tileId,
 			x = worldX,
-			y = worldY
+			y = worldY,
+            offsetX = tileInfo.offsetX or 0,
+			offsetY = tileInfo.offsetY or 0
 		}
 	end
 

@@ -8,11 +8,11 @@
 --- @param alignY? 'start'|'center'|'end' Whether to align the drawable on the y-axis (default: 'start')
 --- @param shouldClip? boolean Whether to clip the drawable if it goes outside the area (default: true)
 function love.graphics.drawCover(drawable, x, y, areaWidth, areaHeight, alignX, alignY, shouldClip)
-    areaWidth = areaWidth or love.graphics.getWidth()
-    areaHeight = areaHeight or love.graphics.getHeight()
+	areaWidth = areaWidth or love.graphics.getWidth()
+	areaHeight = areaHeight or love.graphics.getHeight()
 
-    local width, height = drawable:getDimensions()
-    local scale = math.max(areaWidth / width, areaHeight / height)
+	local width, height = drawable:getDimensions()
+	local scale = math.max(areaWidth / width, areaHeight / height)
 
 	local drawWidth = width * scale
 	local drawHeight = height * scale
@@ -51,10 +51,10 @@ function love.graphics.drawCover(drawable, x, y, areaWidth, areaHeight, alignX, 
 		y = y + areaHeight - drawHeight
 	end
 
-    love.graphics.draw(drawable, x, y, 0, scale, scale)
+	love.graphics.draw(drawable, x, y, 0, scale, scale)
 
-    if (shouldClip) then
-    	love.graphics.restoreScissor()
+	if (shouldClip) then
+		love.graphics.restoreScissor()
 	end
 end
 
@@ -102,7 +102,7 @@ local scissorStack = {}
 --- @param height number The height of the rectangle
 --- @param shouldIntersect? boolean Whether to intersect the new scissor rectangle with the old one (default: false)
 function love.graphics.setScissorSavingOld(x, y, width, height, shouldIntersect)
-    table.insert(scissorStack, { love.graphics.getScissor() })
+	table.insert(scissorStack, { love.graphics.getScissor() })
 	shouldIntersect = shouldIntersect or false
 
 	if (shouldIntersect) then
@@ -117,4 +117,61 @@ function love.graphics.restoreScissor()
 	local oldScissor = table.remove(scissorStack)
 	assert(oldScissor, 'No scissor to restore.')
 	love.graphics.setScissor(unpack(oldScissor))
+end
+
+--- Draws progress circle that unwinds clockwise as the progress increases
+--- @param x number The x-coordinate of the center of the circle
+--- @param y number The y-coordinate of the center of the circle
+--- @param radius number The radius of the circle
+--- @param progress number The progress of the circle (0-1)
+function love.graphics.drawProgressCircle(x, y, radius, progress)
+	-- Validate progress value to ensure it's between 0 and 1
+	progress = math.max(0, math.min(1, progress))
+
+	-- Save the current graphics state
+	love.graphics.push()
+
+	-- Move to the center point
+	love.graphics.translate(x, y)
+
+	-- Draw the background circle
+	love.graphics.setColor(0.2, 0.2, 0.2)
+	love.graphics.circle('fill', 0, 0, radius)
+
+	-- Calculate the start and end angles
+	local startAngle = -math.pi / 2 -- Start at 12 o'clock position
+	local endAngle = startAngle + (2 * math.pi * progress)
+
+	-- Number of segments to use for the arc
+	local segments = 64
+
+	-- Calculate points for the arc
+	local points = {}
+
+	-- Always add center point as first point
+	table.insert(points, 0)
+	table.insert(points, 0)
+
+	-- Calculate intermediate points
+	for i = 0, segments do
+		local angle = startAngle + (i / segments) * (endAngle - startAngle)
+		if angle > endAngle then break end
+
+		local px = math.cos(angle) * radius
+		local py = math.sin(angle) * radius
+
+		table.insert(points, px)
+		table.insert(points, py)
+	end
+
+	-- Draw the progress arc
+	love.graphics.setColor(1, 1, 1, 0.5)
+
+	-- Only draw if we have at least 3 points (center + 2 points)
+	if (#points > 4) then
+		love.graphics.polygon('fill', points)
+	end
+
+	-- Restore the graphics state
+	love.graphics.pop()
 end

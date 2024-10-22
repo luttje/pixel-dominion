@@ -55,20 +55,35 @@ STRUCTURE.worldTilesetInfo = {
     },
 }
 
+--- Called when the structure is created in the world
+--- @param structure Structure
+function STRUCTURE:onSpawn(structure)
+	structure.lastVillagerGenerationTime = 0
+
+	-- Start with 1 villager
+    self:generateVillager(structure)
+end
+
 --- Called every time the structure updates (See GameConfig.structureUpdateTimeInSeconds)
 --- @param structure Structure
 function STRUCTURE:onTimedUpdate(structure)
-	if (not self.lastVillagerGenerationTime) then
-		self.lastVillagerGenerationTime = 0
-	end
+	local faction = structure:getFaction()
+    local units = faction:getUnits()
+	local housing = faction:getResourceInventory():getValue('housing')
 
-    self.lastVillagerGenerationTime = self.lastVillagerGenerationTime + GameConfig.structureUpdateTimeInSeconds
+	if (#units >= housing) then
+		structure.lastVillagerGenerationTime = nil
 
-	if (self.lastVillagerGenerationTime < GameConfig.townHallVillagerGenerationTimeInSeconds) then
 		return
 	end
 
-    self.lastVillagerGenerationTime = 0
+    structure.lastVillagerGenerationTime = structure.lastVillagerGenerationTime + GameConfig.structureUpdateTimeInSeconds
+
+	if (structure.lastVillagerGenerationTime < GameConfig.townHallVillagerGenerationTimeInSeconds) then
+		return
+	end
+
+    structure.lastVillagerGenerationTime = 0
 
     self:generateVillager(structure)
 end
@@ -95,6 +110,47 @@ function STRUCTURE:generateVillager(structure)
         UnitTypeRegistry:getUnitType('builder'),
         x, y
 	)
+end
+
+--- Draws how much progress has been made generating a villager
+--- @param structure Structure
+--- @param x number
+--- @param y number
+--- @param radius number
+function STRUCTURE:drawVillagerProgress(structure, x, y, radius)
+	love.graphics.drawProgressCircle(
+		x,
+		y,
+		radius,
+		structure.lastVillagerGenerationTime / GameConfig.townHallVillagerGenerationTimeInSeconds)
+
+	-- Draw the villager icon over the progress circle
+	local padding = Sizes.padding()
+	local iconWidth = radius * 2 - padding * 2
+	local iconHeight = radius * 2 - padding * 2
+
+	love.graphics.setColor(1, 1, 1)
+	UnitTypeRegistry:getUnitType('builder'):drawHudIcon(nil, x - radius + padding, y - radius + padding, iconWidth, iconHeight)
+end
+
+--- Called after the structure is drawn on screen
+--- @param structure Structure
+--- @param minX number
+--- @param minY number
+--- @param maxX number
+--- @param maxY number
+function STRUCTURE:postDrawOnScreen(structure, minX, minY, maxX, maxY)
+	if (not structure:getIsSelected()) then
+		return
+	end
+
+	if (structure.lastVillagerGenerationTime) then
+		local x = minX + (maxX - minX) * .5
+		local y = minY + (maxY - minY) * .5
+		local radius = (maxX - minX) * .25
+
+		self:drawVillagerProgress(structure, x, y, radius)
+	end
 end
 
 return STRUCTURE

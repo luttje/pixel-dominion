@@ -9,6 +9,7 @@ local StructureTypeRegistry = DeclareClass('StructureTypeRegistry')
 --- @field id string The unique id of the structure.
 --- @field name string The name of the structure.
 --- @field worldTilesetInfo table<number, table> The tileset information used to render the structure in the world.
+--- @field imagePath string The path to the image used to render the structure.
 StructureTypeRegistry.StructureRegistration = DeclareClass('StructureTypeRegistry.StructureRegistration')
 
 function StructureTypeRegistry.StructureRegistration:initialize(config)
@@ -17,6 +18,9 @@ function StructureTypeRegistry.StructureRegistration:initialize(config)
 	config = config or {}
 
 	table.Merge(self, config)
+
+	self.image = ImageCache:get(self.imagePath)
+	self.imageWidth, self.imageHeight = self.image:getDimensions()
 end
 
 --- Spawns this resource at the given tile position
@@ -26,7 +30,7 @@ end
 --- @param y number
 --- @return Structure
 function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction, x, y)
-    assert(self.worldTilesetInfo, 'Resource worldTilesetInfo is required.')
+	assert(self.worldTilesetInfo, 'Resource worldTilesetInfo is required.')
 
 	local tiles = {}
 	local treeInfo = table.Random(self.worldTilesetInfo)
@@ -49,28 +53,41 @@ function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction,
 			tilesetId = tileInfo.tilesetId,
 			tileId = tileInfo.tileId,
 			x = worldX,
-			y = worldY
+			y = worldY,
+			offsetX = tileInfo.offsetX or 0,
+			offsetY = tileInfo.offsetY or 0
 		}
 	end
 
 	world:updateCollisionMap()
 
-	return Structure({
+	local structure = Structure({
 		structureType = self,
 		faction = faction,
 		x = x,
-        y = y,
+		y = y,
 		tiles = tiles
 	})
+
+	if (self.onSpawn) then
+		self:onSpawn(structure)
+	end
+
+	return structure
 end
 
---- Draws the structure hud icon
+--- Draws the interactable on the hud
+--- @param structure Structure
 --- @param x number
 --- @param y number
 --- @param width number
 --- @param height number
-function StructureTypeRegistry.StructureRegistration:drawHudIcon(x, y, width, height)
-    -- TODO
+function StructureTypeRegistry.StructureRegistration:drawHudIcon(structure, x, y, width, height)
+	local scaleX = width / self.imageWidth
+	local scaleY = height / self.imageHeight
+
+	love.graphics.setColor(1, 1, 1)
+	love.graphics.draw(self.image, x, y, 0, scaleX, scaleY)
 end
 
 --[[

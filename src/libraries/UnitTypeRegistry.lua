@@ -120,11 +120,12 @@ function UnitTypeRegistry.UnitRegistration:draw(unit, animationName)
 end
 
 --- Draws the unit hud icon
+--- @param unit Unit
 --- @param x number
 --- @param y number
 --- @param width number
 --- @param height number
-function UnitTypeRegistry.UnitRegistration:drawHudIcon(x, y, width, height)
+function UnitTypeRegistry.UnitRegistration:drawHudIcon(unit, x, y, width, height)
     local quad = self.animations.idle:getCurrentQuad()
 
 	local imageWidth, imageHeight = GameConfig.tileSize, GameConfig.tileSize

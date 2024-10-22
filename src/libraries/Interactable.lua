@@ -45,6 +45,32 @@ function Interactable:isInPosition(x, y)
 	return self.x == x and self.y == y
 end
 
+--- Gets if the interactable is in the camera view, returns the on screen position and size if it is
+--- @param scaledCameraOffsetX number
+--- @param scaledCameraOffsetY number
+--- @param cameraWidth number
+--- @param cameraHeight number
+--- @param cameraWorldScale number
+--- @return table|boolean
+function Interactable:isInCameraView(scaledCameraOffsetX, scaledCameraOffsetY, cameraWidth, cameraHeight, cameraWorldScale)
+    local onScreenX = (self.x * GameConfig.tileSize * cameraWorldScale) - scaledCameraOffsetX
+    local onScreenY = (self.y * GameConfig.tileSize * cameraWorldScale) - scaledCameraOffsetY
+
+    local onScreenWidth = GameConfig.tileSize * cameraWorldScale
+    local onScreenHeight = GameConfig.tileSize * cameraWorldScale
+
+    if (onScreenX >= 0 and onScreenX <= cameraWidth and onScreenY >= 0 and onScreenY <= cameraHeight) then
+        return {
+            x = onScreenX,
+            y = onScreenY,
+            width = onScreenWidth,
+            height = onScreenHeight
+        }
+    end
+
+	return false
+end
+
 --- Get the distance to the given position. Returned as a squared value for performance reasons.
 --- @param x number
 --- @param y number
