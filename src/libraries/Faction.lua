@@ -92,4 +92,20 @@ function Faction:update(deltaTime)
 	end
 end
 
+--- Returns both units and structures
+--- @return table<number, Unit|Structure>
+function Faction:getInteractables()
+	local interactables = {}
+
+	for _, unit in ipairs(self.units) do
+		table.insert(interactables, unit)
+	end
+
+	for _, structure in ipairs(self.structures) do
+		table.insert(interactables, structure)
+	end
+
+	return interactables
+end
+
 return Faction

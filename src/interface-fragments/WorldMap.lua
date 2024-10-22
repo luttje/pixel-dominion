@@ -148,10 +148,10 @@ function WorldMap:performDraw(x, y, width, height)
 		love.graphics.rectangle('line', screenX, screenY, GameConfig.tileSize * scaleX, GameConfig.tileSize * scaleY)
 	end
 
-    for _, faction in ipairs(self.world.factions) do
-        for _, structure in ipairs(faction:getStructures()) do
-            -- Check if the structure is in the camera view, if so share that with the structure
-            local screenInfo = structure:isInCameraView(
+	for _, faction in ipairs(self.world.factions) do
+        for _, interactable in ipairs(faction:getInteractables()) do
+            -- Check if the interactable is in the camera view, if so share that with the interactable
+            local screenInfo = interactable:isInCameraView(
                 self.camera.x * self.cameraWorldScale,
                 self.camera.y * self.cameraWorldScale,
                 width,
@@ -159,7 +159,7 @@ function WorldMap:performDraw(x, y, width, height)
             	self.cameraWorldScale)
 
             if (screenInfo) then
-				structure:postDrawOnScreen(screenInfo.x, screenInfo.y, screenInfo.width, screenInfo.height, self.cameraWorldScale)
+				interactable:postDrawOnScreen(screenInfo.x, screenInfo.y, screenInfo.width, screenInfo.height, self.cameraWorldScale)
 			end
 		end
 	end

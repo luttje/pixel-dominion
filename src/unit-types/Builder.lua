@@ -33,4 +33,13 @@ UNIT.actionImageOffset = {
 	},
 }
 
+--- Called after the unit is drawn on screen
+--- @param unit Unit
+--- @param minX number
+--- @param minY number
+--- @param maxX number
+--- @param maxY number
+function UNIT:postDrawOnScreen(unit, minX, minY, maxX, maxY)
+end
+
 return UNIT

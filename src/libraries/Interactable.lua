@@ -31,6 +31,16 @@ function Interactable:drawHudIcon(x, y, width, height)
 	-- Override this in the child class
 end
 
+--- Called after the interactable is drawn on screen
+--- @param x number
+--- @param y number
+--- @param width number
+--- @param height number
+--- @param cameraScale number
+function Interactable:postDrawOnScreen(x, y, width, height, cameraScale)
+	-- Override this in the child class
+end
+
 --- Gets the world position of the interactable
 --- @return number, number
 function Interactable:getWorldPosition()

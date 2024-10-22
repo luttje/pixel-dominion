@@ -59,13 +59,15 @@ end
 --- @param height number
 --- @param cameraScale number
 function Structure:postDrawOnScreen(x, y, width, height, cameraScale)
-	local minX, minY, maxX, maxY = self:getScreenBounds(x, y, cameraScale)
+	if (self.structureType.postDrawOnScreen) then
+		local minX, minY, maxX, maxY = self:getScreenBounds(x, y, cameraScale)
 
-	-- if (self:getIsSelected()) then
-	-- 	self:drawScreenBorder(minX, minY, maxX, maxY)
-	-- end
+		-- if (self:getIsSelected()) then
+		-- 	self:drawScreenBorder(minX, minY, maxX, maxY)
+		-- end
 
-	self.structureType:postDrawOnScreen(self, minX, minY, maxX, maxY)
+		self.structureType:postDrawOnScreen(self, minX, minY, maxX, maxY)
+	end
 end
 
 --- Returns the draw offset of the structure. We use the bounds to ensure the selection marker is drawn above the center

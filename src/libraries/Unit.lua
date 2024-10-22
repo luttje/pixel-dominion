@@ -85,6 +85,57 @@ function Unit:drawHudIcon(x, y, width, height)
 	self.unitType:drawHudIcon(self, x, y, width, height)
 end
 
+--- Called after the unit is drawn on screen
+--- @param x number
+--- @param y number
+--- @param width number
+--- @param height number
+--- @param cameraScale number
+function Unit:postDrawOnScreen(x, y, width, height, cameraScale)
+	-- Apply the draw offset to x and y
+	local bounceX, bounceY = self:getDrawOffset()
+	x = x + bounceX * cameraScale
+	y = y + bounceY * cameraScale
+
+	if (self.unitType.postDrawOnScreen) then
+		self.unitType:postDrawOnScreen(self, x, y, width, height)
+	end
+
+	-- Show how much they carrying as little green rectangles stacking up
+	local inventory = self:getResourceInventory()
+	local maxResources = inventory:getMaxResources()
+	local resources = inventory:getCurrentResources()
+	local blockSpacing = 1
+	local blockSize = 3
+	local blocksPerRow = 5
+	local columns = math.ceil(resources / blocksPerRow)
+	local blockX = x
+	local blockY = y + height - blockSize
+
+	for column = 1, columns do
+		local blocksInThisColumn = math.min(blocksPerRow, resources - (column-1) * blocksPerRow)
+
+		for block = 1, blocksInThisColumn do
+			-- Adding half so its always crips when stationary.
+			-- TODO: Find out why this is needed
+			local resourceX = (blockX + (column - 1) * (blockSize + blockSpacing) + 0.5)
+			local resourceY = (blockY - (block - 1) * (blockSize + blockSpacing) + 0.5)
+
+			if (not maxResources or resources < maxResources) then
+				love.graphics.setColor(0, 1, 0, 1)
+			else
+				-- TODO: This is red to mark that the inventory is full. That may be confusing with health though, so find a better way to show this.
+				love.graphics.setColor(1, 0, 0, 1)
+			end
+
+			love.graphics.rectangle('fill', resourceX, resourceY, blockSize, blockSize)
+
+			love.graphics.setColor(0, 0, 0, 1)
+			love.graphics.rectangle('line', resourceX, resourceY, blockSize, blockSize)
+		end
+	end
+end
+
 --- Updates the unit
 --- @param deltaTime number
 function Unit:update(deltaTime)

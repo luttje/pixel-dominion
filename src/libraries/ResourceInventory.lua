@@ -42,6 +42,18 @@ function ResourceInventory:getRemainingResourceSpace()
 	return self.maxResources - self.currentResources
 end
 
+--- Sets the maximum resources
+--- @param maxResources number
+function ResourceInventory:setMaxResources(maxResources)
+	self.maxResources = maxResources
+end
+
+--- Gets the maximum resources
+--- @return number
+function ResourceInventory:getMaxResources()
+	return self.maxResources
+end
+
 --- Gets the resource value for the given resource type
 --- @param resourceTypeOrId ResourceTypeRegistry.ResourceRegistration|string
 --- @return number

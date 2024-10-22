@@ -58,9 +58,7 @@ function ResourceInstance:updateInteract(deltaTime, interactable)
 
 	self.harvestTimer = 0
 
-    local resourceHarvested = math.min(self.supply, inventory:getRemainingResourceSpace())
-
-	print('Harvesting ' .. resourceHarvested .. ' supplies from resource.')
+    local resourceHarvested = math.min(self.supply, 1, inventory:getRemainingResourceSpace())
 
 	inventory:add(self.resourceType, resourceHarvested)
 	self.supply = self.supply - resourceHarvested
