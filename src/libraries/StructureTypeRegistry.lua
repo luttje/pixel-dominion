@@ -20,7 +20,7 @@ function StructureTypeRegistry.StructureRegistration:initialize(config)
 	table.Merge(self, config)
 
 	self.image = ImageCache:get(self.imagePath)
-	self.imageWidth, self.imageHeight = self.image:getDimensions()
+    self.imageWidth, self.imageHeight = self.image:getDimensions()
 end
 
 --- Spawns this resource at the given tile position
@@ -33,9 +33,9 @@ function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction,
 	assert(self.worldTilesetInfo, 'Resource worldTilesetInfo is required.')
 
 	local tiles = {}
-	local treeInfo = table.Random(self.worldTilesetInfo)
+	local structureVariant = table.Random(self.worldTilesetInfo)
 
-	for _, tileInfo in ipairs(treeInfo) do
+	for _, tileInfo in ipairs(structureVariant) do
 		local worldX = x + (tileInfo.offsetX or 0)
 		local worldY = y + (tileInfo.offsetY or 0)
 
@@ -69,15 +69,13 @@ function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction,
 		tiles = tiles
 	})
 
-	if (self.onSpawn) then
-		self:onSpawn(structure)
-	end
+    structure:onSpawn()
 
 	return structure
 end
 
 --- Draws the interactable on the hud
---- @param structure Structure
+--- @param structure Structure|nil
 --- @param x number
 --- @param y number
 --- @param width number
@@ -88,6 +86,47 @@ function StructureTypeRegistry.StructureRegistration:drawHudIcon(structure, x, y
 
 	love.graphics.setColor(1, 1, 1)
 	love.graphics.draw(self.image, x, y, 0, scaleX, scaleY)
+end
+
+--- Draw the ghost of the structure on the screen
+--- @param screenX number
+--- @param screenY number
+--- @param screenCameraScale number
+--- @param canPlace boolean
+function StructureTypeRegistry.StructureRegistration:drawGhost(screenX, screenY, screenCameraScale, canPlace)
+    local scaleX = screenCameraScale
+    local scaleY = screenCameraScale
+
+    if (not canPlace) then
+        love.graphics.setColor(1, 0, 0, .5)
+    else
+        love.graphics.setColor(1, 1, 1, .5)
+    end
+
+    -- TODO: Hard-coded bottom left tile offset for all our structures. This should be calculated somehow
+	screenY = screenY - (GameConfig.tileSize * scaleY)
+
+    love.graphics.draw(self.image, screenX, screenY, 0, scaleX, scaleY)
+end
+
+--- Determines whether the structure can be placed at the given tile position
+--- @param worldX number
+--- @param worldY number
+--- @return boolean
+function StructureTypeRegistry.StructureRegistration:canPlaceAt(worldX, worldY)
+    local world = CurrentWorld
+
+    -- Use the world to check if the structure can be placed at the given tile position
+    for _, tileInfo in ipairs(self.worldTilesetInfo[1]) do
+        local tileX = worldX + (tileInfo.offsetX or 0)
+        local tileY = worldY + (tileInfo.offsetY or 0)
+
+        if (world:isTileOccupied(tileX, tileY)) then
+            return false
+        end
+    end
+
+	return true
 end
 
 --[[

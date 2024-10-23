@@ -21,6 +21,13 @@ function ResourceInstance:initialize(config)
 	self.startSupply = self.supply
 end
 
+--- Called when the resource instance spawns
+function ResourceInstance:onSpawn()
+	if (self.resourceType.onSpawn) then
+		self.resourceType:onSpawn(self)
+	end
+end
+
 --- Gets the type of resource
 --- @return ResourceTypeRegistry.ResourceRegistration
 function ResourceInstance:getResourceType()
@@ -45,42 +52,52 @@ function ResourceInstance:updateInteract(deltaTime, interactable)
         return
     end
 
-	local inventory = interactable:getResourceInventory()
+    local inventory = interactable:getResourceInventory()
 
     -- If our inventory is full, we cannot harvest more
     if (inventory:getRemainingResourceSpace() <= 0) then
-		self:stopInteract(interactable)
-		return
-	end
+        self:stopInteract(interactable)
+        return
+    end
 
     -- Set the action active and on the current interactable
-	interactable:setCurrentAction('action', self)
+    interactable:setCurrentAction('action', self)
 
     assert(CurrentWorld, 'World is required.')
 
-	self.harvestTimer = self.harvestTimer + deltaTime
+    self.harvestTimer = self.harvestTimer + deltaTime
 
     if (self.harvestTimer < GameConfig.resourceHarvestTimeInSeconds) then
         return
     end
 
-	self.harvestTimer = 0
+    self.harvestTimer = 0
 
     local resourceHarvested = math.min(self.supply, 1, inventory:getRemainingResourceSpace())
 
-	inventory:add(self.resourceType, resourceHarvested)
-	self.supply = self.supply - resourceHarvested
+    inventory:add(self.resourceType, resourceHarvested)
+    self.supply = self.supply - resourceHarvested
 
-	-- Check if the resource supply is depleted
-	if (self.supply <= 0) then
-		-- Remove all tiles from the world when supply runs out
-        for _, tile in pairs(self.tiles) do
-            CurrentWorld:removeTile(tile.layerName, tile.x, tile.y)
-        end
+    -- Check if the resource supply is depleted
+    if (self.supply <= 0) then
+        self:removeResource()
+        self:stopInteract(interactable)
+    end
+end
 
-        CurrentWorld:removeResourceInstance(self)
-		CurrentWorld:updateCollisionMap()
-		self:stopInteract(interactable)
+--- Removes the resource from the world
+function ResourceInstance:removeResource()
+	local world = CurrentWorld
+
+	for _, tile in pairs(self.tiles) do
+		world:removeTile(tile.layerName, tile.x, tile.y)
+	end
+
+	world:removeResourceInstance(self)
+	world:updateCollisionMap()
+
+	if (self.resourceType.onRemove) then
+		self.resourceType:onRemove(self)
 	end
 end
 

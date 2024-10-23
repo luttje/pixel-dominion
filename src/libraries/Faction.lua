@@ -108,17 +108,31 @@ end
 --- Returns both units and structures
 --- @return table<number, Unit|Structure>
 function Faction:getInteractables()
-	local interactables = {}
+    local interactables = {}
 
-	for _, unit in ipairs(self.units) do
-		table.insert(interactables, unit)
+    for _, unit in ipairs(self.units) do
+        table.insert(interactables, unit)
+    end
+
+    for _, structure in ipairs(self.structures) do
+        table.insert(interactables, structure)
+    end
+
+    return interactables
+end
+
+--- Returns the available structures for the faction
+--- @return StructureTypeRegistry.StructureRegistration[]
+function Faction:getAvailableStructures()
+	local availableStructures = {}
+
+	for _, structureType in pairs(StructureTypeRegistry:getAllStructureTypes()) do
+		if (structureType:canBeBuiltByFaction(self)) then
+			table.insert(availableStructures, structureType)
+		end
 	end
 
-	for _, structure in ipairs(self.structures) do
-		table.insert(interactables, structure)
-	end
-
-	return interactables
+	return availableStructures
 end
 
 return Faction

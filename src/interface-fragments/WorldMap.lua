@@ -14,7 +14,37 @@ function WorldMap:initialize(config)
 
 	self:centerOnTownHall()
 
-	return self
+	self.placeStructureButton = Button({
+		text = 'Place',
+		x = 0,
+		y = 0,
+		width = 100,
+		height = 50,
+		-- isVisible = false,
+        onClick = function()
+			-- If we're building a structure, draw a ghost of it
+			local structureToBuild, builders = CurrentPlayer:getCurrentStructureToBuild()
+            print('Place structure', structureToBuild, 'built by:')
+			for _, builder in ipairs(builders) do
+				print(builder)
+			end
+			CurrentPlayer:clearCurrentStructureToBuild()
+		end
+    })
+    self.childFragments:add(self.placeStructureButton)
+
+	self.cancelStructureButton = Button({
+		text = 'Cancel',
+		x = 0,
+		y = 0,
+		width = 100,
+		height = 50,
+		-- isVisible = false,
+		onClick = function()
+			CurrentPlayer:clearCurrentStructureToBuild()
+		end
+	})
+	self.childFragments:add(self.cancelStructureButton)
 end
 
 --- Centers the camera on the current player's faction's town hall
@@ -48,7 +78,7 @@ function WorldMap:performUpdate(deltaTime)
 
 	self.world:update(deltaTime)
 
-	if (CurrentPlayer:isWorldInputBlocked()) then
+	if (CurrentPlayer:getWorldInputBlocker()) then
 		return
 	end
 
@@ -177,6 +207,34 @@ function WorldMap:performDraw(x, y, width, height)
 	for _, interactable in ipairs(self.world:getResourceInstances()) do
 		drawPostScreen(interactable)
 	end
+
+    -- If we're building a structure, draw a ghost of it
+    local structureToBuild, builders = CurrentPlayer:getCurrentStructureToBuild()
+
+    if (structureToBuild) then
+		local buildScreenX, buildScreenY = self:getWidth() * .5, self:getHeight() * .5
+        local worldX, worldY = self:screenToWorld(buildScreenX, buildScreenY, true)
+        local screenX, screenY = self:worldToScreen(worldX, worldY)
+
+        -- Check if the structure can be placed at the current location
+        local canPlace = structureToBuild:canPlaceAt(worldX, worldY)
+
+        -- Draw the structure
+		structureToBuild:drawGhost(screenX, screenY, self.cameraWorldScale, canPlace)
+
+        -- Show the place and cancel buttons below the ghost
+        self.placeStructureButton.x = love.graphics.getWidth() * .5 - (self.placeStructureButton.width * .5)
+        self.placeStructureButton.y = screenY + GameConfig.tileSize * self.cameraWorldScale
+        self.placeStructureButton:setEnabled(canPlace)
+        self.placeStructureButton:setVisible(true)
+
+        self.cancelStructureButton.x = self.placeStructureButton.x
+        self.cancelStructureButton.y = self.placeStructureButton.y + self.placeStructureButton.height + Sizes.padding()
+        self.cancelStructureButton:setVisible(true)
+    else
+        self.placeStructureButton:setVisible(false)
+		self.cancelStructureButton:setVisible(false)
+    end
 end
 
 return WorldMap

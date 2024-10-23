@@ -120,7 +120,7 @@ function UnitTypeRegistry.UnitRegistration:draw(unit, animationName)
 end
 
 --- Draws the unit hud icon
---- @param unit Unit
+--- @param unit Unit|nil
 --- @param x number
 --- @param y number
 --- @param width number

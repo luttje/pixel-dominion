@@ -84,12 +84,16 @@ function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
 
 	world:updateCollisionMap()
 
-	return ResourceInstance({
+	local resource = ResourceInstance({
 		resourceType = self,
 		x = x,
         y = y,
 		tiles = tiles
-	})
+    })
+
+    resource:onSpawn()
+
+	return resource
 end
 
 --[[

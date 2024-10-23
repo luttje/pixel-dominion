@@ -70,6 +70,10 @@ function Button:setEnabled(isEnabled)
 end
 
 function Button:refreshIconImage()
+    if (not self.iconImagePath) then
+        return
+    end
+
 	if (self.iconImageData) then
 		self.iconImageData:release()
 		self.iconImageData = nil
@@ -101,7 +105,11 @@ function Button:performUpdate(deltaTime)
 	self.isHovered = self:isPointerWithin()
 	local isDown = love.mouse.isDown(1)
 
-	CurrentPlayer:setWorldInputBlocked(self.isHovered)
+	if (self.isHovered) then
+		CurrentPlayer:setWorldInputBlockedBy(self)
+	elseif (CurrentPlayer:getWorldInputBlocker() == self) then
+		CurrentPlayer:setWorldInputBlockedBy(nil)
+	end
 
 	if (not love.mouse.isCursorSupported()) then
 		if (isDown) then
@@ -137,8 +145,12 @@ function Button:performDraw(x, y, width, height)
 		else
 			if self.isHovered then
 				love.graphics.setColor(Colors.primaryBright())
-			else
-				love.graphics.setColor(Colors.primary())
+            else
+				if (self.isEnabled) then
+					love.graphics.setColor(Colors.primary())
+				else
+					love.graphics.setColor(Colors.primaryDisabled())
+				end
 			end
 		end
 

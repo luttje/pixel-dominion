@@ -303,7 +303,7 @@ end
 function World:isTileOccupied(x, y)
 	if (not self.map) then
 		assert(false, 'No map loaded.')
-		return
+		return false
 	end
 
 	local collisionMap = self.collisionMap

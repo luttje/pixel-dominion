@@ -30,6 +30,7 @@ Colors.backgroundLight = Colors.fromRgb(216, 216, 198)
 
 Colors.primary = Colors.fromRgb(141, 65, 77)
 Colors.primaryBright = Colors.fromRgb(150, 80, 91)
+Colors.primaryDisabled = Colors.fromRgb(141, 65, 77, 100)
 
 Colors.secondary = Colors.fromRgb(50, 67, 89)
 Colors.secondaryBright = Colors.fromRgb(60, 77, 99)

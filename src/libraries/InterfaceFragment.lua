@@ -50,7 +50,9 @@ function InterfaceFragment:initialize(config)
 			right = config.anchorMargins,
 			bottom = config.anchorMargins,
 			left = config.anchorMargins
-		}
+        }
+	elseif (not config.anchorMargins) then
+		config.anchorMargins = {}
 	end
 
 	self.childFragments = InterfaceFragmentContainer({
@@ -280,7 +282,7 @@ function InterfaceFragment:getWidth()
 	local parentWidth
 
 	if (self.parentContainer and self.parentContainer.ownerFragment) then
-		parentWidth = self.parentContainer.ownerFragment:getWidth()
+        parentWidth = self.parentContainer.ownerFragment:getWidth()
 	else
 		parentWidth = love.graphics.getWidth()
 	end
@@ -516,6 +518,14 @@ function InterfaceFragment:getVisualCenter()
 	local x, y = self:getPosition()
 	local width, height = self:getSize()
 	return x + (width * .5), y + (height * .5)
+end
+
+--- Destroys the InterfaceFragment.
+--- This will remove the fragment from its parent container.
+function InterfaceFragment:destroy()
+	if (self.parentContainer) then
+		self.parentContainer:remove(self)
+	end
 end
 
 return InterfaceFragment

@@ -107,7 +107,7 @@ function STRUCTURE:generateVillager(structure)
     end
 
 	faction:spawnUnit(
-        UnitTypeRegistry:getUnitType('builder'),
+        UnitTypeRegistry:getUnitType('villager'),
         x, y
 	)
 end
@@ -130,7 +130,7 @@ function STRUCTURE:drawVillagerProgress(structure, x, y, radius)
 	local iconHeight = radius * 2 - padding * 2
 
 	love.graphics.setColor(1, 1, 1)
-	UnitTypeRegistry:getUnitType('builder'):drawHudIcon(nil, x - radius + padding, y - radius + padding, iconWidth, iconHeight)
+	UnitTypeRegistry:getUnitType('villager'):drawHudIcon(nil, x - radius + padding, y - radius + padding, iconWidth, iconHeight)
 end
 
 --- Called after the structure is drawn on screen
@@ -159,36 +159,43 @@ end
 --- @param deltaTime number
 --- @param interactor Interactable
 function STRUCTURE:updateInteract(structure, deltaTime, interactor)
-	-- Take any resources from the unit and place them in the faction inventory
-	local inventory = interactor:getResourceInventory()
+    -- Take any resources from the unit and place them in the faction inventory
+    local inventory = interactor:getResourceInventory()
 
-	if (inventory:getCurrentResources() == 0) then
-		return
-	end
+    if (inventory:getCurrentResources() == 0) then
+        return
+    end
 
-	local faction = structure:getFaction()
-	local factionInventory = faction:getResourceInventory()
-	local lastResourceType
+    local faction = structure:getFaction()
+    local factionInventory = faction:getResourceInventory()
+    local lastResourceType
 
-	for resourceTypeId, resourceValue in pairs(inventory:getAll()) do
-		factionInventory:add(resourceTypeId, resourceValue.value)
+    for resourceTypeId, resourceValue in pairs(inventory:getAll()) do
+        factionInventory:add(resourceTypeId, resourceValue.value)
 
-		lastResourceType = resourceValue:getResourceType()
-	end
+        lastResourceType = resourceValue:getResourceType()
+    end
 
-	inventory:clear()
+    inventory:clear()
 
-	if (not lastResourceType) then
-		return
-	end
+    if (not lastResourceType) then
+        return
+    end
 
-	local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(lastResourceType, structure.x, structure.y)
+    local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(lastResourceType, structure.x, structure.y)
 
-	if (not nearestResourceInstance) then
-		return
-	end
+    if (not nearestResourceInstance) then
+        return
+    end
 
-	interactor:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
+    interactor:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
+end
+
+--- Returns whether the structure can be built by the faction
+--- @param faction Faction
+--- @return boolean
+function STRUCTURE:canBeBuiltByFaction(faction)
+	return false
 end
 
 return STRUCTURE

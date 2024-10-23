@@ -5,34 +5,93 @@ local SelectionOverlay = DeclareClassWithBase('SelectionOverlay', InterfaceFragm
 function SelectionOverlay:initialize(config)
     assert(CurrentPlayer, 'Player is required.')
 
-	-- We calculate this based on the content
-	config.isClippingDisabled = true
+    -- We calculate this based on the content
+    config.isClippingDisabled = true
     config.width = 0
-	config.height = 0
+    config.height = 0
 
     table.Merge(self, config)
 
-    self:refreshSelection()
+    self.selectedInteractables = CurrentPlayer:getSelectedInteractables()
 
-	self.deselectButton = Button({
-		text = 'Deselect',
-		isClippingDisabled = true,
-		x = 0,
-		y = 0,
-		width = 64,
-		height = 32,
-		onClick = function()
-			CurrentPlayer:clearSelectedInteractables()
-		end
-	})
+    self.deselectButton = Button({
+        text = 'Deselect',
+        isClippingDisabled = true,
+        x = 0,
+        y = 0,
+        width = 64,
+        height = 32,
+        onClick = function()
+            CurrentPlayer:clearSelectedInteractables()
+        end
+    })
+    self.childFragments:add(self.deselectButton)
 
-	self.childFragments:add(self.deselectButton)
+	self.actionButtons = {}
 
     return self
 end
 
-function SelectionOverlay:refreshSelection()
-    self.selectedInteractables = CurrentPlayer:getSelectedInteractables()
+--- Updates the fragment
+--- @param deltaTime number @ The time in seconds since the last update
+function SelectionOverlay:performUpdate(deltaTime)
+    -- Keep track of the last unit type, if its different, refresh the unit actions.
+    local firstSelectedInteractable = self.selectedInteractables[1]
+
+    if (not firstSelectedInteractable or not firstSelectedInteractable:isOfType(Unit)) then
+        self.lastUnitType = nil
+        self:refreshUnitActions(self.lastUnitType)
+        return
+    end
+
+    local unitType = firstSelectedInteractable:getUnitType()
+
+    if (unitType ~= self.lastUnitType) then
+        self.lastUnitType = unitType
+        self:refreshUnitActions(unitType)
+    end
+end
+
+--- Refreshes the unit actions
+--- @param unitType UnitType @ The unit type to refresh the actions for
+function SelectionOverlay:refreshUnitActions(unitType)
+    if (not unitType) then
+        for i, button in ipairs(self.actionButtons) do
+			button:doCleanup()
+            button:destroy()
+        end
+
+		return
+	end
+
+    local actions = unitType:getActions()
+    local selectionOverlay = self
+
+	for i, action in ipairs(actions) do
+		local button = Button({
+			text = action.text,
+			icon = action.icon,
+			isClippingDisabled = true,
+			x = 0,
+			y = 0,
+			width = 64,
+			height = 32,
+			action = action,
+			onClick = function(button)
+				button.action:onRun(selectionOverlay)
+			end
+		})
+
+		function button:doCleanup()
+			if (self.action.onCleanup) then
+				self.action:onCleanup(selectionOverlay)
+			end
+		end
+
+		button:setPosition(0, 32 * i)
+        self.childFragments:add(button)
+		self.actionButtons[i] = button
+	end
 end
 
 function SelectionOverlay:performDraw(x, y)
@@ -47,10 +106,21 @@ function SelectionOverlay:performDraw(x, y)
 		return
 	end
 
+    local buttonHeights = self.deselectButton.height
+
+	for i, button in ipairs(self.actionButtons) do
+		buttonHeights = buttonHeights + button.height + Sizes.padding()
+	end
+
     -- Calculate width and height based on the number of interactables
     local rows = math.ceil(totalInteractables / interactablesPerRow)
     local width = interactableSize * interactablesPerRow + Sizes.padding(2)
-    local height = interactableSize * rows + shadowHeight + Fonts.default:getHeight() + Sizes.padding(2) + (Sizes.padding() * (#self.selectedInteractables / interactablesPerRow)) + self.deselectButton.height
+    local height = interactableSize * rows
+        + shadowHeight
+        + Fonts.default:getHeight()
+        + Sizes.padding(2)
+        + (Sizes.padding() * (#self.selectedInteractables / interactablesPerRow))
+		+ buttonHeights
 
     -- Offset x so its right aligned
 	x = x - width - Sizes.padding()
@@ -107,7 +177,22 @@ function SelectionOverlay:performDraw(x, y)
 
 	self.deselectButton:setVisible(true)
 	self.deselectButton:setSize(width, 32)
-	self.deselectButton:setPosition(x + width * .5 - self.deselectButton.width * .5, y + height - self.deselectButton.height - shadowHeight)
+    self.deselectButton:setPosition(
+		x + width * .5 - self.deselectButton.width * .5,
+        interactableY + interactableSize + Sizes.padding(1)
+	)
+
+    -- Draw the action buttons below the deselect button
+    local actionButtonY = self.deselectButton.y + self.deselectButton.height + Sizes.padding(1)
+
+    for i, button in ipairs(self.actionButtons) do
+        button:setSize(width, 32)
+        button:setPosition(
+            x + width * .5 - self.deselectButton.width * .5,
+            actionButtonY
+        )
+        actionButtonY = actionButtonY + button.height + Sizes.padding()
+    end
 end
 
 return SelectionOverlay

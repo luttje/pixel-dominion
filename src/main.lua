@@ -11,7 +11,7 @@ function love.load()
 		-- Full-screen mode will ensure the mouse input matches 1:1 in browser full-screen mode.
         config.fullscreen = true
     else
-        -- config.display = 2 -- TODO: Make this configurable (just for testing on my machine)
+        config.display = 2 -- TODO: Make this configurable (just for testing on my machine)
 		config.resizable = true
     end
 

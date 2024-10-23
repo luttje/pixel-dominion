@@ -1,6 +1,8 @@
 --- @class Player
 --- @field inputBlocked boolean
---- @field worldInputBlocked boolean
+--- @field worldInputBlockedBy any
+--- @field currentStructureToBuild StructureTypeRegistry.StructureRegistration
+--- @field currentStructureBuilders Unit[]
 --- @field world World
 --- @field faction Faction
 --- @field selectedInteractables InteractableGroup
@@ -10,7 +12,7 @@ function Player:initialize(config)
 	config = config or {}
 
     self.inputBlocked = false
-	self.worldInputBlocked = false
+	self.worldInputBlockedBy = nil
 	self.selectedInteractables = InteractableGroup()
 
 	table.Merge(self, config)
@@ -28,16 +30,16 @@ function Player:setInputBlocked(block)
 	self.inputBlocked = block
 end
 
---- Returns if the player is blocked from clicking the world
---- @return boolean
-function Player:isWorldInputBlocked()
-	return self.worldInputBlocked
+--- Returns what is blocking the player from clicking the world
+--- @return any
+function Player:getWorldInputBlocker()
+	return self.worldInputBlockedBy
 end
 
 --- Blocks the player from clicking the world
---- @param block boolean
-function Player:setWorldInputBlocked(block)
-	self.worldInputBlocked = block
+--- @param blocker any
+function Player:setWorldInputBlockedBy(blocker)
+	self.worldInputBlockedBy = blocker
 end
 
 --- Sets the player world
@@ -94,7 +96,7 @@ function Player:isSameTypeAsSelected(interactable)
 end
 
 --- Gets the selected interactables
---- @return InteractableGroup
+--- @return Interactable[]
 function Player:getSelectedInteractables()
     return self.selectedInteractables:getAll()
 end
@@ -119,6 +121,26 @@ function Player:sendCommandTo(targetX, targetY, targetInteractable)
 			})
 		end
 	end
+end
+
+--- Sets the current structure to build
+--- @param structureType StructureTypeRegistry.StructureRegistration
+--- @param units Unit[]
+function Player:setCurrentStructureToBuild(structureType, units)
+    self.currentStructureToBuild = structureType
+	self.currentStructureBuilders = units
+end
+
+--- Gets the current structure to build
+--- @return StructureTypeRegistry.StructureRegistration, Unit[]
+function Player:getCurrentStructureToBuild()
+    return self.currentStructureToBuild, self.currentStructureBuilders
+end
+
+--- Clears the current structure to build
+function Player:clearCurrentStructureToBuild()
+    self.currentStructureToBuild = nil
+	self.currentStructureBuilders = nil
 end
 
 return Player

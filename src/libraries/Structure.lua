@@ -11,12 +11,19 @@ local Structure = DeclareClassWithBase('Structure', Interactable)
 --- Initializes the structure
 --- @param config table
 function Structure:initialize(config)
-	config = config or {}
+    config = config or {}
 
-	-- Easier on mobile if not selectable
-	self.isSelectable = false
+    -- Easier on mobile if not selectable
+    self.isSelectable = false
 
-	table.Merge(self, config)
+    table.Merge(self, config)
+end
+
+--- Called when the structure spawns
+function Structure:onSpawn()
+	if (self.structureType.onSpawn) then
+		self.structureType:onSpawn(self)
+	end
 end
 
 --- Gets the type of structure
@@ -149,6 +156,21 @@ function Structure:updateInteract(deltaTime, interactor)
 
 	if (self.structureType.updateInteract) then
 		self.structureType:updateInteract(self, deltaTime, interactor)
+	end
+end
+
+--- Removes the structure from the world
+function Structure:removeStructure()
+    local world = CurrentWorld
+
+    for _, tile in pairs(self.tiles) do
+        world:removeTile(tile.layerName, tile.x, tile.y)
+    end
+
+    world:updateCollisionMap()
+
+	if (self.structureType.onRemove) then
+		self.structureType:onRemove(self)
 	end
 end
 
