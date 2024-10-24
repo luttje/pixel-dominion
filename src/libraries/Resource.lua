@@ -108,7 +108,7 @@ function Resource:updateInteract(deltaTime, interactor)
     -- Check if the resource supply is depleted
 	-- TODO: This may happen multiple times, for multiple units. Hence the isRemoved check in removeResource
     if (self.supply <= 0) then
-        self:removeResource()
+        self:remove()
         self:stopInteract(interactor)
     end
 
@@ -116,7 +116,7 @@ function Resource:updateInteract(deltaTime, interactor)
 end
 
 --- Removes the resource from the world
-function Resource:removeResource()
+function Resource:remove()
     if (self.isRemoved) then
         return
     end

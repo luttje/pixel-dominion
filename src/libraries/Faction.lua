@@ -48,7 +48,9 @@ function Faction:spawnUnit(unitType, x, y)
 		targetX = x,
 		targetY = y,
 		health = 100,
-	})
+    })
+
+	unit:onSpawn()
 
 	table.insert(self.units, unit)
 
@@ -74,6 +76,21 @@ function Faction:getUnitsOfType(unitType)
 	end
 
 	return units
+end
+
+--- Removes the unit from the faction
+--- @param unit Unit
+--- @return boolean # Whether the unit was removed
+function Faction:removeUnit(unit)
+	for i, factionUnit in ipairs(self.units) do
+		if (factionUnit == unit) then
+			table.remove(self.units, i)
+
+			return true
+		end
+	end
+
+	return false
 end
 
 --- Spawns a structure of the given type at the given position
@@ -132,7 +149,7 @@ end
 --- Gets the town hall, always the first structure
 --- @return Structure
 function Faction:getTownHall()
-	local townHall = CurrentPlayer:getFaction():getStructures()[1]
+	local townHall = self:getStructures()[1]
 
 	assert(townHall, 'No town hall found.')
 

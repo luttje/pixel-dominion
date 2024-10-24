@@ -41,6 +41,33 @@ function Interactable:interact(interactable)
 	-- Override this in the child class
 end
 
+--- Applies damage to the structure
+--- @param damage number
+--- @param interactor Interactable
+--- @return boolean # Whether the structure was destroyed
+function Interactable:damage(damage, interactor)
+    if (self.health <= 0) then
+        return true
+    end
+
+    self.health = self.health - damage
+
+    if (self.health <= 0) then
+        print('Interactable destroyed.')
+        self:remove()
+        return true
+    else
+        print('Interactable health:', self.health)
+    end
+
+    return false
+end
+
+--- Removes the interactable from the world
+function Interactable:remove()
+	-- Override this in the child class
+end
+
 --- Draws the interactable on the hud
 --- @param x number
 --- @param y number

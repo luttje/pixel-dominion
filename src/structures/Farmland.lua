@@ -70,7 +70,7 @@ function STRUCTURE:onSpawn(structure, builders)
 	-- If the resource depletes, remove the structure
 	resource.events:on('resourceRemoved', function()
 		structure.removingBecauseResourceDepleted = true
-		structure:removeStructure()
+		structure:remove()
 	end)
 
     world:addResourceInstance(resource)

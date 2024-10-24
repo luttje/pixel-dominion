@@ -110,7 +110,7 @@ function WorldMap:performUpdate(deltaTime)
             local interactable = self.world:getInteractableUnderPosition(worldX, worldY)
 
             -- If we clicked on a unit, structure or resource instance, clear if our current selection is not the same
-            if (interactable and interactable.isSelectable) then
+            if (interactable and interactable.isSelectable and interactable:getFaction() == CurrentPlayer:getFaction()) then
 				if (CurrentPlayer:isSameTypeAsSelected(interactable)) then
 					TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
 						-- If the unit is selected, deselect it
@@ -137,7 +137,6 @@ function WorldMap:performUpdate(deltaTime)
 					-- TODO: We aren't guaranteed to have successfully sent a command, so we should check that
 					if (interactable) then
 						CurrentPlayer:clearSelectedInteractables()
-						interactable:setSelected(true)
 					end
 				end)
 			end

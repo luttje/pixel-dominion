@@ -48,13 +48,19 @@ function love.load()
     local playerFaction = Faction({
 		factionType = FactionTypeRegistry:getFactionType('homelanders'),
     })
-	CurrentPlayer:setFaction(playerFaction)
+    CurrentPlayer:setFaction(playerFaction)
+
+	testEnemyFaction = Faction({
+		factionType = FactionTypeRegistry:getFactionType('bandits'),
+	})
 
 	CurrentWorld = World({
 		mapPath = 'assets/worlds/forest_8x8.lua'
     })
     CurrentPlayer:setWorld(CurrentWorld)
     CurrentWorld:spawnFaction(playerFaction)
+
+	CurrentWorld:spawnFaction(testEnemyFaction)
 
     -- Add a barracks for testing
     playerFaction:spawnStructure(
@@ -154,6 +160,10 @@ function love.keyreleased(key)
 			for _, structure in ipairs(playerFaction:getStructures()) do
 				print('  - #' .. structure.id)
 			end
+        elseif (key == 'f7') then
+            -- Spawn a villager for testEnemyFaction
+            local townHall = testEnemyFaction:getTownHall()
+			townHall:getStructureType():generateUnit(townHall)
 		end
 	end
 end

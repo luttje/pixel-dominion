@@ -80,6 +80,13 @@ function Unit:getResourceInventory()
     return self.resourceInventory
 end
 
+--- Called when the unit spawns
+function Unit:onSpawn()
+	if (self.unitType.onSpawn) then
+		self.unitType:onSpawn(self)
+	end
+end
+
 --- Draws the unit
 function Unit:draw()
     self.unitType:draw(self, self:getCurrentActionAnimation())
@@ -147,9 +154,58 @@ function Unit:postDrawOnScreen(x, y, width, height, cameraScale)
 	end
 end
 
+--- When an interactable is interacted with
+--- @param deltaTime number
+--- @param interactor Interactable
+function Unit:updateInteract(deltaTime, interactor)
+    if (self.isRemoved) then
+        return
+    end
+
+    if (not interactor:isOfType(Unit)) then
+        print('Cannot interact with unit as interactor is not a unit.')
+        return
+    end
+
+	local interactorUnitType = interactor:getUnitType()
+
+	if (interactorUnitType.damageStrength and interactor:getFaction() ~= self:getFaction()) then
+        if (not self.lastDamageTime) then
+            self.lastDamageTime = 0
+        end
+
+		self.lastDamageTime = self.lastDamageTime + deltaTime
+
+        if (self.lastDamageTime < GameConfig.unitDamageTimeInSeconds) then
+            return
+        end
+
+		self.lastDamageTime = 0
+
+        if (self:damage(interactorUnitType.damageStrength, interactor)) then
+            interactor:stop()
+        end
+
+		return
+	end
+
+	if (self.unitType.updateInteract) then
+		local interacted = self.unitType:updateInteract(self, deltaTime, interactor)
+
+        if (not interacted) then
+			print('Interact ended.')
+			interactor:stop()
+		end
+	end
+end
+
 --- Updates the unit
 --- @param deltaTime number
 function Unit:update(deltaTime)
+    if (self.isRemoved) then
+        return
+    end
+
     -- If we have a target interactable, interact with it if we are at the same position
     local targetInteractable = self:getCurrentActionInteractable()
 
@@ -364,6 +420,10 @@ end
 --- @param formation table
 --- @return boolean
 function Unit:commandTo(targetX, targetY, interactable, formation)
+    if (self.isRemoved) then
+        return
+    end
+
 	-- Commented because farmland has the unit stand on it, but the structure redirects to the resource instance on the same tile.
     -- -- If it's the same position, do nothing
     -- if (self.x == targetX and self.y == targetY) then
@@ -409,6 +469,23 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
     self.maxSteps = #pathPoints
 
 	return true
+end
+
+--- Removes the unit from the world
+function Unit:remove()
+    if (self.isRemoved) then
+        return
+    end
+
+    self.isRemoved = true
+
+	if (self.unitType.onRemove) then
+		self.unitType:onRemove(self)
+	end
+
+	self:getFaction():removeUnit(self)
+
+    self.events:trigger('unitRemoved')
 end
 
 return Unit

@@ -39,28 +39,6 @@ function Structure:getFaction()
 	return self.faction
 end
 
---- Applies damage to the structure
---- @param damage number
---- @param interactor Interactable
---- @return boolean # Whether the structure was destroyed
-function Structure:damage(damage, interactor)
-    if (self.health <= 0) then
-        return true
-    end
-
-	self.health = self.health - damage
-
-    if (self.health <= 0) then
-        print('Structure destroyed.')
-        self:removeStructure()
-        return true
-    else
-        print('Structure health:', self.health)
-    end
-
-	return false
-end
-
 --- Checks if the interactable is in the given position
 --- @param x number
 --- @param y number
@@ -189,7 +167,7 @@ function Structure:updateInteract(deltaTime, interactor)
     end
 
     if (not interactor:isOfType(Unit)) then
-        print('Cannot interact with structure as it is not a unit.')
+        print('Cannot interact with structure as interactor is not a unit.')
         return
     end
 
@@ -226,7 +204,7 @@ function Structure:updateInteract(deltaTime, interactor)
 end
 
 --- Removes the structure from the world
-function Structure:removeStructure()
+function Structure:remove()
     if (self.isRemoved) then
         return
     end

@@ -42,6 +42,10 @@ UNIT.actionImageOffset = {
 function UNIT:postDrawOnScreen(unit, minX, minY, maxX, maxY)
 end
 
+-- --- @param unit Unit
+-- function UNIT:onSpawn(unit)
+-- end
+
 --- Gets the actions that the unit can perform
 --- Should always return the same actions, but the actions may be disabled or with different progress
 --- @param selectedInteractable Interactable
