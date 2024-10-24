@@ -172,23 +172,25 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
 
     local faction = structure:getFaction()
     local factionInventory = faction:getResourceInventory()
-    local lastResourceType
+    local lastResourceInstance = interactor:getLastResourceInstance()
+
+	assert(lastResourceInstance, 'No last resource instance found.')
 
     for resourceTypeId, resourceValue in pairs(inventory:getAll()) do
         factionInventory:add(resourceTypeId, resourceValue.value)
-
-        lastResourceType = resourceValue:getResourceType()
     end
 
     inventory:clear()
 
-    if (not lastResourceType) then
-		print('No resource type found in inventory.')
+    -- First go back to the last resource we came from if it has any supply left
+    if (lastResourceInstance:getSupply() > 0) then
+        interactor:commandTo(lastResourceInstance.x, lastResourceInstance.y, lastResourceInstance)
+
         return
     end
 
-	-- TODO: First go back to the last resource we came from
-    local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(lastResourceType, structure.x, structure.y)
+	-- Find the nearest resource instance of the same type
+    local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(lastResourceInstance:getResourceType(), structure.x, structure.y)
 
     if (not nearestResourceInstance) then
 		print('No resource instance found.')

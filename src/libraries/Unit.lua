@@ -9,6 +9,7 @@ require('libraries.Interactable')
 --- @field formation table # The formation the unit is in
 --- @field health number # The health of the unit
 --- @field currentAction table # The current action the unit is performing
+--- @field lastResourceInstance ResourceInstance|nil # The last resource instance the unit interacted with
 --- @field resourceInventory ResourceInventory
 local Unit = DeclareClassWithBase('Unit', Interactable)
 
@@ -267,6 +268,18 @@ end
 --- @return boolean
 function Unit:isInteracting()
 	return self:getCurrentActionInteractable() ~= nil
+end
+
+--- Sets the last resource instance the unit interacted with
+--- @param resourceInstance ResourceInstance
+function Unit:setLastResourceInstance(resourceInstance)
+    self.lastResourceInstance = resourceInstance
+end
+
+--- Gets the last resource instance the unit interacted with
+--- @return ResourceInstance|nil
+function Unit:getLastResourceInstance()
+	return self.lastResourceInstance
 end
 
 --- Checks if the given position is occupied by another unit

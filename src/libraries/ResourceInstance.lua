@@ -31,7 +31,13 @@ end
 --- Gets the type of resource
 --- @return ResourceTypeRegistry.ResourceRegistration
 function ResourceInstance:getResourceType()
-	return self.resourceType
+    return self.resourceType
+end
+
+--- Gets the supply of the resource
+--- @return number
+function ResourceInstance:getSupply()
+	return self.supply
 end
 
 --- Stop the unit from interacting with the resource
@@ -67,6 +73,7 @@ function ResourceInstance:updateInteract(deltaTime, interactor)
     end
 
     local inventory = interactor:getResourceInventory()
+	interactor:setLastResourceInstance(self)
 
     -- If our inventory is full, we cannot harvest more
     if (inventory:getRemainingResourceSpace() <= 0) then
