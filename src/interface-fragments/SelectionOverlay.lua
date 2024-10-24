@@ -39,70 +39,98 @@ function SelectionOverlay:performUpdate(deltaTime)
     local firstSelectedInteractable = self.selectedInteractables[1]
 
     if (not firstSelectedInteractable) then
-        self.lastSelectionType = nil
-        self:refreshSelectionActions(self.lastSelectionType)
+        self:refreshSelectionActions()
         return
     end
 
-    local selectionType
+	self:refreshSelectionActions(self.selectedInteractables)
+end
 
-	if (firstSelectedInteractable:isOfType(Unit)) then
-		selectionType = firstSelectedInteractable:getUnitType()
-    elseif (firstSelectedInteractable:isOfType(Structure)) then
-        selectionType = firstSelectedInteractable:getStructureType()
-    else
-		assert(false, 'Unknown interactable type.')
+--- Gets a hash of the selected interactables. Appends the ids in order to create a unique, yet comparable hash.
+--- @param selectedInteractables Interactable[]|nil
+--- @return string
+function SelectionOverlay:getHash(selectedInteractables)
+	local hash = ''
+
+	if (selectedInteractables) then
+		for i, interactable in ipairs(selectedInteractables) do
+			hash = hash .. interactable.id .. ','
+		end
 	end
 
-    if (selectionType ~= self.lastSelectionType) then
-        self.lastSelectionType = selectionType
-        self:refreshSelectionActions(firstSelectedInteractable, selectionType)
-    end
+	return hash:sub(1, -2)
 end
 
 --- Refreshes the unit actions
---- @param selectedInteractable Interactable
---- @param selectionType UnitTypeRegistry.UnitRegistration|StructureTypeRegistry.StructureRegistration
-function SelectionOverlay:refreshSelectionActions(selectedInteractable, selectionType)
-    if (not selectionType or not selectionType.getActions) then
-        for i, button in ipairs(self.actionButtons) do
-			button:doCleanup()
-            button:destroy()
-        end
+--- @param selectedInteractables Interactable[]|nil
+function SelectionOverlay:refreshSelectionActions(selectedInteractables)
+    if (not self.lastSelectedInteractablesHash and not selectedInteractables) then
+        return
+    end
 
-		self.actionButtons = {}
+    local selectedInteractablesHash = self:getHash(selectedInteractables)
+
+	if (self.lastSelectedInteractablesHash == selectedInteractablesHash) then
 		return
 	end
 
-    local actions = selectionType:getActions(selectedInteractable)
+	self.lastSelectedInteractablesHash = selectedInteractablesHash
+
+    for i, button in ipairs(self.actionButtons) do
+        button:doCleanup()
+        button:destroy()
+    end
+
+    self.actionButtons = {}
+
+	if (not selectedInteractables) then
+		return
+	end
+
     local selectionOverlay = self
 
-	for i, action in ipairs(actions) do
-		local button = Button({
-			text = action.text,
-			icon = action.icon,
-            isClippingDisabled = true,
-			isEnabled = action.isEnabled,
-			x = 0,
-			y = 0,
-			width = 64,
-			height = 32,
-			action = action,
-			onClick = function(button)
-				button.action:onRun(selectionOverlay)
-			end
-		})
+    for i, interactable in ipairs(selectedInteractables) do
+		local selectionType
 
-		function button:doCleanup()
-			if (self.action.onCleanup) then
-				self.action:onCleanup(selectionOverlay)
+        if (interactable:isOfType(Unit)) then
+            selectionType = interactable:getUnitType()
+        elseif (interactable:isOfType(Structure)) then
+            selectionType = interactable:getStructureType()
+        else
+            print(false, 'Unknown interactable type.')
+        end
+
+		if (selectionType) then
+			local actions = selectionType:getActions(interactable)
+
+			for j, action in ipairs(actions) do
+				local button = Button({
+					text = action.text,
+					icon = action.icon,
+                    isClippingDisabled = true,
+					isEnabled = action.isEnabled,
+					x = 0,
+					y = 0,
+					width = 64,
+					height = 32,
+					action = action,
+					onClick = function(button)
+						button.action:onRun(selectionOverlay)
+					end
+				})
+
+				function button:doCleanup()
+					if (self.action.onCleanup) then
+						self.action:onCleanup(selectionOverlay)
+					end
+				end
+
+				button:setPosition(0, 32 * (#self.actionButtons + 1))
+				self.childFragments:add(button)
+				self.actionButtons[#self.actionButtons + 1] = button
 			end
 		end
-
-		button:setPosition(0, 32 * i)
-        self.childFragments:add(button)
-		self.actionButtons[i] = button
-	end
+    end
 end
 
 function SelectionOverlay:performDraw(x, y)

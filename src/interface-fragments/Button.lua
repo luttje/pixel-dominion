@@ -200,10 +200,10 @@ function Button:performDraw(x, y, width, height)
 				Colors.text('table'),
 				self.text
 			},
-			x + (width * .5) - (textWidth * .5),
+			x,
 			y + (height * .5) - (textHeight * .5),
 			width,
-			'left')
+			'center')
 
 
 		if (self.font) then

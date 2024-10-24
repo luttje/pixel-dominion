@@ -24,12 +24,17 @@ function BuildMenu:refreshStructures()
     local faction = CurrentPlayer:getFaction()
     local availableStructures = faction:getAvailableStructures()
 
+    -- Sort the structures by name
+	table.sort(availableStructures, function(a, b)
+		return a.name < b.name
+	end)
+
     for i, structureType in ipairs(availableStructures) do
 		local text = structureType.name
 
         -- Append required resources
         if (structureType.requiredResources) then
-			text = text .. " ("
+			text = text .. "\n("
 
 			for resourceName, resourceAmount in pairs(structureType.requiredResources) do
 				text = text .. resourceName .. ": " .. resourceAmount .. ", "
