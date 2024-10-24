@@ -187,6 +187,7 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
         return
     end
 
+	-- TODO: First go back to the last resource we came from
     local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(lastResourceType, structure.x, structure.y)
 
     if (not nearestResourceInstance) then
