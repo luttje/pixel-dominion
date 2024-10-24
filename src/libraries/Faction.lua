@@ -61,6 +61,21 @@ function Faction:getUnits()
     return self.units
 end
 
+--- Returns all units of the given type
+--- @param unitType UnitTypeRegistry.UnitRegistration|string
+--- @return Unit[]
+function Faction:getUnitsOfType(unitType)
+	local units = {}
+
+	for _, unit in ipairs(self.units) do
+		if (unit.unitType.id == unitType or unit.unitType == unitType) then
+			table.insert(units, unit)
+		end
+	end
+
+	return units
+end
+
 --- Spawns a structure of the given type at the given position
 --- @param structureType StructureTypeRegistry.StructureRegistration
 --- @param x number
@@ -82,6 +97,21 @@ end
 --- @return Structure[]
 function Faction:getStructures()
 	return self.structures
+end
+
+--- Returns all structures of the given type
+--- @param structureType StructureTypeRegistry.StructureRegistration|string
+--- @return Structure[]
+function Faction:getStructuresOfType(structureType)
+	local structures = {}
+
+	for _, structure in ipairs(self.structures) do
+		if (structure.structureType.id == structureType or structure.structureType == structureType) then
+			table.insert(structures, structure)
+		end
+	end
+
+	return structures
 end
 
 --- Gets the town hall, always the first structure

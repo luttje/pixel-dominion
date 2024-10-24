@@ -88,17 +88,21 @@ function love.keyreleased(key)
 	if (GameConfig.debugCheatsEnabled) then
 		local playerFaction = CurrentPlayer:getFaction()
         if (key == 'f1') then
-            -- Spawn a villager
+            -- Spawn a villager and if there's a barracks, spawn a warrior
             local townHall = playerFaction:getTownHall()
+            townHall:getStructureType():generateUnit(townHall)
 
-			townHall:getStructureType():generateVillager(townHall)
+            local barracks = playerFaction:getStructuresOfType('barracks')[1]
+			if (barracks) then
+				barracks:getStructureType():generateUnit(barracks)
+			end
 		elseif (key == 'f2') then
             -- Give 100 of each resource
             for _, resourceType in ipairs(ResourceTypeRegistry:getAllResourceTypes()) do
                 playerFaction:getResourceInventory():add(resourceType, 100)
             end
         elseif (key == 'f3') then
-            local villagerStack = table.Stack(table.ShallowCopy(playerFaction:getUnits()))
+            local villagerStack = table.Stack(table.ShallowCopy(playerFaction:getUnitsOfType('villager')))
 
             -- Send all villagers to go randomly harvest resources of any type
             while (not villagerStack:isEmpty()) do

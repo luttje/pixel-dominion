@@ -44,8 +44,9 @@ end
 
 --- Gets the actions that the unit can perform
 --- Should always return the same actions, but the actions may be disabled or with different progress
+--- @param selectedInteractable Interactable
 --- @return table
-function UNIT:getActions()
+function UNIT:getActions(selectedInteractable)
     local ACTION_BUILD = {}
     ACTION_BUILD.text = 'Build'
     ACTION_BUILD.icon = 'assets/images/icons/build.png'

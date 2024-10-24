@@ -38,40 +38,51 @@ function SelectionOverlay:performUpdate(deltaTime)
     -- Keep track of the last unit type, if its different, refresh the unit actions.
     local firstSelectedInteractable = self.selectedInteractables[1]
 
-    if (not firstSelectedInteractable or not firstSelectedInteractable:isOfType(Unit)) then
-        self.lastUnitType = nil
-        self:refreshUnitActions(self.lastUnitType)
+    if (not firstSelectedInteractable) then
+        self.lastSelectionType = nil
+        self:refreshSelectionActions(self.lastSelectionType)
         return
     end
 
-    local unitType = firstSelectedInteractable:getUnitType()
+    local selectionType
 
-    if (unitType ~= self.lastUnitType) then
-        self.lastUnitType = unitType
-        self:refreshUnitActions(unitType)
+	if (firstSelectedInteractable:isOfType(Unit)) then
+		selectionType = firstSelectedInteractable:getUnitType()
+    elseif (firstSelectedInteractable:isOfType(Structure)) then
+        selectionType = firstSelectedInteractable:getStructureType()
+    else
+		assert(false, 'Unknown interactable type.')
+	end
+
+    if (selectionType ~= self.lastSelectionType) then
+        self.lastSelectionType = selectionType
+        self:refreshSelectionActions(firstSelectedInteractable, selectionType)
     end
 end
 
 --- Refreshes the unit actions
---- @param unitType UnitType @ The unit type to refresh the actions for
-function SelectionOverlay:refreshUnitActions(unitType)
-    if (not unitType) then
+--- @param selectedInteractable Interactable
+--- @param selectionType UnitTypeRegistry.UnitRegistration|StructureTypeRegistry.StructureRegistration
+function SelectionOverlay:refreshSelectionActions(selectedInteractable, selectionType)
+    if (not selectionType or not selectionType.getActions) then
         for i, button in ipairs(self.actionButtons) do
 			button:doCleanup()
             button:destroy()
         end
 
+		self.actionButtons = {}
 		return
 	end
 
-    local actions = unitType:getActions()
+    local actions = selectionType:getActions(selectedInteractable)
     local selectionOverlay = self
 
 	for i, action in ipairs(actions) do
 		local button = Button({
 			text = action.text,
 			icon = action.icon,
-			isClippingDisabled = true,
+            isClippingDisabled = true,
+			isEnabled = action.isEnabled,
 			x = 0,
 			y = 0,
 			width = 64,

@@ -62,10 +62,10 @@ STRUCTURE.structureTilesetInfo = {
 --- @param structure Structure
 --- @param builders Unit[]
 function STRUCTURE:onSpawn(structure, builders)
-	structure.lastVillagerGenerationTime = 0
+	structure.lastUnitGenerationTime = 0
 
 	-- Start with 1 villager
-    self:generateVillager(structure)
+    self:generateUnit(structure)
 end
 
 --- Called every time the structure updates (See GameConfig.structureUpdateTimeInSeconds)
@@ -75,26 +75,26 @@ function STRUCTURE:onTimedUpdate(structure)
     local units = faction:getUnits()
 	local housing = faction:getResourceInventory():getValue('housing')
 
-	if (#units >= housing or not structure.lastVillagerGenerationTime) then
-		structure.lastVillagerGenerationTime = nil
+	if (#units >= housing or not structure.lastUnitGenerationTime) then
+		structure.lastUnitGenerationTime = nil
 
 		return
 	end
 
-    structure.lastVillagerGenerationTime = structure.lastVillagerGenerationTime + GameConfig.structureUpdateTimeInSeconds
+    structure.lastUnitGenerationTime = structure.lastUnitGenerationTime + GameConfig.structureUpdateTimeInSeconds
 
-	if (structure.lastVillagerGenerationTime < GameConfig.townHallVillagerGenerationTimeInSeconds) then
+	if (structure.lastUnitGenerationTime < GameConfig.structureUnitGenerationTimeInSeconds) then
 		return
 	end
 
-    structure.lastVillagerGenerationTime = 0
+    structure.lastUnitGenerationTime = 0
 
-    self:generateVillager(structure)
+    self:generateUnit(structure)
 end
 
 --- Generates a villager
 --- @param structure Structure
-function STRUCTURE:generateVillager(structure)
+function STRUCTURE:generateUnit(structure)
 	local faction = structure:getFaction()
     local units = faction:getUnits()
 	local housing = faction:getResourceInventory():getValue('housing')
@@ -121,12 +121,12 @@ end
 --- @param x number
 --- @param y number
 --- @param radius number
-function STRUCTURE:drawVillagerProgress(structure, x, y, radius)
+function STRUCTURE:drawUnitProgress(structure, x, y, radius)
 	love.graphics.drawProgressCircle(
 		x,
 		y,
 		radius,
-		structure.lastVillagerGenerationTime / GameConfig.townHallVillagerGenerationTimeInSeconds)
+		structure.lastUnitGenerationTime / GameConfig.structureUnitGenerationTimeInSeconds)
 
 	-- Draw the villager icon over the progress circle
 	local padding = Sizes.padding()
@@ -149,12 +149,12 @@ function STRUCTURE:postDrawOnScreen(structure, minX, minY, maxX, maxY)
 	-- 	return
 	-- end
 
-	if (structure.lastVillagerGenerationTime) then
+	if (structure.lastUnitGenerationTime) then
 		local x = minX + (maxX - minX) * .5
 		local y = minY + (maxY - minY) * .5
 		local radius = (maxX - minX) * .2
 
-		self:drawVillagerProgress(structure, x, y, radius)
+		self:drawUnitProgress(structure, x, y, radius)
 	end
 end
 

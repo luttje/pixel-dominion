@@ -72,6 +72,12 @@ function Resource:updateInteract(deltaTime, interactor)
         return
     end
 
+	if (interactor:getUnitType().id ~= 'villager') then
+        print('Unit cannot harvest this resource.')
+		interactor:stop()
+		return
+	end
+
     local inventory = interactor:getResourceInventory()
 	interactor:setLastResourceInstance(self)
 

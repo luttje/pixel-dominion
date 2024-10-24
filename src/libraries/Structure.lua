@@ -13,7 +13,7 @@ local Structure = DeclareClassWithBase('Structure', Interactable)
 function Structure:initialize(config)
     config = config or {}
 
-    -- Easier on mobile if not selectable
+    -- Easier on mobile if not selectable by default
     self.isSelectable = false
 
     table.Merge(self, config)
