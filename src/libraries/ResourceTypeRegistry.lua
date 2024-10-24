@@ -64,7 +64,7 @@ function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
 	local tiles = {}
 	local treeInfo = table.Random(self.harvestableTilesetInfo)
 
-	for _, tileInfo in ipairs(treeInfo) do
+	for _, tileInfo in ipairs(treeInfo.tiles) do
 		local worldX = x + (tileInfo.offsetX or 0)
 		local worldY = y + (tileInfo.offsetY or 0)
 
@@ -94,7 +94,8 @@ function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
 		resourceType = self,
 		x = x,
         y = y,
-		tiles = tiles
+        tiles = tiles,
+		interactSounds = treeInfo.harvestSounds
     })
 
     resource:onSpawn()

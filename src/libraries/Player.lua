@@ -111,6 +111,14 @@ function Player:sendCommandTo(targetX, targetY, targetInteractable)
     local allSelectedInteractables = self.selectedInteractables:getAll()
     local sizeOfAllSelectedInteractables = #allSelectedInteractables
 
+	if (sizeOfAllSelectedInteractables == 0) then
+		return
+	end
+
+	if (targetInteractable and targetInteractable.interactSounds) then
+		targetInteractable:playSound(table.Random(targetInteractable.interactSounds))
+	end
+
 	for i, interactable in ipairs(allSelectedInteractables) do
 		if (interactable.commandTo) then
             interactable:commandTo(targetX, targetY, targetInteractable, {

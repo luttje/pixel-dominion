@@ -59,7 +59,7 @@ function Resource:stopInteract(interactor)
 	else
 		-- TODO: and go towards the resource camp, for now we will go to the town hall
 		local resourceCamp = CurrentPlayer:getFaction():getTownHall()
-		interactor:commandTo(resourceCamp.x, resourceCamp.y, resourceCamp)
+        interactor:commandTo(resourceCamp.x, resourceCamp.y, resourceCamp)
 	end
 end
 

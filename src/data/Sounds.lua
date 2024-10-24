@@ -5,13 +5,25 @@ local function newSource(filePath, type)
 	return love.audio.newSource('assets/sounds/' .. filePath, type)
 end
 
--- Sounds.cardPlace = newSource('card-place.ogg')
--- Sounds.cardPlace:setVolume(0.4)
+--- Makes a source sound cuter and more 8bit
+local function cutify(source)
+	source:setVolume(0.8)
+	source:setPitch(1.8)
+	return source
+end
 
--- Sounds.cardUnplace = newSource('card-place.ogg')
--- Sounds.cardUnplace:setVolume(0.2)
--- Sounds.cardUnplace:setPitch(0.3)
+Sounds.treeRustling1 = cutify(newSource('leohpaz/02_tree_rustling_1.wav'))
+Sounds.treeRustling2 = cutify(newSource('leohpaz/02_tree_rustling_2.wav'))
+Sounds.treeRustling3 = cutify(newSource('leohpaz/02_tree_rustling_3.wav'))
+Sounds.treeRustling4 = cutify(newSource('leohpaz/02_tree_rustling_4.wav'))
 
--- Sounds.woosh = newSource('woosh-slowed.ogg')
+-- Sounds.stoneMining1 = cutify(newSource('leohpaz/01_chest_open_1.wav')) -- sounds too much like a chest opening
+Sounds.stoneMining2 = cutify(newSource('leohpaz/01_chest_open_2.wav'))
+Sounds.stoneMining3 = cutify(newSource('leohpaz/01_chest_open_3.wav'))
+Sounds.stoneMining4 = cutify(newSource('leohpaz/01_chest_open_4.wav'))
+
+Sounds.farming1 = cutify(newSource('leohpaz/01_bush_rustling_1.wav'))
+Sounds.farming2 = cutify(newSource('leohpaz/01_bush_rustling_1.wav'))
+Sounds.farming3 = cutify(newSource('leohpaz/01_bush_rustling_1.wav'))
 
 return Sounds

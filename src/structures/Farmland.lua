@@ -44,6 +44,12 @@ STRUCTURE.structureTilesetInfo = {
     },
 }
 
+local sounds = {
+	Sounds.farming1,
+	Sounds.farming2,
+	Sounds.farming3,
+}
+
 --- Called when the structure is created in the world
 --- @param structure Structure
 --- @param builders Unit[]
@@ -74,6 +80,8 @@ function STRUCTURE:onSpawn(structure, builders)
 	for _, builder in ipairs(builders) do
 		builder:commandTo(x, y, resource)
 	end
+
+	structure:playSound(table.Random(sounds))
 end
 
 --- Called when the structure is destroyed/removed from the world
