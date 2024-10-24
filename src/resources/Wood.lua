@@ -7,7 +7,7 @@ RESOURCE.orderWeight = 2
 RESOURCE.imagePath = 'assets/images/resources/wood.png'
 
 RESOURCE.spawnAtTileId = 26 -- 0-based Tile ID for tree spawn
-RESOURCE.worldTilesetInfo = {
+RESOURCE.harvestableTilesetInfo = {
 	-- Tree 1
 	{
 		-- Top of the tree

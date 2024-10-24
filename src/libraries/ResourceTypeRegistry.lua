@@ -13,7 +13,7 @@ local ResourceTypeRegistry = DeclareClass('ResourceTypeRegistry')
 --- @field defaultValue number The default value of the resource type.
 --- @field formatValue fun(resourceType: ResourceTypeRegistry.ResourceRegistration, value: number): string A function that formats the value of the resource type.
 ---
---- @field worldTilesetInfo table<number, table> The tileset information used to render the resource in the world.
+--- @field harvestableTilesetInfo table<number, table> The tileset information used to render the resource in the world.
 --- @field spawnAtTileId string The id of the tileset to spawn the resource at.
 ResourceTypeRegistry.ResourceRegistration = DeclareClass('ResourceTypeRegistry.ResourceRegistration')
 
@@ -37,6 +37,12 @@ function ResourceTypeRegistry.ResourceRegistration:newValue()
 	})
 end
 
+--- Checks if the resource is harvestable
+--- @return boolean
+function ResourceTypeRegistry.ResourceRegistration:isHarvestable()
+	return self.harvestableTilesetInfo ~= nil
+end
+
 --- Draws the resource type icon
 --- @param x number
 --- @param y number
@@ -53,10 +59,10 @@ end
 --- @return ResourceInstance
 function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
     assert(self.spawnAtTileId, 'Resource spawnAtTileId is required.')
-    assert(self.worldTilesetInfo, 'Resource worldTilesetInfo is required.')
+    assert(self.harvestableTilesetInfo, 'Resource harvestableTilesetInfo is required.')
 
 	local tiles = {}
-	local treeInfo = table.Random(self.worldTilesetInfo)
+	local treeInfo = table.Random(self.harvestableTilesetInfo)
 
 	for _, tileInfo in ipairs(treeInfo) do
 		local worldX = x + (tileInfo.offsetX or 0)
@@ -145,6 +151,25 @@ function ResourceTypeRegistry:getResourceType(resourceId)
 	end
 
 	return nil
+end
+
+--- Gets a random resource type, optionally filtered by a function
+--- @param filter? fun(resourceType: ResourceTypeRegistry.ResourceRegistration): boolean
+--- @return ResourceTypeRegistry.ResourceRegistration
+function ResourceTypeRegistry:getRandomResourceType(filter)
+    if (not filter) then
+        return table.Random(registeredResourceTypes)
+    end
+
+    local filteredResourceTypes = {}
+
+	for _, resourceType in ipairs(registeredResourceTypes) do
+		if (filter(resourceType)) then
+			filteredResourceTypes[#filteredResourceTypes + 1] = resourceType
+		end
+	end
+
+	return table.Random(filteredResourceTypes)
 end
 
 function ResourceTypeRegistry:getAllResourceTypes()

@@ -48,7 +48,7 @@ function BuildMenu:refreshStructures()
             width = 64,
             height = 64,
             onClick = function()
-                CurrentPlayer:setCurrentStructureToBuild(structureType, table.Copy(CurrentPlayer:getSelectedInteractables()))
+                CurrentPlayer:setCurrentStructureToBuild(structureType, table.ShallowCopy(CurrentPlayer:getSelectedInteractables()))
 				CurrentPlayer:clearSelectedInteractables()
             end
         })

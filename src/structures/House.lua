@@ -11,7 +11,7 @@ STRUCTURE.requiredResources = {
 	stone = 5,
 }
 
-STRUCTURE.worldTilesetInfo = {
+STRUCTURE.harvestableTilesetInfo = {
 	-- House 1
 	{
 		-- Top of the house

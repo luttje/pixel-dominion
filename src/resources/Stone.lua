@@ -7,7 +7,7 @@ RESOURCE.orderWeight = 3
 RESOURCE.imagePath = 'assets/images/resources/stone.png'
 
 RESOURCE.spawnAtTileId = 27
-RESOURCE.worldTilesetInfo = {
+RESOURCE.harvestableTilesetInfo = {
 	-- Stone 1
 	{
 		{

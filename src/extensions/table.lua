@@ -28,6 +28,20 @@ function table.Copy(source)
 	return target
 end
 
+--- Shallow copy where only the first level of the table is copied.
+--- This respects references to other tables.
+--- @param source table
+--- @return table # The new table
+function table.ShallowCopy(source)
+	local target = {}
+
+	for key, value in pairs(source) do
+		target[key] = value
+	end
+
+	return target
+end
+
 --- Checks if a table contains a value.
 --- @param source table
 --- @param value any
@@ -84,4 +98,43 @@ function table.Random(source)
 	local randomKey = keys[math.random(1, #keys)]
 
 	return source[randomKey]
+end
+
+--- Creates a stack from a table which provides push and pop operations.
+--- @param source table
+--- @return table # The stack
+function table.Stack(source)
+	local stack = {}
+
+	--- Pushes a value to the stack.
+	--- @param value any
+	function stack:push(value)
+		table.insert(source, value)
+	end
+
+	--- Pops a value from the stack.
+	--- @return any # The popped value
+    function stack:pop()
+        return table.remove(source)
+    end
+
+    --- Peeks at the top value of the stack.
+	--- @return any # The top value
+    function stack:peek()
+        return source[#source]
+    end
+
+    --- Returns the size of the stack.
+	--- @return number # The size
+    function stack:size()
+        return #source
+    end
+
+    --- Checks if the stack is empty.
+	--- @return boolean # Whether the stack is empty
+	function stack:isEmpty()
+		return #source == 0
+	end
+
+	return stack
 end

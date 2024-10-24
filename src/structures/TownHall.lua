@@ -8,7 +8,7 @@ STRUCTURE.isInternal = true
 
 STRUCTURE.imagePath = 'assets/images/structures/town-hall.png'
 
-STRUCTURE.worldTilesetInfo = {
+STRUCTURE.harvestableTilesetInfo = {
 	-- Town Hall 1
 	{
 		-- Top of the town hall

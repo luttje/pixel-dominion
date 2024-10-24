@@ -84,6 +84,38 @@ end
 
 function love.keyreleased(key)
 	StateManager:call('onKeyReleased', key)
+
+	if (GameConfig.debugCheatsEnabled) then
+		local playerFaction = CurrentPlayer:getFaction()
+        if (key == 'f1') then
+            -- Spawn a villager
+            local townHall = playerFaction:getTownHall()
+
+			townHall:getStructureType():generateVillager(townHall)
+		elseif (key == 'f2') then
+            -- Give 100 of each resource
+            for _, resourceType in ipairs(ResourceTypeRegistry:getAllResourceTypes()) do
+                playerFaction:getResourceInventory():add(resourceType, 100)
+            end
+        elseif (key == 'f3') then
+            local villagerStack = table.Stack(table.ShallowCopy(playerFaction:getUnits()))
+
+            -- Send all villagers to go randomly harvest resources of any type
+			while (not villagerStack:isEmpty()) do
+				local villager = villagerStack:pop()
+				local resourceType = ResourceTypeRegistry:getRandomResourceType(function(resourceType)
+					return resourceType:isHarvestable()
+				end)
+				local resource = CurrentWorld:findNearestResourceInstance(resourceType, villager.x, villager.y)
+
+				if (resource) then
+					villager:commandTo(resource.x, resource.y, resource)
+				else
+					print('No resource found for villager to harvest.', resourceType.id)
+				end
+			end
+		end
+	end
 end
 
 function love.mousemoved(x, y, dx, dy)

@@ -97,6 +97,10 @@ GameConfig.factionSpawnTileIds = {
 --- @type boolean
 GameConfig.debugCollisionMap = false
 
+--- Cheats to speed up testing, like adding villagers, resources, etc.
+--- @type boolean
+GameConfig.debugCheatsEnabled = true
+
 --- Disable the tutorial for quick testing.
 --- @type boolean
 -- GameConfig.disableTutorial = true -- unused atm
