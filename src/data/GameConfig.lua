@@ -51,10 +51,16 @@ GameConfig.animationFrameTimeInSeconds = 0.2
 --- The pathing offsets for looking around interactables.
 --- @type table
 GameConfig.unitPathingOffsets = {
+	-- Orthagonal
 	{ x = 0, y = 1 },
 	{ x = -1, y = 0 },
 	{ x = 1, y = 0 },
-	{ x = 0, y = -1 },
+    { x = 0,  y = -1 },
+	-- Diagonal
+	{ x = -1, y = -1 },
+	{ x = 1, y = -1 },
+	{ x = -1, y = 1 },
+	{ x = 1, y = 1 },
 }
 
 --- The tile ids that are spawnpoints for factions.
