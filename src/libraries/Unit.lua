@@ -374,7 +374,7 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
 
     -- TODO: play a sound or something on fail/succeed walking
 
-    if (not pathPoints or #pathPoints == 1) then
+    if (not pathPoints) then
         self.targetX = nil
 		self.targetY = nil
 		self.formation = nil
@@ -385,11 +385,14 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
 	self.targetY = targetY
 	self.formation = formation
 
-    if (#pathPoints > 1) then
-		self:setCurrentAction('idle', interactable)
-	end
+    -- Only update the target if we're not currently moving
+    if (self.x == self.nextX and self.y == self.nextY) then
+        self.moveTimer = 0 -- Reset move timer when starting a new move
+    end
 
-    if (not interactable) then
+    if (interactable) then
+        self:setCurrentAction('idle', interactable)
+	else
 		self:setCurrentAction('idle', nil)
 	end
 
@@ -397,15 +400,10 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
     --     print(('Step: %d - x: %d - y: %d'):format(_, point.x, point.y))
     -- end
 
-    -- Only update the target if we're not currently moving
-    if (self.x == self.nextX and self.y == self.nextY) then
-        self.moveTimer = 0 -- Reset move timer when starting a new move
-    end
-
     -- The next point in the path becomes our immediate target
-    self.nextX = pathPoints[2].x
-    self.nextY = pathPoints[2].y
-	self.maxSteps = #pathPoints
+    self.nextX = pathPoints[1].x
+    self.nextY = pathPoints[1].y
+    self.maxSteps = #pathPoints
 
 	return true
 end
