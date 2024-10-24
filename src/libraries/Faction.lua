@@ -68,7 +68,7 @@ end
 --- @return Structure
 function Faction:spawnStructure(structureType, x, y)
     assert(CurrentWorld, 'World is required to spawn a structure.')
-	assert(structureType.id == 'town_hall' or #self.structures > 1, 'Town hall must be spawned first.')
+	assert(structureType.id == 'town_hall' or #self.structures > 0, 'Town hall must be spawned first.')
 
 	local structure = structureType:spawnAtTile(CurrentWorld, self, x, y)
 

@@ -1,8 +1,9 @@
 --- @class Player
 --- @field inputBlocked boolean
 --- @field worldInputBlockedBy any
---- @field currentStructureToBuild StructureTypeRegistry.StructureRegistration
---- @field currentStructureBuilders Unit[]
+--- @field currentStructureToBuild StructureTypeRegistry.StructureRegistration|nil
+--- @field currentStructureBuilders Unit[]|nil
+--- @field currentStructureBuildPosition table|nil
 --- @field world World
 --- @field faction Faction
 --- @field selectedInteractables InteractableGroup
@@ -132,15 +133,29 @@ function Player:setCurrentStructureToBuild(structureType, units)
 end
 
 --- Gets the current structure to build
---- @return StructureTypeRegistry.StructureRegistration, Unit[]
+--- @return StructureTypeRegistry.StructureRegistration, Unit[], table
 function Player:getCurrentStructureToBuild()
-    return self.currentStructureToBuild, self.currentStructureBuilders
+    return self.currentStructureToBuild, self.currentStructureBuilders, self.currentStructureBuildPosition
+end
+
+--- Sets the position for the current structure to build
+--- @param x number
+--- @param y number
+--- @param canPlace boolean
+function Player:setCurrentStructureBuildPosition(x, y, canPlace)
+    if (not canPlace) then
+		self.currentStructureBuildPosition = nil
+        return
+    end
+
+    self.currentStructureBuildPosition = { x = x, y = y }
 end
 
 --- Clears the current structure to build
 function Player:clearCurrentStructureToBuild()
     self.currentStructureToBuild = nil
-	self.currentStructureBuilders = nil
+    self.currentStructureBuilders = nil
+	self.currentStructureBuildPosition = nil
 end
 
 return Player

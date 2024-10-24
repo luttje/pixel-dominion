@@ -22,12 +22,14 @@ function WorldMap:initialize(config)
 		height = 50,
 		-- isVisible = false,
         onClick = function()
-			-- If we're building a structure, draw a ghost of it
-			local structureToBuild, builders = CurrentPlayer:getCurrentStructureToBuild()
-            print('Place structure', structureToBuild, 'built by:')
-			for _, builder in ipairs(builders) do
-				print(builder)
-			end
+            local structureToBuild, builders, position = CurrentPlayer:getCurrentStructureToBuild()
+
+            if (not position) then
+                print('TODO: Error sound')
+                return
+            end
+
+			CurrentPlayer:getFaction():spawnStructure(structureToBuild, position.x, position.y)
 			CurrentPlayer:clearCurrentStructureToBuild()
 		end
     })
@@ -212,19 +214,28 @@ function WorldMap:performDraw(x, y, width, height)
     local structureToBuild, builders = CurrentPlayer:getCurrentStructureToBuild()
 
     if (structureToBuild) then
-		local buildScreenX, buildScreenY = self:getWidth() * .5, self:getHeight() * .5
+		local buildScreenX, buildScreenY = width * .5, height * .5
         local worldX, worldY = self:screenToWorld(buildScreenX, buildScreenY, true)
         local screenX, screenY = self:worldToScreen(worldX, worldY)
 
         -- Check if the structure can be placed at the current location
         local canPlace = structureToBuild:canPlaceAt(worldX, worldY)
 
+		CurrentPlayer:setCurrentStructureBuildPosition(worldX, worldY, canPlace)
+
         -- Draw the structure
 		structureToBuild:drawGhost(screenX, screenY, self.cameraWorldScale, canPlace)
 
+        -- Draw a hint above the ghost
+        local hint = 'Drag around to choose a location'
+        local hintHeight = Fonts.defaultHud:getHeight()
+        love.graphics.setColor(0, 0, 0, 0.5)
+        love.graphics.printf(hint, width * .1,
+        screenY - hintHeight - Sizes.padding() - (GameConfig.tileSize * self.cameraWorldScale), width * .8, 'center')
+
         -- Show the place and cancel buttons below the ghost
         self.placeStructureButton.x = love.graphics.getWidth() * .5 - (self.placeStructureButton.width * .5)
-        self.placeStructureButton.y = screenY + GameConfig.tileSize * self.cameraWorldScale
+        self.placeStructureButton.y = screenY + Sizes.padding() + GameConfig.tileSize * self.cameraWorldScale
         self.placeStructureButton:setEnabled(canPlace)
         self.placeStructureButton:setVisible(true)
 
@@ -233,7 +244,9 @@ function WorldMap:performDraw(x, y, width, height)
         self.cancelStructureButton:setVisible(true)
     else
         self.placeStructureButton:setVisible(false)
+        self.placeStructureButton:setEnabled(false)
 		self.cancelStructureButton:setVisible(false)
+        self.cancelStructureButton:setEnabled(false)
     end
 end
 

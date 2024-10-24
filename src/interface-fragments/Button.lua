@@ -122,7 +122,13 @@ function Button:performUpdate(deltaTime)
 		if (self.isHovered and self.isPressed and not isDown) then
 			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
 				self.hasBeenNotPressedWithin = false
-				self.isPressed = false
+                self.isPressed = false
+
+				-- Prevent the button from staying a blocker, even if the onclick has removed it/hidden it.
+                if (CurrentPlayer:getWorldInputBlocker() == self) then
+                    CurrentPlayer:setWorldInputBlockedBy(nil)
+                end
+
 				self:onClick()
 			end)
 		elseif (self.isHovered and not isDown) then

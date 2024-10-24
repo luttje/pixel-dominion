@@ -65,7 +65,7 @@ function UNIT:getActions()
 	-- Called when the action menu is closed
     function ACTION_BUILD:onCleanup(selectionOverlay)
 		if (self.buildMenu) then
-			self.buildMenu:setVisible(false)
+			self.buildMenu:destroy()
 		end
 	end
 

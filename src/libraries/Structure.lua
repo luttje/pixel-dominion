@@ -141,7 +141,9 @@ function Structure:update(deltaTime)
 	if (self.nextUpdateTime <= 0) then
 		self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds
 
-		self:getStructureType():onTimedUpdate(self)
+		if (self.structureType.onTimedUpdate) then
+			self.structureType:onTimedUpdate(self)
+		end
 	end
 end
 
