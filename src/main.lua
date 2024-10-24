@@ -101,18 +101,48 @@ function love.keyreleased(key)
             local villagerStack = table.Stack(table.ShallowCopy(playerFaction:getUnits()))
 
             -- Send all villagers to go randomly harvest resources of any type
-			while (not villagerStack:isEmpty()) do
-				local villager = villagerStack:pop()
-				local resourceType = ResourceTypeRegistry:getRandomResourceType(function(resourceType)
-					return resourceType:isHarvestable()
-				end)
-				local resource = CurrentWorld:findNearestResourceInstance(resourceType, villager.x, villager.y)
+            while (not villagerStack:isEmpty()) do
+                local villager = villagerStack:pop()
+                local resourceType = ResourceTypeRegistry:getRandomResourceType(function(resourceType)
+                    return resourceType:isHarvestable()
+                end)
+                local resource = CurrentWorld:findNearestResourceInstance(resourceType, villager.x, villager.y)
 
-				if (resource) then
-					villager:commandTo(resource.x, resource.y, resource)
-				else
-					print('No resource found for villager to harvest.', resourceType.id)
+                if (resource) then
+                    villager:commandTo(resource.x, resource.y, resource)
+                else
+                    print('No resource found for villager to harvest.', resourceType.id)
+                end
+            end
+        elseif (key == 'f4') then
+            -- Log information on the resources and their supply
+            print('====================================')
+            print('Resources:')
+
+            for _, resourceType in ipairs(ResourceTypeRegistry:getAllResourceTypes()) do
+				local resources = CurrentWorld:getResourceInstancesOfType(resourceType)
+
+                print(resourceType.id .. ': ')
+
+				for _, resource in ipairs(resources) do
+					print('  - #' .. resource.id .. ': ' .. resource:getSupply())
 				end
+			end
+		elseif (key == 'f5') then
+			-- Log information on the units
+			print('====================================')
+			print('Units:')
+
+			for _, unit in ipairs(playerFaction:getUnits()) do
+				print('  - #' .. unit.id)
+			end
+		elseif (key == 'f6') then
+			-- Log information on the structures
+			print('====================================')
+			print('Structures:')
+
+			for _, structure in ipairs(playerFaction:getStructures()) do
+				print('  - #' .. structure.id)
 			end
 		end
 	end

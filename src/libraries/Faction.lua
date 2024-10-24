@@ -65,12 +65,13 @@ end
 --- @param structureType StructureTypeRegistry.StructureRegistration
 --- @param x number
 --- @param y number
+--- @param builders Unit[]
 --- @return Structure
-function Faction:spawnStructure(structureType, x, y)
+function Faction:spawnStructure(structureType, x, y, builders)
     assert(CurrentWorld, 'World is required to spawn a structure.')
 	assert(structureType.id == 'town_hall' or #self.structures > 0, 'Town hall must be spawned first.')
 
-	local structure = structureType:spawnAtTile(CurrentWorld, self, x, y)
+	local structure = structureType:spawnAtTile(CurrentWorld, self, x, y, builders)
 
 	table.insert(self.structures, structure)
 

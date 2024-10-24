@@ -11,7 +11,7 @@ STRUCTURE.requiredResources = {
 	stone = 5,
 }
 
-STRUCTURE.harvestableTilesetInfo = {
+STRUCTURE.structureTilesetInfo = {
 	-- House 1
 	{
 		-- Top of the house
@@ -49,7 +49,8 @@ STRUCTURE.harvestableTilesetInfo = {
 
 --- Called when the structure is created in the world
 --- @param structure Structure
-function STRUCTURE:onSpawn(structure)
+--- @param builders Unit[]
+function STRUCTURE:onSpawn(structure, builders)
     -- Grant +5 housing to the faction
     structure:getFaction():getResourceInventory():add('housing', GRANTS_HOUSING)
 end

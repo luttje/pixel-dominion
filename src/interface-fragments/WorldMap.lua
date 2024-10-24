@@ -41,7 +41,7 @@ function WorldMap:initialize(config)
 			print('TODO: success sound')
 
 			structureToBuild:subtractResources(faction)
-			CurrentPlayer:getFaction():spawnStructure(structureToBuild, position.x, position.y)
+			CurrentPlayer:getFaction():spawnStructure(structureToBuild, position.x, position.y, builders)
 			CurrentPlayer:clearCurrentStructureToBuild()
 		end
     })
@@ -253,6 +253,7 @@ function WorldMap:performDraw(x, y, width, height)
 
         self.cancelStructureButton.x = self.placeStructureButton.x
         self.cancelStructureButton.y = self.placeStructureButton.y + self.placeStructureButton.height + Sizes.padding()
+        self.cancelStructureButton:setEnabled(true)
         self.cancelStructureButton:setVisible(true)
     else
         self.placeStructureButton:setVisible(false)

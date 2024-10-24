@@ -8,7 +8,7 @@ STRUCTURE.isInternal = true
 
 STRUCTURE.imagePath = 'assets/images/structures/town-hall.png'
 
-STRUCTURE.harvestableTilesetInfo = {
+STRUCTURE.structureTilesetInfo = {
 	-- Town Hall 1
 	{
 		-- Top of the town hall
@@ -60,7 +60,8 @@ STRUCTURE.harvestableTilesetInfo = {
 
 --- Called when the structure is created in the world
 --- @param structure Structure
-function STRUCTURE:onSpawn(structure)
+--- @param builders Unit[]
+function STRUCTURE:onSpawn(structure, builders)
 	structure.lastVillagerGenerationTime = 0
 
 	-- Start with 1 villager
@@ -166,7 +167,8 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     local inventory = interactor:getResourceInventory()
 
     if (inventory:getCurrentResources() == 0) then
-		print('unit has no resources.')
+        print('unit has no resources.')
+		interactor:stop()
         return
     end
 
@@ -193,7 +195,8 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(lastResourceInstance:getResourceType(), structure.x, structure.y)
 
     if (not nearestResourceInstance) then
-		print('No resource instance found.')
+        print('No resource instance found. Stopping')
+		interactor:stop()
         return
     end
 

@@ -40,7 +40,7 @@ end
 --- Checks if the resource is harvestable
 --- @return boolean
 function ResourceTypeRegistry.ResourceRegistration:isHarvestable()
-	return self.harvestableTilesetInfo ~= nil
+	return self.harvestableTilesetInfo ~= nil or self.forceHarvestable
 end
 
 --- Draws the resource type icon
@@ -56,7 +56,7 @@ end
 --- @param world World The world to spawn the resource in
 --- @param x number
 --- @param y number
---- @return ResourceInstance
+--- @return Resource
 function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
     assert(self.spawnAtTileId, 'Resource spawnAtTileId is required.')
     assert(self.harvestableTilesetInfo, 'Resource harvestableTilesetInfo is required.')
@@ -90,7 +90,7 @@ function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
 
 	world:updateCollisionMap()
 
-	local resource = ResourceInstance({
+	local resource = Resource({
 		resourceType = self,
 		x = x,
         y = y,

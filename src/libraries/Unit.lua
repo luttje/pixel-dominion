@@ -9,7 +9,7 @@ require('libraries.Interactable')
 --- @field formation table # The formation the unit is in
 --- @field health number # The health of the unit
 --- @field currentAction table # The current action the unit is performing
---- @field lastResourceInstance ResourceInstance|nil # The last resource instance the unit interacted with
+--- @field lastResourceInstance Resource|nil # The last resource instance the unit interacted with
 --- @field resourceInventory ResourceInventory
 local Unit = DeclareClassWithBase('Unit', Interactable)
 
@@ -209,7 +209,6 @@ function Unit:reachedTarget()
 					return
 				end
 
-				print('Unit in the way, moving out of the way.', x, y)
 				unitInTheWay:commandTo(x, y, nil, self.formation)
 			else
                 -- Currently units are allowed to stand on top of each other if they are interacting with something.
@@ -217,6 +216,7 @@ function Unit:reachedTarget()
 				-- TODO: Have them stand on different tiles when interacting with something.
 			end
 		else
+			assert(false, 'Checking if this actually happens') -- don't think this should happen
 			print('Unit in the way, waiting for them to move.')
 			self.nextX, self.nextY = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
 
@@ -271,13 +271,13 @@ function Unit:isInteracting()
 end
 
 --- Sets the last resource instance the unit interacted with
---- @param resourceInstance ResourceInstance
-function Unit:setLastResourceInstance(resourceInstance)
-    self.lastResourceInstance = resourceInstance
+--- @param resource Resource
+function Unit:setLastResourceInstance(resource)
+    self.lastResourceInstance = resource
 end
 
 --- Gets the last resource instance the unit interacted with
---- @return ResourceInstance|nil
+--- @return Resource|nil
 function Unit:getLastResourceInstance()
 	return self.lastResourceInstance
 end
@@ -362,10 +362,11 @@ end
 --- @param formation table
 --- @return boolean
 function Unit:commandTo(targetX, targetY, interactable, formation)
-    -- If it's the same position, do nothing
-    if (self.x == targetX and self.y == targetY) then
-        return false
-    end
+	-- Commented because farmland has the unit stand on it, but the structure redirects to the resource instance on the same tile.
+    -- -- If it's the same position, do nothing
+    -- if (self.x == targetX and self.y == targetY) then
+    --     return false
+    -- end
 
     assert(CurrentWorld, 'World is required.')
 

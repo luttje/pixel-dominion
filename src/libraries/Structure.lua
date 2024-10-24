@@ -20,9 +20,10 @@ function Structure:initialize(config)
 end
 
 --- Called when the structure spawns
-function Structure:onSpawn()
+--- @param builders Unit[]
+function Structure:onSpawn(builders)
 	if (self.structureType.onSpawn) then
-		self.structureType:onSpawn(self)
+		self.structureType:onSpawn(self, builders)
 	end
 end
 
@@ -163,6 +164,12 @@ end
 
 --- Removes the structure from the world
 function Structure:removeStructure()
+    if (self.isRemoved) then
+        return
+    end
+
+    self.isRemoved = true
+
     local world = CurrentWorld
 
     for _, tile in pairs(self.tiles) do
@@ -174,6 +181,8 @@ function Structure:removeStructure()
 	if (self.structureType.onRemove) then
 		self.structureType:onRemove(self)
 	end
+
+    self.events:trigger('structureRemoved')
 end
 
 return Structure

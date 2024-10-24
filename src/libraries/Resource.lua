@@ -1,15 +1,15 @@
 require('libraries.Interactable')
 
 --- Represents a resource value in the game
---- @class ResourceInstance : Interactable
+--- @class Resource : Interactable
 --- @field resourceType ResourceTypeRegistry.ResourceRegistration
 --- @field supply number
 --- @field tiles table
-local ResourceInstance = DeclareClassWithBase('ResourceInstance', Interactable)
+local Resource = DeclareClassWithBase('Resource', Interactable)
 
 --- Initializes the resource
 --- @param config table
-function ResourceInstance:initialize(config)
+function Resource:initialize(config)
     config = config or {}
 
 	self.isSelectable = false
@@ -22,7 +22,7 @@ function ResourceInstance:initialize(config)
 end
 
 --- Called when the resource instance spawns
-function ResourceInstance:onSpawn()
+function Resource:onSpawn()
 	if (self.resourceType.onSpawn) then
 		self.resourceType:onSpawn(self)
 	end
@@ -30,19 +30,19 @@ end
 
 --- Gets the type of resource
 --- @return ResourceTypeRegistry.ResourceRegistration
-function ResourceInstance:getResourceType()
+function Resource:getResourceType()
     return self.resourceType
 end
 
 --- Gets the supply of the resource
 --- @return number
-function ResourceInstance:getSupply()
+function Resource:getSupply()
 	return self.supply
 end
 
 --- Stop the unit from interacting with the resource
 --- @param interactor Interactable
-function ResourceInstance:stopInteract(interactor)
+function Resource:stopInteract(interactor)
     local inventory = interactor:getResourceInventory()
 
     if (inventory:getCurrentResources() == 0) then
@@ -66,7 +66,7 @@ end
 --- When an interactable is interacted with
 --- @param deltaTime number
 --- @param interactor Interactable
-function ResourceInstance:updateInteract(deltaTime, interactor)
+function Resource:updateInteract(deltaTime, interactor)
     if (not interactor:isOfType(Unit)) then
         print('Cannot interact with resource as it is not a unit.')
         return
@@ -100,6 +100,7 @@ function ResourceInstance:updateInteract(deltaTime, interactor)
     self.supply = self.supply - resourceHarvested
 
     -- Check if the resource supply is depleted
+	-- TODO: This may happen multiple times, for multiple units. Hence the isRemoved check in removeResource
     if (self.supply <= 0) then
         self:removeResource()
         self:stopInteract(interactor)
@@ -107,19 +108,30 @@ function ResourceInstance:updateInteract(deltaTime, interactor)
 end
 
 --- Removes the resource from the world
-function ResourceInstance:removeResource()
+function Resource:removeResource()
+    if (self.isRemoved) then
+        return
+    end
+
+    self.isRemoved = true
+
 	local world = CurrentWorld
 
-	for _, tile in pairs(self.tiles) do
-		world:removeTile(tile.layerName, tile.x, tile.y)
-	end
+    world:removeResourceInstance(self)
 
-	world:removeResourceInstance(self)
-	world:updateCollisionMap()
+    if (self.tiles) then
+        for _, tile in pairs(self.tiles) do
+            world:removeTile(tile.layerName, tile.x, tile.y)
+        end
 
-	if (self.resourceType.onRemove) then
-		self.resourceType:onRemove(self)
-	end
+        world:updateCollisionMap()
+    end
+
+    if (self.resourceType.onRemove) then
+        self.resourceType:onRemove(self)
+    end
+
+    self.events:trigger('resourceRemoved')
 end
 
 --- Called after the resource instance is drawn on screen
@@ -128,7 +140,7 @@ end
 --- @param width number
 --- @param height number
 --- @param cameraScale number
-function ResourceInstance:postDrawOnScreen(x, y, width, height, cameraScale)
+function Resource:postDrawOnScreen(x, y, width, height, cameraScale)
 	if (self.supply == self.startSupply) then
 		return
 	end
@@ -139,4 +151,4 @@ function ResourceInstance:postDrawOnScreen(x, y, width, height, cameraScale)
 	love.graphics.drawProgressCircle(x + width * .5, y + height * .5, radius, progress)
 end
 
-return ResourceInstance
+return Resource

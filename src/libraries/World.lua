@@ -4,13 +4,14 @@ local Sti = require('third-party.sti')
 local Grid = require('third-party.jumper.grid')
 local Pathfinder = require('third-party.jumper.pathfinder')
 
-WALKABLE, NOT_WALKABLE = 0, 1
+WALKABLE = 0
+NOT_WALKABLE = 1
 
 --- Represents a world that contains factions
 --- @class World
 --- @field mapPath string # The path to the map file
 --- @field factions Faction[] # The factions in the world
---- @field resourceInstances ResourceInstance[] # The resource instances in the world
+--- @field resourceInstances Resource[] # The resource instances in the world
 --- @field spawnPoints table<number, table<number, number>> # The spawn points for the factions
 local World = DeclareClass('World')
 
@@ -196,6 +197,7 @@ end
 --- @return table<number, table<number, number>>
 function World:updateCollisionMap()
 	local collisionMap = {}
+	local blockPlacingStructuresMap = {}
 
 	if (not self.map) then
 		assert(false, 'No map loaded.')
@@ -219,12 +221,20 @@ function World:updateCollisionMap()
 					local tile = layer.data[y][x]
 
 					if (tile) then
-						-- If the tile has a property 'collidable' set to true, then mark it as collidable
 						-- Or if the entire layer is collidable, then any tile will be marked as collidable
-						if (tile.properties.collidable or layer.properties.collidable) then
-							collisionMap[y][x] = NOT_WALKABLE
+						if (layer.properties.collidable) then
+                            collisionMap[y][x] = NOT_WALKABLE
 						else
-							collisionMap[y][x] = WALKABLE
+                            collisionMap[y][x] = WALKABLE
+
+							if (layer.properties.reserved) then
+                                -- For farmland, we want to mark it as walkable but reserved so no other farmland can be placed on it
+                                if (not blockPlacingStructuresMap[y]) then
+                                    blockPlacingStructuresMap[y] = {}
+                                end
+
+								blockPlacingStructuresMap[y][x] = true
+							end
 						end
 					end
 				end
@@ -233,9 +243,12 @@ function World:updateCollisionMap()
 	end
 
     self.collisionMap = collisionMap
-	self.collisionGrid = Grid(collisionMap)
+    self.collisionGrid = Grid(collisionMap)
+
     self.pathfinder = Pathfinder(self.collisionGrid, 'ASTAR', WALKABLE)
 	self.pathfinder:setMode('ORTHOGONAL')
+
+	self.blockPlacingStructuresMap = blockPlacingStructuresMap
 
     if (GameConfig.debugCollisionMap) then
 		print('\nCollision Map:\n')
@@ -299,8 +312,9 @@ end
 --- Checks if the tile at the given position is occupied.
 --- @param x number
 --- @param y number
+--- @param isPlacingStructure boolean
 --- @return boolean
-function World:isTileOccupied(x, y)
+function World:isTileOccupied(x, y, isPlacingStructure)
 	if (not self.map) then
 		assert(false, 'No map loaded.')
 		return false
@@ -312,11 +326,20 @@ function World:isTileOccupied(x, y)
 		return false
 	end
 
-	if (x < 0 or y < 0 or x >= #collisionMap[1] or y >= #collisionMap) then
-		return true
+    if (x < 0 or y < 0 or x >= #collisionMap[1] or y >= #collisionMap) then
+        return true
+    end
+
+    x = x + 1
+	y = y + 1
+
+	if (isPlacingStructure) then
+        if (self.blockPlacingStructuresMap[y] and self.blockPlacingStructuresMap[y][x]) then
+			return true
+		end
 	end
 
-	return collisionMap[y + 1][x + 1] == NOT_WALKABLE
+	return collisionMap[y][x] == NOT_WALKABLE
 end
 
 --- Adds the given tile to the specified layer at the given position.
@@ -369,26 +392,28 @@ function World:removeTile(layerName, x, y)
 end
 
 --- Adds a resource instance to the world
---- @param resourceInstance ResourceInstance
-function World:addResourceInstance(resourceInstance)
-	table.insert(self.resourceInstances, resourceInstance)
+--- @param resource Resource
+function World:addResourceInstance(resource)
+	table.insert(self.resourceInstances, resource)
 end
 
 --- Find nearest resource instance to the given position
 --- @param resourceType ResourceTypeRegistry.ResourceRegistration
 --- @param x number
 --- @param y number
---- @return ResourceInstance|nil
+--- @return Resource|nil
 function World:findNearestResourceInstance(resourceType, x, y)
 	local nearestResourceInstance = nil
 	local nearestDistance = nil
 
-	for _, resourceInstance in ipairs(self.resourceInstances) do
-		if (resourceInstance.resourceType == resourceType) then
-			local distance = math.sqrt((resourceInstance.x - x) ^ 2 + (resourceInstance.y - y) ^ 2)
+    -- This currently finds all resources of the given type, but that will cause farmland of other factions to be used.
+	-- TODO: Also filter by faction, if applicable to the resource type
+	for _, resource in ipairs(self.resourceInstances) do
+		if (resource.resourceType == resourceType) then
+			local distance = math.sqrt((resource.x - x) ^ 2 + (resource.y - y) ^ 2)
 
 			if (not nearestDistance or distance < nearestDistance) then
-				nearestResourceInstance = resourceInstance
+				nearestResourceInstance = resource
 				nearestDistance = distance
 			end
 		end
@@ -398,10 +423,10 @@ function World:findNearestResourceInstance(resourceType, x, y)
 end
 
 --- Removes the given resource instance from the world
---- @param resourceInstance ResourceInstance
-function World:removeResourceInstance(resourceInstance)
+--- @param resource Resource
+function World:removeResourceInstance(resource)
 	for i, instance in ipairs(self.resourceInstances) do
-        if (instance == resourceInstance) then
+        if (instance == resource) then
 			table.remove(self.resourceInstances, i)
 			return
 		end
@@ -409,15 +434,30 @@ function World:removeResourceInstance(resourceInstance)
 end
 
 --- Get all resource instances
---- @return ResourceInstance[]
+--- @return Resource[]
 function World:getResourceInstances()
 	return self.resourceInstances
+end
+
+--- Get all resource instances of the given type
+--- @param resourceType ResourceTypeRegistry.ResourceRegistration
+--- @return Resource[]
+function World:getResourceInstancesOfType(resourceType)
+	local instances = {}
+
+	for _, resource in ipairs(self.resourceInstances) do
+		if (resource.resourceType == resourceType) then
+			table.insert(instances, resource)
+		end
+	end
+
+	return instances
 end
 
 --- Gets the unit or structure under the given world position
 --- @param x number
 --- @param y number
---- @return Unit|Structure|ResourceInstance|nil
+--- @return Unit|Structure|Resource|nil
 function World:getInteractableUnderPosition(x, y)
 	for _, faction in ipairs(self.factions) do
 		for _, unit in ipairs(faction:getUnits()) do
@@ -435,9 +475,9 @@ function World:getInteractableUnderPosition(x, y)
 		end
 	end
 
-	for _, resourceInstance in ipairs(self.resourceInstances) do
-        if (resourceInstance:isInPosition(x, y)) then
-			return resourceInstance
+	for _, resource in ipairs(self.resourceInstances) do
+        if (resource:isInPosition(x, y)) then
+			return resource
 		end
 	end
 

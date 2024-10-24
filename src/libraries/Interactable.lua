@@ -16,7 +16,11 @@ function Interactable:initialize(config)
 
 	self.isSelectable = true
 
-	table.Merge(self, config)
+    table.Merge(self, config)
+
+	self.events = EventManager({
+		target = self
+	})
 
     self.id = NEXT_ID
 	NEXT_ID = NEXT_ID + 1

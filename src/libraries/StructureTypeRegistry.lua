@@ -8,7 +8,7 @@ local StructureTypeRegistry = DeclareClass('StructureTypeRegistry')
 --- @class StructureTypeRegistry.StructureRegistration
 --- @field id string The unique id of the structure.
 --- @field name string The name of the structure.
---- @field harvestableTilesetInfo table<number, table> The tileset information used to render the structure in the world.
+--- @field structureTilesetInfo table<number, table> The tileset information used to render the structure in the world.
 --- @field requiredResources table<string, number> The resources required to build the structure.
 --- @field imagePath string The path to the image used to render the structure.
 StructureTypeRegistry.StructureRegistration = DeclareClass('StructureTypeRegistry.StructureRegistration')
@@ -29,12 +29,13 @@ end
 --- @param faction Faction The faction that owns the resource
 --- @param x number
 --- @param y number
+--- @param builders Unit[]
 --- @return Structure
-function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction, x, y)
-	assert(self.harvestableTilesetInfo, 'Resource harvestableTilesetInfo is required.')
+function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction, x, y, builders)
+	assert(self.structureTilesetInfo, 'Resource structureTilesetInfo is required.')
 
 	local tiles = {}
-	local structureVariant = table.Random(self.harvestableTilesetInfo)
+	local structureVariant = table.Random(self.structureTilesetInfo)
 
 	for _, tileInfo in ipairs(structureVariant) do
 		local worldX = x + (tileInfo.offsetX or 0)
@@ -70,7 +71,7 @@ function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction,
 		tiles = tiles
 	})
 
-    structure:onSpawn()
+    structure:onSpawn(builders)
 
 	return structure
 end
@@ -118,11 +119,11 @@ function StructureTypeRegistry.StructureRegistration:canPlaceAt(worldX, worldY)
     local world = CurrentWorld
 
     -- Use the world to check if the structure can be placed at the given tile position
-    for _, tileInfo in ipairs(self.harvestableTilesetInfo[1]) do
+    for _, tileInfo in ipairs(self.structureTilesetInfo[1]) do
         local tileX = worldX + (tileInfo.offsetX or 0)
         local tileY = worldY + (tileInfo.offsetY or 0)
 
-        if (world:isTileOccupied(tileX, tileY)) then
+        if (world:isTileOccupied(tileX, tileY, true)) then
             return false
         end
     end
