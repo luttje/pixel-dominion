@@ -35,33 +35,47 @@ function ResourceInstance:getResourceType()
 end
 
 --- Stop the unit from interacting with the resource
---- @param interactable Interactable
-function ResourceInstance:stopInteract(interactable)
-	-- Stop the action
-	-- TODO: and go towards the resource camp, for now we will go to the town hall
-	local resourceCamp = CurrentPlayer:getFaction():getTownHall()
-	interactable:commandTo(resourceCamp.x, resourceCamp.y, resourceCamp)
+--- @param interactor Interactable
+function ResourceInstance:stopInteract(interactor)
+    local inventory = interactor:getResourceInventory()
+
+    if (inventory:getCurrentResources() == 0) then
+        -- Find another resource to go to of the same type
+        local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(
+            self.resourceType, interactor.x, interactor.y)
+
+        if (nearestResourceInstance) then
+            interactor:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
+        else
+            print('No alternative resource found. Stopping')
+			interactor:stop()
+		end
+	else
+		-- TODO: and go towards the resource camp, for now we will go to the town hall
+		local resourceCamp = CurrentPlayer:getFaction():getTownHall()
+		interactor:commandTo(resourceCamp.x, resourceCamp.y, resourceCamp)
+	end
 end
 
 --- When an interactable is interacted with
 --- @param deltaTime number
---- @param interactable Interactable
-function ResourceInstance:updateInteract(deltaTime, interactable)
-    if (not interactable:isOfType(Unit)) then
+--- @param interactor Interactable
+function ResourceInstance:updateInteract(deltaTime, interactor)
+    if (not interactor:isOfType(Unit)) then
         print('Cannot interact with resource as it is not a unit.')
         return
     end
 
-    local inventory = interactable:getResourceInventory()
+    local inventory = interactor:getResourceInventory()
 
     -- If our inventory is full, we cannot harvest more
     if (inventory:getRemainingResourceSpace() <= 0) then
-        self:stopInteract(interactable)
+        self:stopInteract(interactor)
         return
     end
 
     -- Set the action active and on the current interactable
-    interactable:setCurrentAction('action', self)
+    interactor:setCurrentAction('action', self)
 
     assert(CurrentWorld, 'World is required.')
 
@@ -81,7 +95,7 @@ function ResourceInstance:updateInteract(deltaTime, interactable)
     -- Check if the resource supply is depleted
     if (self.supply <= 0) then
         self:removeResource()
-        self:stopInteract(interactable)
+        self:stopInteract(interactor)
     end
 end
 

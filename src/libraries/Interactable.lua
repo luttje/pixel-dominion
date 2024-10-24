@@ -1,10 +1,13 @@
 --- Represents an interactable object in the wolr.d
 --- @class Interactable
+--- @field id number # The id of the interactable
 --- @field x number # The x position of the interactable
 --- @field y number # The y position of the interactable
 --- @field isSelected boolean # Whether the interactable is selected
 --- @field isSelectable boolean # Whether the interactable is selectable
 local Interactable = DeclareClass('Interactable')
+
+local NEXT_ID = 1
 
 --- Initializes the interactable
 --- @param config table
@@ -14,6 +17,9 @@ function Interactable:initialize(config)
 	self.isSelectable = true
 
 	table.Merge(self, config)
+
+    self.id = NEXT_ID
+	NEXT_ID = NEXT_ID + 1
 end
 
 --- When an interactable is interacted with

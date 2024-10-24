@@ -41,6 +41,14 @@ function Unit:setCurrentAction(animation, targetInteractable)
     self.currentAction.targetInteractable = targetInteractable
 end
 
+--- Stops the unit from whatever it is doing
+function Unit:stop()
+	self.targetX = nil
+	self.targetY = nil
+	self.formation = nil
+	self:setCurrentAction('idle', nil)
+end
+
 --- Gets the current action interactable
 --- @return Interactable|nil
 function Unit:getCurrentActionInteractable()
@@ -191,18 +199,22 @@ function Unit:reachedTarget()
 	local unitInTheWay = self:isPositionOccupied(self.nextX, self.nextY)
 	if (unitInTheWay) then
 		-- If someone is in the way and they are not moving, move them out of the way
-		if (not unitInTheWay:isMoving()) then
-			local x, y = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
+        if (not unitInTheWay:isMoving()) then
+			if (not unitInTheWay:isInteracting()) then
+				local x, y = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
 
-			if (not x or not y) then
-				print('No free tile found around the unit in the way.')
-				return
+				if (not x or not y) then
+					print('No free tile found around the unit in the way.')
+					return
+				end
+
+				print('Unit in the way, moving out of the way.', x, y)
+				unitInTheWay:commandTo(x, y, nil, self.formation)
+			else
+                -- Currently units are allowed to stand on top of each other if they are interacting with something.
+				-- We compensate for this in the draw offset so they don't overlap visually.
+				-- TODO: Have them stand on different tiles when interacting with something.
 			end
-
-			-- TODO: This currently has other units stopping work on the same resource, which is not ideal as the player would need to micro-manage that.
-			-- TODO: Have multiple units work on a resource from nearby places, or have them wait for eachother? The latter would be simpler to implement since it doesnt involve the pathinfidng.
-			print('Unit in the way, moving out of the way.', x, y)
-			unitInTheWay:commandTo(x, y, nil, self.formation)
 		else
 			print('Unit in the way, waiting for them to move.')
 			self.nextX, self.nextY = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
@@ -221,21 +233,24 @@ end
 --- Returns the draw offset of the unit. We will bounce when moving or while selected
 --- @return number, number
 function Unit:getDrawOffset()
-	local bounceX, bounceY = 0, 0
+	local offsetX, offsetY = 0, 0
 
 	if (self:isMoving()) then
         -- Calculate interpolation factor between the current and next tile
         local factor = self.moveTimer / GameConfig.unitMoveTimeInSeconds
 
         -- Interpolate between current position and next position
-        bounceX = (self.nextX - self.x) * factor * GameConfig.tileSize
-        bounceY = (self.nextY - self.y) * factor * GameConfig.tileSize
+        offsetX = (self.nextX - self.x) * factor * GameConfig.tileSize
+        offsetY = (self.nextY - self.y) * factor * GameConfig.tileSize
 
         -- Add bouncing effect with our formation index as a bit of an offset so units never exactly overlap
-        bounceY = bounceY + math.sin(love.timer.getTime() * 10 + ((self.formation and self.formation.index or 1) * 2)) * -1
+        offsetY = offsetY + math.sin(love.timer.getTime() * 10 + ((self.formation and self.formation.index or 1) * 2)) * -1
+    elseif (self:isInteracting()) then
+        offsetY = math.sin(self.id * GameConfig.tileSize)
+		offsetX = math.cos(self.id * GameConfig.tileSize)
 	end
 
-	return bounceX, bounceY
+	return offsetX, offsetY
 end
 
 --- Checks if the unit is moving
@@ -246,6 +261,12 @@ function Unit:isMoving()
     end
 
     return self.x ~= self.targetX or self.y ~= self.targetY
+end
+
+--- Checks if the unit is interacting with something
+--- @return boolean
+function Unit:isInteracting()
+	return self:getCurrentActionInteractable() ~= nil
 end
 
 --- Checks if the given position is occupied by another unit
@@ -351,11 +372,11 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
 	self.targetY = targetY
 	self.formation = formation
 
-	if (#pathPoints > 1) then
+    if (#pathPoints > 1) then
 		self:setCurrentAction('idle', interactable)
 	end
 
-	if (not interactable) then
+    if (not interactable) then
 		self:setCurrentAction('idle', nil)
 	end
 

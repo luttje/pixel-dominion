@@ -163,6 +163,7 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     local inventory = interactor:getResourceInventory()
 
     if (inventory:getCurrentResources() == 0) then
+		print('unit has no resources.')
         return
     end
 
@@ -179,12 +180,14 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     inventory:clear()
 
     if (not lastResourceType) then
+		print('No resource type found in inventory.')
         return
     end
 
     local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(lastResourceType, structure.x, structure.y)
 
     if (not nearestResourceInstance) then
+		print('No resource instance found.')
         return
     end
 
