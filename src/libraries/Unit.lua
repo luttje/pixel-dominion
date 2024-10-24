@@ -101,6 +101,8 @@ end
 --- @param height number
 --- @param cameraScale number
 function Unit:postDrawOnScreen(x, y, width, height, cameraScale)
+    self:getBase():postDrawOnScreen(x, y, width, height, cameraScale)
+
 	-- Apply the draw offset to x and y
 	local bounceX, bounceY = self:getDrawOffset()
 	x = x + bounceX * cameraScale
@@ -152,7 +154,7 @@ function Unit:update(deltaTime)
     local targetInteractable = self:getCurrentActionInteractable()
 
     if (targetInteractable and not self:isMoving() and targetInteractable:getDistanceTo(self.x, self.y) < 2) then
-		targetInteractable:updateInteract(deltaTime, self)
+        targetInteractable:updateInteract(deltaTime, self)
 	end
 
     if (not self:isMoving()) then

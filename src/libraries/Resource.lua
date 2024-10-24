@@ -66,16 +66,16 @@ end
 --- When an interactable is interacted with
 --- @param deltaTime number
 --- @param interactor Interactable
+--- @return boolean # Whether the interaction was successful, false stops the unit
 function Resource:updateInteract(deltaTime, interactor)
     if (not interactor:isOfType(Unit)) then
         print('Cannot interact with resource as it is not a unit.')
-        return
+        return false
     end
 
 	if (interactor:getUnitType().id ~= 'villager') then
         print('Unit cannot harvest this resource.')
-		interactor:stop()
-		return
+		return false
 	end
 
     local inventory = interactor:getResourceInventory()
@@ -84,7 +84,7 @@ function Resource:updateInteract(deltaTime, interactor)
     -- If our inventory is full, we cannot harvest more
     if (inventory:getRemainingResourceSpace() <= 0) then
         self:stopInteract(interactor)
-        return
+        return true
     end
 
     -- Set the action active and on the current interactable
@@ -95,7 +95,7 @@ function Resource:updateInteract(deltaTime, interactor)
     self.harvestTimer = self.harvestTimer + deltaTime
 
     if (self.harvestTimer < GameConfig.resourceHarvestTimeInSeconds) then
-        return
+        return true
     end
 
     self.harvestTimer = 0
@@ -111,6 +111,8 @@ function Resource:updateInteract(deltaTime, interactor)
         self:removeResource()
         self:stopInteract(interactor)
     end
+
+	return true
 end
 
 --- Removes the resource from the world

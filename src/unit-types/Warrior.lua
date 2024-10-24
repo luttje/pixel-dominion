@@ -3,6 +3,8 @@ local UNIT = {}
 UNIT.id = 'warrior'
 UNIT.name = 'Warrior'
 
+UNIT.damageStrength = 10
+
 UNIT.imagePath = 'assets/images/tilemaps/units.png'
 UNIT.idleImageOffset = {
 	{
@@ -35,10 +37,12 @@ function UNIT:getActions(selectedInteractable)
     local ACTION_STOP_ATTACK = {}
     ACTION_STOP_ATTACK.text = 'Stop Attacking'
     ACTION_STOP_ATTACK.icon = 'assets/images/icons/attack.png'
-    ACTION_STOP_ATTACK.isEnabled = false
+
+	-- TODO: This wont update until we re-select the unit
+    ACTION_STOP_ATTACK.isEnabled = selectedInteractable:isInteracting()
 
     function ACTION_STOP_ATTACK:onRun(selectionOverlay)
-		print('Stop attacking')
+		selectedInteractable:stop()
 	end
 
     return {

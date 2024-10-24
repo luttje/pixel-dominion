@@ -1,11 +1,18 @@
 --- Represents an interactable object in the wolr.d
 --- @class Interactable
+---
 --- @field id number # The id of the interactable
+---
 --- @field x number # The x position of the interactable
 --- @field y number # The y position of the interactable
+---
 --- @field isSelected boolean # Whether the interactable is selected
 --- @field isSelectable boolean # Whether the interactable is selectable
+---
 --- @field interactSounds table|nil
+---
+--- @field health number
+---
 local Interactable = DeclareClass('Interactable')
 
 local NEXT_ID = 1
@@ -16,6 +23,7 @@ function Interactable:initialize(config)
     config = config or {}
 
 	self.isSelectable = true
+	self.health = 100
 
     table.Merge(self, config)
 
@@ -49,7 +57,25 @@ end
 --- @param height number
 --- @param cameraScale number
 function Interactable:postDrawOnScreen(x, y, width, height, cameraScale)
-	-- Override this in the child class
+	-- Override this in the child class and call the base class like:
+    -- self:getBase():postDrawOnScreen(x, y, width, height, cameraScale)
+
+    -- Draw the health bar above the interactable
+	if (self.health < 100) then
+		local healthBarWidth = width
+		local healthBarHeight = 5
+		local healthBarX = x
+        local healthBarY = y - healthBarHeight - Sizes.padding()
+
+		love.graphics.setColor(1, 0, 0)
+		love.graphics.rectangle('fill', healthBarX, healthBarY, healthBarWidth, healthBarHeight)
+
+		love.graphics.setColor(0, 1, 0)
+		love.graphics.rectangle('fill', healthBarX, healthBarY, healthBarWidth * (self.health / 100), healthBarHeight)
+
+        love.graphics.setColor(0, 0, 0)
+		love.graphics.rectangle('line', healthBarX, healthBarY, healthBarWidth, healthBarHeight)
+	end
 end
 
 --- Gets the world position of the interactable

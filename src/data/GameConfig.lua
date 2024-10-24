@@ -40,6 +40,10 @@ GameConfig.structureUpdateTimeInSeconds = 0.5
 --- @type number
 GameConfig.structureUnitGenerationTimeInSeconds = 15
 
+--- How many seconds between dealing damage to a unit or structure.
+--- @type number
+GameConfig.structureDamageTimeInSeconds = 1
+
 --- How many supplies a unit can carry.
 --- @type number
 GameConfig.unitSupplyCapacity = 5

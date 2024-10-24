@@ -162,14 +162,21 @@ end
 --- @param structure Structure
 --- @param deltaTime number
 --- @param interactor Interactable
+--- @return boolean # Whether the interaction was successful, false stops the unit
 function STRUCTURE:updateInteract(structure, deltaTime, interactor)
+    local unitType = interactor:getUnitType()
+
+	if (unitType.id ~= 'villager') then
+        print('Unit cannot interact with the town hall.')
+        return false
+    end
+
     -- Take any resources from the unit and place them in the faction inventory
     local inventory = interactor:getResourceInventory()
 
     if (inventory:getCurrentResources() == 0) then
         print('unit has no resources.')
-		interactor:stop()
-        return
+        return false
     end
 
     local faction = structure:getFaction()
@@ -188,7 +195,7 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     if (lastResourceInstance:getSupply() > 0) then
         interactor:commandTo(lastResourceInstance.x, lastResourceInstance.y, lastResourceInstance)
 
-        return
+        return true
     end
 
 	-- Find the nearest resource instance of the same type
@@ -196,11 +203,12 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
 
     if (not nearestResourceInstance) then
         print('No resource instance found. Stopping')
-		interactor:stop()
-        return
+        return false
     end
 
     interactor:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
+
+	return true
 end
 
 --- Returns whether the structure can be built by the faction. Resources are checked

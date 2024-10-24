@@ -54,7 +54,13 @@ function love.load()
 		mapPath = 'assets/worlds/forest_8x8.lua'
     })
     CurrentPlayer:setWorld(CurrentWorld)
-	CurrentWorld:spawnFaction(playerFaction)
+    CurrentWorld:spawnFaction(playerFaction)
+
+    -- Add a barracks for testing
+    playerFaction:spawnStructure(
+		StructureTypeRegistry:getStructureType('barracks'),
+		24, 16
+	)
 	-- TODO: End of hard-coded tests
 
     StateManager:setCurrentState(InGameState)

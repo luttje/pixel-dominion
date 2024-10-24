@@ -39,6 +39,28 @@ function Structure:getFaction()
 	return self.faction
 end
 
+--- Applies damage to the structure
+--- @param damage number
+--- @param interactor Interactable
+--- @return boolean # Whether the structure was destroyed
+function Structure:damage(damage, interactor)
+    if (self.health <= 0) then
+        return true
+    end
+
+	self.health = self.health - damage
+
+    if (self.health <= 0) then
+        print('Structure destroyed.')
+        self:removeStructure()
+        return true
+    else
+        print('Structure health:', self.health)
+    end
+
+	return false
+end
+
 --- Checks if the interactable is in the given position
 --- @param x number
 --- @param y number
@@ -70,6 +92,12 @@ end
 --- @param height number
 --- @param cameraScale number
 function Structure:postDrawOnScreen(x, y, width, height, cameraScale)
+    if (self.isRemoved) then
+        return
+    end
+
+    self:getBase():postDrawOnScreen(x, y, width, height, cameraScale)
+
 	if (self.structureType.postDrawOnScreen) then
 		local minX, minY, maxX, maxY = self:getScreenBounds(x, y, cameraScale)
 
@@ -133,6 +161,10 @@ end
 --- Called every tick
 --- @param deltaTime number
 function Structure:update(deltaTime)
+    if (self.isRemoved) then
+        return
+    end
+
 	if (not self.nextUpdateTime) then
 		self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds
 	end
@@ -152,13 +184,44 @@ end
 --- @param deltaTime number
 --- @param interactor Interactable
 function Structure:updateInteract(deltaTime, interactor)
-	if (not interactor:isOfType(Unit)) then
-		print('Cannot interact with structure as it is not a unit.')
+    if (self.isRemoved) then
+        return
+    end
+
+    if (not interactor:isOfType(Unit)) then
+        print('Cannot interact with structure as it is not a unit.')
+        return
+    end
+
+	local unitType = interactor:getUnitType()
+
+	if (unitType.damageStrength and interactor:getFaction() ~= self:getFaction()) then
+        if (not self.lastDamageTime) then
+            self.lastDamageTime = 0
+        end
+
+		self.lastDamageTime = self.lastDamageTime + deltaTime
+
+        if (self.lastDamageTime < GameConfig.structureDamageTimeInSeconds) then
+            return
+        end
+
+		self.lastDamageTime = 0
+
+        if (self:damage(unitType.damageStrength, interactor)) then
+            interactor:stop()
+        end
+
 		return
 	end
 
 	if (self.structureType.updateInteract) then
-		self.structureType:updateInteract(self, deltaTime, interactor)
+		local interacted = self.structureType:updateInteract(self, deltaTime, interactor)
+
+        if (not interacted) then
+			print('Interact ended.')
+			interactor:stop()
+		end
 	end
 end
 
@@ -181,6 +244,8 @@ function Structure:removeStructure()
 	if (self.structureType.onRemove) then
 		self.structureType:onRemove(self)
 	end
+
+	self:getFaction():removeStructure(self)
 
     self.events:trigger('structureRemoved')
 end

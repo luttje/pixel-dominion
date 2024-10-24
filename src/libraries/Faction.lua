@@ -99,6 +99,21 @@ function Faction:getStructures()
 	return self.structures
 end
 
+--- Removes the structure from the faction
+--- @param structure Structure
+--- @return boolean # Whether the structure was removed
+function Faction:removeStructure(structure)
+	for i, factionStructure in ipairs(self.structures) do
+		if (factionStructure == structure) then
+			table.remove(self.structures, i)
+
+			return true
+		end
+	end
+
+	return false
+end
+
 --- Returns all structures of the given type
 --- @param structureType StructureTypeRegistry.StructureRegistration|string
 --- @return Structure[]
