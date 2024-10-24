@@ -9,6 +9,7 @@ local StructureTypeRegistry = DeclareClass('StructureTypeRegistry')
 --- @field id string The unique id of the structure.
 --- @field name string The name of the structure.
 --- @field worldTilesetInfo table<number, table> The tileset information used to render the structure in the world.
+--- @field requiredResources table<string, number> The resources required to build the structure.
 --- @field imagePath string The path to the image used to render the structure.
 StructureTypeRegistry.StructureRegistration = DeclareClass('StructureTypeRegistry.StructureRegistration')
 
@@ -127,6 +128,34 @@ function StructureTypeRegistry.StructureRegistration:canPlaceAt(worldX, worldY)
     end
 
 	return true
+end
+
+--- Checks whether the given faction can build this structure, first checking if the faction has the required resources
+--- @param faction Faction
+function StructureTypeRegistry.StructureRegistration:canBeBuilt(faction)
+    if (self.requiredResources) then
+        for resourceType, amount in pairs(self.requiredResources) do
+            if (not faction:getResourceInventory():has(resourceType, amount)) then
+                return false
+            end
+        end
+    end
+
+    if (self.canBeBuiltByFaction) then
+        return self.canBeBuiltByFaction(faction)
+    end
+
+    return true
+end
+
+--- Subtracts the required resources from the faction's inventory
+--- @param faction Faction
+function StructureTypeRegistry.StructureRegistration:subtractResources(faction)
+	if (self.requiredResources) then
+		for resourceType, amount in pairs(self.requiredResources) do
+			faction:getResourceInventory():remove(resourceType, amount)
+		end
+	end
 end
 
 --[[

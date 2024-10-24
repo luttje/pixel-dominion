@@ -127,7 +127,7 @@ function Faction:getAvailableStructures()
 	local availableStructures = {}
 
 	for _, structureType in pairs(StructureTypeRegistry:getAllStructureTypes()) do
-		if (structureType:canBeBuiltByFaction(self)) then
+		if (not structureType.isInternal) then
 			table.insert(availableStructures, structureType)
 		end
 	end

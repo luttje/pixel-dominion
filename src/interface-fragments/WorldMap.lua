@@ -29,6 +29,18 @@ function WorldMap:initialize(config)
                 return
             end
 
+			assert(builders[1], 'No builders to build the structure')
+            local faction = builders[1]:getFaction()
+
+            if (not structureToBuild:canBeBuilt(faction)) then
+                print('TODO: Error sound')
+                return
+            end
+
+			-- TODO: Have the builders build the structure
+			print('TODO: success sound')
+
+			structureToBuild:subtractResources(faction)
 			CurrentPlayer:getFaction():spawnStructure(structureToBuild, position.x, position.y)
 			CurrentPlayer:clearCurrentStructureToBuild()
 		end

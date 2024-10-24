@@ -30,7 +30,7 @@ GameConfig.unitMoveTimeInSeconds = 0.5
 
 --- How long it takes to take a single supply from a resource in seconds.
 --- @type number
-GameConfig.resourceHarvestTimeInSeconds = 1
+GameConfig.resourceHarvestTimeInSeconds = 2
 
 --- How long between a structure calls its update function in seconds.
 --- @type number
@@ -38,7 +38,7 @@ GameConfig.structureUpdateTimeInSeconds = 0.5
 
 --- How many seconds to generate a villager
 --- @type number
-GameConfig.townHallVillagerGenerationTimeInSeconds = 5
+GameConfig.townHallVillagerGenerationTimeInSeconds = 15
 
 --- How many supplies a unit can carry.
 --- @type number

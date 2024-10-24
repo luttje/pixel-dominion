@@ -3,6 +3,9 @@ local STRUCTURE = {}
 STRUCTURE.id = 'town_hall'
 STRUCTURE.name = 'Town Hall'
 
+-- Don't allow construction of town halls for now
+STRUCTURE.isInternal = true
+
 STRUCTURE.imagePath = 'assets/images/structures/town-hall.png'
 
 STRUCTURE.worldTilesetInfo = {
@@ -194,7 +197,8 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     interactor:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
 end
 
---- Returns whether the structure can be built by the faction
+--- Returns whether the structure can be built by the faction. Resources are checked
+--- before this function is called.
 --- @param faction Faction
 --- @return boolean
 function STRUCTURE:canBeBuiltByFaction(faction)

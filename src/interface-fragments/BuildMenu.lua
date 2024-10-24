@@ -24,20 +24,38 @@ function BuildMenu:refreshStructures()
     local faction = CurrentPlayer:getFaction()
     local availableStructures = faction:getAvailableStructures()
 
-    for i, structure in ipairs(availableStructures) do
+    for i, structureType in ipairs(availableStructures) do
+		local text = structureType.name
+
+        -- Append required resources
+        if (structureType.requiredResources) then
+			text = text .. " ("
+
+			for resourceName, resourceAmount in pairs(structureType.requiredResources) do
+				text = text .. resourceName .. ": " .. resourceAmount .. ", "
+			end
+
+			text = text:sub(1, -3)
+			text = text .. ")"
+		end
+
         local button = Button({
-            text = structure.name,
-            icon = structure.imagePath,
+            text = text,
+            icon = structureType.imagePath,
             isClippingDisabled = true,
             x = 0,
             y = 0,
             width = 64,
             height = 64,
             onClick = function()
-                CurrentPlayer:setCurrentStructureToBuild(structure, table.Copy(CurrentPlayer:getSelectedInteractables()))
+                CurrentPlayer:setCurrentStructureToBuild(structureType, table.Copy(CurrentPlayer:getSelectedInteractables()))
 				CurrentPlayer:clearSelectedInteractables()
             end
         })
+
+        function button:updateEnabledByResources()
+			self:setEnabled(structureType:canBeBuilt(faction))
+		end
 
         self.childFragments:add(button)
         self.structures[i] = button
@@ -69,6 +87,7 @@ function BuildMenu:performDraw(x, y, width, height)
 	local buttonY = y + Fonts.defaultHud:getHeight() + Sizes.padding()
 
     for i, button in ipairs(self.structures) do
+		button:updateEnabledByResources()
 		button:setWidth(width - Sizes.padding() * 2)
         button:setPosition(buttonX, buttonY)
 

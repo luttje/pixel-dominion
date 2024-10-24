@@ -6,6 +6,10 @@ STRUCTURE.id = 'house'
 STRUCTURE.name = 'House'
 
 STRUCTURE.imagePath = 'assets/images/structures/house.png'
+STRUCTURE.requiredResources = {
+	wood = 10,
+	stone = 5,
+}
 
 STRUCTURE.worldTilesetInfo = {
 	-- House 1
@@ -57,7 +61,8 @@ function STRUCTURE:onRemove(structure)
 	structure:getFaction():getResourceInventory():remove('housing', GRANTS_HOUSING)
 end
 
---- Returns whether the structure can be built by the faction
+--- Returns whether the structure can be built by the faction. Resources are checked
+--- before this function is called.
 --- @param faction Faction
 --- @return boolean
 function STRUCTURE:canBeBuiltByFaction(faction)
