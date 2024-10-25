@@ -8,6 +8,7 @@
 ---
 --- @field isSelected boolean # Whether the interactable is selected
 --- @field isSelectable boolean # Whether the interactable is selectable
+--- @field isRemoved boolean # Whether the interactable is removed
 ---
 --- @field interactSounds table|nil
 ---
@@ -41,10 +42,10 @@ function Interactable:interact(interactable)
 	-- Override this in the child class
 end
 
---- Applies damage to the structure
+--- Applies damage to the interactable
 --- @param damage number
 --- @param interactor Interactable
---- @return boolean # Whether the structure was destroyed
+--- @return boolean # Whether the interactable was destroyed
 function Interactable:damage(damage, interactor)
     if (self.health <= 0) then
         return true
@@ -222,5 +223,47 @@ function Interactable:playSound(sound)
 	sound:play()
 end
 
+--- When an interactable is interacted with
+--- @param deltaTime number
+--- @param interactor Interactable
+--- @return boolean # Whether the interactable was interacted with
+function Interactable:updateInteract(deltaTime, interactor)
+	if (not interactor:isOfType(Unit)) then
+		print('Cannot interact with interactable as interactor is not a unit.')
+		return false
+	end
+
+	local unitType = interactor:getUnitType()
+
+	if (self.isRemoved) then
+		if (unitType.damageStrength and self:canTakeDamageFrom(interactor)) then
+            interactor:onInteractWithDestroyedInteractable(self)
+		end
+
+        return false
+    end
+
+	if (unitType.damageStrength and self:canTakeDamageFrom(interactor)) then
+        if (not self.lastDamageTime) then
+            self.lastDamageTime = 0
+        end
+
+		self.lastDamageTime = self.lastDamageTime + deltaTime
+
+        if (self.lastDamageTime < GameConfig.interactableDamageTimeInSeconds) then
+            return false
+        end
+
+		self.lastDamageTime = 0
+
+        if (self:damage(unitType.damageStrength, interactor)) then
+            interactor:onInteractWithDestroyedInteractable(self)
+        end
+
+		return false
+	end
+
+	return true
+end
 
 return Interactable

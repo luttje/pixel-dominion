@@ -406,7 +406,7 @@ function World:findNearestResourceInstance(resourceType, x, y)
 	local nearestResourceInstance = nil
 	local nearestDistance = nil
 
-    -- This currently finds all resources of the given type, but that will cause farmland of other factions to be used.
+	-- This currently finds all resources of the given type, but that will cause farmland of other factions to be used.
 	-- TODO: Also filter by faction, if applicable to the resource type
 	for _, resource in ipairs(self.resourceInstances) do
 		if (resource.resourceType == resourceType) then
@@ -420,6 +420,42 @@ function World:findNearestResourceInstance(resourceType, x, y)
 	end
 
 	return nearestResourceInstance
+end
+
+--- Find the nearest interactable to the given position
+--- @param x number
+--- @param y number
+--- @param filter function|nil
+--- @return Interactable|nil
+function World:findNearestInteractable(x, y, filter)
+	local nearestInteractable = nil
+	local nearestDistance = nil
+
+	for _, faction in ipairs(self.factions) do
+		for _, unit in ipairs(faction:getUnits()) do
+			if (not filter or filter(unit)) then
+				local distance = math.sqrt((unit.x - x) ^ 2 + (unit.y - y) ^ 2)
+
+				if (not nearestDistance or distance < nearestDistance) then
+					nearestInteractable = unit
+					nearestDistance = distance
+				end
+			end
+		end
+
+		for _, structure in ipairs(faction:getStructures()) do
+			if (not filter or filter(structure)) then
+				local distance = math.sqrt((structure.x - x) ^ 2 + (structure.y - y) ^ 2)
+
+				if (not nearestDistance or distance < nearestDistance) then
+					nearestInteractable = structure
+					nearestDistance = distance
+				end
+			end
+		end
+	end
+
+	return nearestInteractable
 end
 
 --- Removes the given resource instance from the world

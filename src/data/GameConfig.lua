@@ -36,13 +36,9 @@ GameConfig.resourceHarvestTimeInSeconds = 2
 --- @type number
 GameConfig.structureUpdateTimeInSeconds = 0.5
 
---- How many seconds between dealing damage to a structure.
+--- How many seconds between dealing damage to a structure or unit.
 --- @type number
-GameConfig.structureDamageTimeInSeconds = 1
-
---- How many seconds between dealing damage to a unit.
---- @type number
-GameConfig.unitDamageTimeInSeconds = 1
+GameConfig.interactableDamageTimeInSeconds = 1
 
 --- How many supplies a unit can carry.
 --- @type number

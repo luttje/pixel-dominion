@@ -360,40 +360,21 @@ function Structure:drawUnitProgress(unitGenerationInfo, x, y, radius, progress)
 	unitType:drawHudIcon(nil, x - radius + padding, y - radius + padding, iconWidth, iconHeight)
 end
 
+--- Whether the structure can take damage from the interactor
+--- @param interactor Interactable
+--- @return boolean
+function Structure:canTakeDamageFrom(interactor)
+	return interactor:getFaction() ~= self:getFaction()
+end
+
 --- When an interactable is interacted with
 --- @param deltaTime number
 --- @param interactor Interactable
+--- @return boolean # Whether the interactable was interacted with
 function Structure:updateInteract(deltaTime, interactor)
-    if (self.isRemoved) then
-        return
+    if (not self:getBase():updateInteract(deltaTime, interactor)) then
+        return false
     end
-
-    if (not interactor:isOfType(Unit)) then
-        print('Cannot interact with structure as interactor is not a unit.')
-        return
-    end
-
-	local unitType = interactor:getUnitType()
-
-	if (unitType.damageStrength and interactor:getFaction() ~= self:getFaction()) then
-        if (not self.lastDamageTime) then
-            self.lastDamageTime = 0
-        end
-
-		self.lastDamageTime = self.lastDamageTime + deltaTime
-
-        if (self.lastDamageTime < GameConfig.structureDamageTimeInSeconds) then
-            return
-        end
-
-		self.lastDamageTime = 0
-
-        if (self:damage(unitType.damageStrength, interactor)) then
-            interactor:stop()
-        end
-
-		return
-	end
 
 	if (self.structureType.updateInteract) then
 		local interacted = self.structureType:updateInteract(self, deltaTime, interactor)
@@ -403,6 +384,8 @@ function Structure:updateInteract(deltaTime, interactor)
 			interactor:stop()
 		end
 	end
+
+	return true
 end
 
 --- Removes the structure from the world

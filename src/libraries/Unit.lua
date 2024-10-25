@@ -161,40 +161,40 @@ function Unit:postDrawOnScreen(x, y, width, height, cameraScale)
 	end
 end
 
+--- Whether the unit can take damage from the interactor
+--- @param interactor Interactable
+--- @return boolean
+function Unit:canTakeDamageFrom(interactor)
+	return interactor:getFaction() ~= self:getFaction()
+end
+
+--- Called when this unit destroyed the given interactable
+--- @param interactable Interactable
+function Unit:onInteractWithDestroyedInteractable(interactable)
+	local enemyFaction = interactable:getFaction()
+
+	-- Find a nearby faction interactable to now target
+	local nearbyInteractable = CurrentWorld:findNearestInteractable(self.x, self.y, function(otherInteractable)
+		return otherInteractable:getFaction() == enemyFaction and not otherInteractable.isRemoved
+	end)
+
+	if (nearbyInteractable) then
+		print('Found nearby interactable to target next.')
+		self:commandTo(nearbyInteractable.x, nearbyInteractable.y, nearbyInteractable, self.formation)
+	else
+		print('No nearby interactable found to target.')
+		self:stop()
+	end
+end
+
 --- When an interactable is interacted with
 --- @param deltaTime number
 --- @param interactor Interactable
+--- @return boolean # Whether the interactable was interacted with
 function Unit:updateInteract(deltaTime, interactor)
-    if (self.isRemoved) then
-        return
+    if (not self:getBase():updateInteract(deltaTime, interactor)) then
+        return false
     end
-
-    if (not interactor:isOfType(Unit)) then
-        print('Cannot interact with unit as interactor is not a unit.')
-        return
-    end
-
-	local interactorUnitType = interactor:getUnitType()
-
-	if (interactorUnitType.damageStrength and interactor:getFaction() ~= self:getFaction()) then
-        if (not self.lastDamageTime) then
-            self.lastDamageTime = 0
-        end
-
-		self.lastDamageTime = self.lastDamageTime + deltaTime
-
-        if (self.lastDamageTime < GameConfig.unitDamageTimeInSeconds) then
-            return
-        end
-
-		self.lastDamageTime = 0
-
-        if (self:damage(interactorUnitType.damageStrength, interactor)) then
-            interactor:stop()
-        end
-
-		return
-	end
 
 	if (self.unitType.updateInteract) then
 		local interacted = self.unitType:updateInteract(self, deltaTime, interactor)
@@ -204,6 +204,8 @@ function Unit:updateInteract(deltaTime, interactor)
 			interactor:stop()
 		end
 	end
+
+	return true
 end
 
 --- Updates the unit
