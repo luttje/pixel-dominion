@@ -22,7 +22,53 @@ archive.on('error', function(err) {
 
 archive.pipe(output);
 
-archive.directory(sourceDir, false);
+// archive.directory(sourceDir, false);
+
+// Instead of adding the entire directory to the bundle, we reduce its size by
+// not including any sounds that aren't used in .lua files
+const soundAssetsDir = `assets/sounds`;
+const soundFiles = [];
+
+const getSoundFiles = (dir) => {
+  const files = fs.readdirSync(dir);
+  files.forEach(file => {
+    const filePath = `${dir}/${file}`;
+    if (fs.statSync(filePath).isDirectory()) {
+      getSoundFiles(filePath);
+    } else {
+      soundFiles.push(filePath.replace(`${sourceDir}/${soundAssetsDir}/`, ''));
+    }
+  });
+};
+getSoundFiles(`${sourceDir}/${soundAssetsDir}`);
+
+// For quick searching we just concat all Lua files into one string
+let concatenatedLuaFiles = '';
+
+const getLuaFiles = (dir) => {
+  const files = fs.readdirSync(dir);
+  files.forEach(file => {
+    const filePath = `${dir}/${file}`;
+    if (fs.statSync(filePath).isDirectory()) {
+      getLuaFiles(filePath);
+    } else {
+      concatenatedLuaFiles += fs.readFileSync(filePath, 'utf8');
+    }
+  });
+};
+
+getLuaFiles(sourceDir);
+
+const ignoredSoundFiles = soundFiles.filter(soundFile => {
+  return !concatenatedLuaFiles.includes(soundFile);
+}).map(soundFile => `${soundAssetsDir}/${soundFile}`);
+
+console.log('Ignoring the following unreferenced sound files:', ignoredSoundFiles);
+
+archive.glob('**', {
+  ignore: ignoredSoundFiles,
+  cwd: sourceDir
+});
 
 archive.finalize();
 

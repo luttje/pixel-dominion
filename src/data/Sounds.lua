@@ -23,7 +23,7 @@ Sounds.stoneMining3 = cutify(newSource('leohpaz/01_chest_open_3.wav'))
 Sounds.stoneMining4 = cutify(newSource('leohpaz/01_chest_open_4.wav'))
 
 Sounds.farming1 = cutify(newSource('leohpaz/01_bush_rustling_1.wav'))
-Sounds.farming2 = cutify(newSource('leohpaz/01_bush_rustling_1.wav'))
-Sounds.farming3 = cutify(newSource('leohpaz/01_bush_rustling_1.wav'))
+Sounds.farming2 = cutify(newSource('leohpaz/01_bush_rustling_2.wav'))
+Sounds.farming3 = cutify(newSource('leohpaz/01_bush_rustling_3.wav'))
 
 return Sounds
