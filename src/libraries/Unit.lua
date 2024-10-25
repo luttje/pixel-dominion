@@ -109,10 +109,11 @@ end
 --- @param height number
 --- @param cameraScale number
 function Unit:postDrawOnScreen(x, y, width, height, cameraScale)
-	CurrentWorldMap:drawInWorldSpace(function()
-		love.graphics.setColor(1, 1, 1, 0.25)
-		self.unitType:draw(self, self:getCurrentActionAnimation())
-	end)
+	-- TODO: Doesn't look very good half the time (offset slightly), so commented out for now #12
+	-- CurrentWorldMap:drawInWorldSpace(function()
+	-- 	love.graphics.setColor(1, 1, 1, 0.25)
+	-- 	self.unitType:draw(self, self:getCurrentActionAnimation())
+	-- end)
 
     self:getBase():postDrawOnScreen(x, y, width, height, cameraScale)
 
