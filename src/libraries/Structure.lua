@@ -201,21 +201,23 @@ end
 function Structure:getDefaultActions()
 	local actions = {}
 
-    for _, unitGenerationInfo in ipairs(self.structureType.unitGenerationInfo) do
-        local action = {}
-        action.text = unitGenerationInfo.text
-        action.icon = unitGenerationInfo.icon
+	if (self.structureType.unitGenerationInfo) then
+		for _, unitGenerationInfo in ipairs(self.structureType.unitGenerationInfo) do
+			local action = {}
+			action.text = unitGenerationInfo.text
+			action.icon = unitGenerationInfo.icon
 
-        action.isEnabled = function(actionButton)
-			return self:canGenerateUnit(unitGenerationInfo)
+			action.isEnabled = function(actionButton)
+				return self:canGenerateUnit(unitGenerationInfo)
+			end
+
+			action.onRun = function(actionButton, selectionOverlay)
+				self:enqueueUnitGeneration(unitGenerationInfo)
+			end
+
+			table.insert(actions, action)
 		end
-
-        action.onRun = function(actionButton, selectionOverlay)
-			self:enqueueUnitGeneration(unitGenerationInfo)
-        end
-
-        table.insert(actions, action)
-    end
+	end
 
 	return actions
 end
