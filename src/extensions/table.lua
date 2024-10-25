@@ -10,6 +10,18 @@ function table.Merge(target, source)
 	return target
 end
 
+--- Appends the contents of a table into another table.
+--- @param target table
+--- @param source table
+--- @return table # The target table
+function table.Append(target, source)
+	for _, value in pairs(source) do
+		table.insert(target, value)
+	end
+
+	return target
+end
+
 --- Copies the contents of a table into a new table recursively.
 --- This is useful to prevent modifying the original table accidentally.
 --- @param source table

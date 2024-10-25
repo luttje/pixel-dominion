@@ -35,6 +35,7 @@ end
 --- @return table
 function UNIT:getActions(selectedInteractable)
     local ACTION_STOP_ATTACK = {}
+	ACTION_STOP_ATTACK.id = 'stop_attacking'
     ACTION_STOP_ATTACK.text = 'Stop Attacking'
     ACTION_STOP_ATTACK.icon = 'assets/images/icons/attack.png'
 

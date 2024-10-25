@@ -10,6 +10,7 @@ STRUCTURE.imagePath = 'assets/images/structures/town-hall.png'
 
 STRUCTURE.unitGenerationInfo = {
 	{
+		id = 'create_villager',
 		text = 'Villager',
 		icon = 'assets/images/icons/villager.png',
 		unitTypeId = 'villager',

@@ -16,6 +16,11 @@ end
 --- Adds the given interactable to the group
 --- @param interactable Interactable
 function InteractableGroup:add(interactable)
+	-- Don't add the interactable if it's already in the group
+	if (table.HasValue(self.interactables, interactable)) then
+		return
+	end
+
     table.insert(self.interactables, interactable)
 end
 

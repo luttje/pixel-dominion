@@ -52,6 +52,7 @@ end
 --- @return table
 function UNIT:getActions(selectedInteractable)
     local ACTION_BUILD = {}
+	ACTION_BUILD.id = 'build'
     ACTION_BUILD.text = 'Build'
     ACTION_BUILD.icon = 'assets/images/icons/build.png'
 

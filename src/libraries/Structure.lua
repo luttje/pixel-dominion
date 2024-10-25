@@ -203,7 +203,8 @@ function Structure:getDefaultActions()
 
 	if (self.structureType.unitGenerationInfo) then
 		for _, unitGenerationInfo in ipairs(self.structureType.unitGenerationInfo) do
-			local action = {}
+            local action = {}
+			action.id = unitGenerationInfo.id
 			action.text = unitGenerationInfo.text
 			action.icon = unitGenerationInfo.icon
 

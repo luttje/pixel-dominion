@@ -12,6 +12,7 @@ STRUCTURE.requiredResources = {
 
 STRUCTURE.unitGenerationInfo = {
 	{
+		id = 'create_warrior',
 		text = 'Train Warrior',
         icon = 'assets/images/icons/train.png',
 		unitTypeId = 'warrior',
