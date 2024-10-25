@@ -7,7 +7,7 @@
 ---
 --- @field onClick fun(self: Button)
 ---
---- @field isEnabled boolean
+--- @field isEnabled boolean|fun(button: Button): boolean
 --- @field isPressed boolean
 --- @field isHovered boolean
 ---
@@ -64,9 +64,22 @@ function Button:setFont(font)
 	self.font = font
 end
 
+--- Sets whether the button is enabled. If a function is provided, it will be called to determine the enabled state
+--- every update.
+--- @param isEnabled boolean|fun(button: Button): boolean
 function Button:setEnabled(isEnabled)
-	self.isEnabled = isEnabled
-	self:refreshIconImage()
+    self.isEnabled = isEnabled
+    self:refreshIconImage()
+end
+
+--- Gets if the button is enabled.
+--- @return boolean
+function Button:getEnabled()
+	if (type(self.isEnabled) == 'function') then
+		return self.isEnabled(self)
+	end
+
+	return self.isEnabled
 end
 
 function Button:refreshIconImage()
@@ -80,7 +93,7 @@ function Button:refreshIconImage()
 	end
 
 	-- Make the image grayscale when disabled
-	if (self.isEnabled) then
+	if (self:getEnabled()) then
 		self.iconImage = ImageCache:get(self.iconImagePath)
 	else
 		self.iconImageData = love.image.newImageData(self.iconImagePath)
@@ -93,7 +106,7 @@ function Button:refreshIconImage()
 end
 
 function Button:performUpdate(deltaTime)
-	if (not self.isEnabled) then
+	if (not self:getEnabled()) then
 		return
 	end
 
@@ -149,14 +162,14 @@ function Button:performDraw(x, y, width, height)
 		if self.isPressed then
 			love.graphics.setColor(Colors.secondary())
 		else
-			if self.isHovered then
-				love.graphics.setColor(Colors.primaryBright())
-            else
-				if (self.isEnabled) then
-					love.graphics.setColor(Colors.primary())
+			if (self:getEnabled()) then
+				if (self.isHovered) then
+                    love.graphics.setColor(Colors.primaryBright())
 				else
-					love.graphics.setColor(Colors.primaryDisabled())
+					love.graphics.setColor(Colors.primary())
 				end
+			else
+				love.graphics.setColor(Colors.primaryDisabled())
 			end
 		end
 

@@ -54,7 +54,6 @@ function UNIT:getActions(selectedInteractable)
     local ACTION_BUILD = {}
     ACTION_BUILD.text = 'Build'
     ACTION_BUILD.icon = 'assets/images/icons/build.png'
-    -- ACTION_BUILD.isEnabled = false
 
     function ACTION_BUILD:onRun(selectionOverlay)
 		if (not self.buildMenu) then

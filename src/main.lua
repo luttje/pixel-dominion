@@ -65,7 +65,7 @@ function love.load()
     -- Add a barracks for testing
     playerFaction:spawnStructure(
 		StructureTypeRegistry:getStructureType('barracks'),
-		24, 16
+		26, 16
 	)
 	-- TODO: End of hard-coded tests
 
@@ -102,11 +102,11 @@ function love.keyreleased(key)
         if (key == 'f1') then
             -- Spawn a villager and if there's a barracks, spawn a warrior
             local townHall = playerFaction:getTownHall()
-            townHall:getStructureType():generateUnit(townHall)
+            townHall:generateUnit('villager')
 
             local barracks = playerFaction:getStructuresOfType('barracks')[1]
 			if (barracks) then
-				barracks:getStructureType():generateUnit(barracks)
+				barracks:generateUnit('warrior')
 			end
 		elseif (key == 'f2') then
             -- Give 100 of each resource

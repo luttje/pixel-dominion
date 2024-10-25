@@ -8,6 +8,18 @@ STRUCTURE.isInternal = true
 
 STRUCTURE.imagePath = 'assets/images/structures/town-hall.png'
 
+STRUCTURE.unitGenerationInfo = {
+	{
+		text = 'Villager',
+		icon = 'assets/images/icons/villager.png',
+		unitTypeId = 'villager',
+        timeInSeconds = 15,
+        costs = {
+			{ resourceTypeId = 'food', value = 25 },
+		}
+	}
+}
+
 STRUCTURE.structureTilesetInfo = {
 	-- Town Hall 1
 	{
@@ -62,100 +74,8 @@ STRUCTURE.structureTilesetInfo = {
 --- @param structure Structure
 --- @param builders Unit[]
 function STRUCTURE:onSpawn(structure, builders)
-	structure.lastUnitGenerationTime = 0
-
 	-- Start with 1 villager
-    self:generateUnit(structure)
-end
-
---- Called every time the structure updates (See GameConfig.structureUpdateTimeInSeconds)
---- @param structure Structure
-function STRUCTURE:onTimedUpdate(structure)
-	local faction = structure:getFaction()
-    local units = faction:getUnits()
-	local housing = faction:getResourceInventory():getValue('housing')
-
-	if (#units >= housing or not structure.lastUnitGenerationTime) then
-		structure.lastUnitGenerationTime = nil
-
-		return
-	end
-
-    structure.lastUnitGenerationTime = structure.lastUnitGenerationTime + GameConfig.structureUpdateTimeInSeconds
-
-	if (structure.lastUnitGenerationTime < GameConfig.structureUnitGenerationTimeInSeconds) then
-		return
-	end
-
-    structure.lastUnitGenerationTime = 0
-
-    self:generateUnit(structure)
-end
-
---- Generates a villager
---- @param structure Structure
-function STRUCTURE:generateUnit(structure)
-	local faction = structure:getFaction()
-    local units = faction:getUnits()
-	local housing = faction:getResourceInventory():getValue('housing')
-
-	if (#units >= housing) then
-		return
-	end
-
-    local x, y = structure:getFreeTileNearby()
-
-    if (not x or not y) then
-        print('No free tile found around the town hall.')
-        return
-    end
-
-	faction:spawnUnit(
-        UnitTypeRegistry:getUnitType('villager'),
-        x, y
-	)
-end
-
---- Draws how much progress has been made generating a villager
---- @param structure Structure
---- @param x number
---- @param y number
---- @param radius number
-function STRUCTURE:drawUnitProgress(structure, x, y, radius)
-	love.graphics.drawProgressCircle(
-		x,
-		y,
-		radius,
-		structure.lastUnitGenerationTime / GameConfig.structureUnitGenerationTimeInSeconds)
-
-	-- Draw the villager icon over the progress circle
-	local padding = Sizes.padding()
-	local iconWidth = radius * 2 - padding * 2
-	local iconHeight = radius * 2 - padding * 2
-
-	love.graphics.setColor(1, 1, 1)
-	UnitTypeRegistry:getUnitType('villager'):drawHudIcon(nil, x - radius + padding, y - radius + padding, iconWidth, iconHeight)
-end
-
---- Called after the structure is drawn on screen
---- @param structure Structure
---- @param minX number
---- @param minY number
---- @param maxX number
---- @param maxY number
-function STRUCTURE:postDrawOnScreen(structure, minX, minY, maxX, maxY)
-	-- Commented because its easier on mobile if structures can't be selected
-	-- if (not structure:getIsSelected()) then
-	-- 	return
-	-- end
-
-	if (structure.lastUnitGenerationTime) then
-		local x = minX + (maxX - minX) * .5
-		local y = minY + (maxY - minY) * .5
-		local radius = (maxX - minX) * .2
-
-		self:drawUnitProgress(structure, x, y, radius)
-	end
+    structure:generateUnit('villager')
 end
 
 --- When an structure is interacted with by a unit.

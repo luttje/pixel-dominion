@@ -101,7 +101,15 @@ function SelectionOverlay:refreshSelectionActions(selectedInteractables)
         end
 
 		if (selectionType) then
-			local actions = selectionType:getActions(interactable)
+            local actions = {}
+
+            if (interactable.getDefaultActions) then
+                table.Merge(actions, interactable:getDefaultActions())
+            end
+
+			if (selectionType.getActions) then
+				table.Merge(actions, selectionType:getActions(interactable))
+			end
 
 			for j, action in ipairs(actions) do
 				local button = Button({

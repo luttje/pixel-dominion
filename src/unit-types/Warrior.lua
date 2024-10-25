@@ -39,7 +39,9 @@ function UNIT:getActions(selectedInteractable)
     ACTION_STOP_ATTACK.icon = 'assets/images/icons/attack.png'
 
 	-- TODO: This wont update until we re-select the unit
-    ACTION_STOP_ATTACK.isEnabled = selectedInteractable:isInteracting()
+    ACTION_STOP_ATTACK.isEnabled = function(actionButton)
+		return selectedInteractable:isInteracting()
+	end
 
     function ACTION_STOP_ATTACK:onRun(selectionOverlay)
 		selectedInteractable:stop()

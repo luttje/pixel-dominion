@@ -36,10 +36,6 @@ GameConfig.resourceHarvestTimeInSeconds = 2
 --- @type number
 GameConfig.structureUpdateTimeInSeconds = 0.5
 
---- How many seconds to generate a villager
---- @type number
-GameConfig.structureUnitGenerationTimeInSeconds = 15
-
 --- How many seconds between dealing damage to a structure.
 --- @type number
 GameConfig.structureDamageTimeInSeconds = 1

@@ -8,6 +8,7 @@ local StructureTypeRegistry = DeclareClass('StructureTypeRegistry')
 --- @class StructureTypeRegistry.StructureRegistration
 --- @field id string The unique id of the structure.
 --- @field name string The name of the structure.
+--- @field unitGenerationInfo table[]|nil The unit types that this structure generates.
 --- @field structureTilesetInfo table<number, table> The tileset information used to render the structure in the world.
 --- @field requiredResources table<string, number> The resources required to build the structure.
 --- @field imagePath string The path to the image used to render the structure.
@@ -157,6 +158,21 @@ function StructureTypeRegistry.StructureRegistration:subtractResources(faction)
 			faction:getResourceInventory():remove(resourceType, amount)
 		end
 	end
+end
+
+--- Gets the unit generation info for a unit type id
+--- @param unitTypeId string
+--- @return table|nil
+function StructureTypeRegistry.StructureRegistration:getUnitGenerationInfo(unitTypeId)
+	if (self.unitGenerationInfo) then
+		for _, unitInfo in ipairs(self.unitGenerationInfo) do
+			if (unitInfo.unitTypeId == unitTypeId) then
+				return unitInfo
+			end
+		end
+	end
+
+	return nil
 end
 
 --[[

@@ -104,6 +104,8 @@ end
 --- @param source table
 --- @return table # The stack
 function table.Stack(source)
+	--- @class Stack<T>
+	--- @generic T : table
 	local stack = {}
 
 	--- Pushes a value to the stack.
@@ -137,4 +139,51 @@ function table.Stack(source)
 	end
 
 	return stack
+end
+
+--- Creates a queue from a table which provides enqueue and dequeue operations.
+--- @param source table
+--- @return table # The queue
+function table.Queue(source)
+    --- @class Queue<T>
+	--- @generic T : table
+	local queue = {}
+
+	--- Enqueues a value to the queue.
+	--- @param value any
+	function queue:enqueue(value)
+		table.insert(source, value)
+	end
+
+	--- Dequeues a value from the queue.
+	--- @return any # The dequeued value
+	function queue:dequeue()
+		return table.remove(source, 1)
+	end
+
+	--- Peeks at the front value of the queue.
+	--- @return any # The front value
+	function queue:peek()
+		return source[1]
+	end
+
+	--- Returns the size of the queue.
+	--- @return number # The size
+	function queue:size()
+		return #source
+	end
+
+	--- Checks if the queue is empty.
+	--- @return boolean # Whether the queue is empty
+	function queue:isEmpty()
+		return #source == 0
+	end
+
+    --- Gets all the values in the queue.
+    --- @return table
+	function queue:getAll()
+		return source
+	end
+
+	return queue
 end

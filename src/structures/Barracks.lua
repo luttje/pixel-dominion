@@ -10,6 +10,19 @@ STRUCTURE.requiredResources = {
 	gold = 10,
 }
 
+STRUCTURE.unitGenerationInfo = {
+	{
+		text = 'Train Warrior',
+        icon = 'assets/images/icons/train.png',
+		unitTypeId = 'warrior',
+		timeInSeconds = 60,
+        costs = {
+            { resourceTypeId = 'food', value = 50 },
+			{ resourceTypeId = 'gold', value = 10 },
+		}
+	}
+}
+
 STRUCTURE.structureTilesetInfo = {
 	-- Barracks 1
     {
@@ -111,7 +124,6 @@ local sounds = {
 --- @param structure Structure
 --- @param builders Unit[]
 function STRUCTURE:onSpawn(structure, builders)
-    structure.isSelectable = true
 end
 
 --- Returns whether the structure can be built by the faction. Resources are checked
@@ -120,112 +132,6 @@ end
 --- @return boolean
 function STRUCTURE:canBeBuiltByFaction(faction)
 	return true
-end
-
--- TODO: Start of mostly copied from TownHall
---- Called every time the structure updates (See GameConfig.structureUpdateTimeInSeconds)
---- @param structure Structure
-function STRUCTURE:onTimedUpdate(structure)
-	local faction = structure:getFaction()
-    local units = faction:getUnits()
-	local housing = faction:getResourceInventory():getValue('housing')
-
-	if (#units >= housing or not structure.lastUnitGenerationTime) then
-		structure.lastUnitGenerationTime = nil
-
-		return
-	end
-
-    structure.lastUnitGenerationTime = structure.lastUnitGenerationTime + GameConfig.structureUpdateTimeInSeconds
-
-	if (structure.lastUnitGenerationTime < GameConfig.structureUnitGenerationTimeInSeconds) then
-		return
-	end
-
-    structure.lastUnitGenerationTime = 0
-
-    self:generateUnit(structure)
-end
-
---- Generates a unit
---- @param structure Structure
-function STRUCTURE:generateUnit(structure)
-	local faction = structure:getFaction()
-    local units = faction:getUnits()
-	local housing = faction:getResourceInventory():getValue('housing')
-
-	if (#units >= housing) then
-		return
-	end
-
-    local x, y = structure:getFreeTileNearby()
-
-    if (not x or not y) then
-        print('No free tile found around the town hall.')
-        return
-    end
-
-	faction:spawnUnit(
-        UnitTypeRegistry:getUnitType('warrior'),
-        x, y
-	)
-end
-
---- Draws how much progress has been made generating a unit
---- @param structure Structure
---- @param x number
---- @param y number
---- @param radius number
-function STRUCTURE:drawUnitProgress(structure, x, y, radius)
-	love.graphics.drawProgressCircle(
-		x,
-		y,
-		radius,
-		structure.lastUnitGenerationTime / GameConfig.structureUnitGenerationTimeInSeconds)
-
-	-- Draw the unit icon over the progress circle
-	local padding = Sizes.padding()
-	local iconWidth = radius * 2 - padding * 2
-	local iconHeight = radius * 2 - padding * 2
-
-	love.graphics.setColor(1, 1, 1)
-	UnitTypeRegistry:getUnitType('warrior'):drawHudIcon(nil, x - radius + padding, y - radius + padding, iconWidth, iconHeight)
-end
-
---- Called after the structure is drawn on screen
---- @param structure Structure
---- @param minX number
---- @param minY number
---- @param maxX number
---- @param maxY number
-function STRUCTURE:postDrawOnScreen(structure, minX, minY, maxX, maxY)
-    if (structure.lastUnitGenerationTime) then
-        local x = minX + (maxX - minX) * .5
-        local y = minY + (maxY - minY) * .5
-        local radius = (maxX - minX) * .2
-
-        self:drawUnitProgress(structure, x, y, radius)
-    end
-end
--- TODO: End of copied from TownHall
-
---- Gets the actions that the unit can perform
---- Should always return the same actions, but the actions may be disabled or with different progress
---- @param selectedInteractable Interactable
---- @return table
-function STRUCTURE:getActions(selectedInteractable)
-    local ACTION_TRAIN = {}
-    ACTION_TRAIN.text = 'Train Warrior'
-    ACTION_TRAIN.icon = 'assets/images/icons/train.png'
-    -- ACTION_TRAIN.isEnabled = false
-
-    function ACTION_TRAIN:onRun(selectionOverlay)
-		selectedInteractable.lastUnitGenerationTime = 0
-    end
-
-    return {
-        ACTION_TRAIN
-    }
 end
 
 return STRUCTURE

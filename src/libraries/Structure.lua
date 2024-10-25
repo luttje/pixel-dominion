@@ -2,10 +2,13 @@ require('libraries.Interactable')
 
 --- Represents a structure value in the game
 --- @class Structure : Interactable
+---
 --- @field structureType StructureTypeRegistry.StructureRegistration
 --- @field faction Faction
 --- @field supply number
 --- @field tiles table
+---
+--- @field unitGenerationQueue Queue<UnitTypeRegistry.UnitRegistration>
 local Structure = DeclareClassWithBase('Structure', Interactable)
 
 --- Initializes the structure
@@ -13,10 +16,9 @@ local Structure = DeclareClassWithBase('Structure', Interactable)
 function Structure:initialize(config)
     config = config or {}
 
-    -- Easier on mobile if not selectable by default
-    self.isSelectable = false
-
     table.Merge(self, config)
+
+	self.unitGenerationQueue = table.Queue({})
 end
 
 --- Called when the structure spawns
@@ -74,15 +76,33 @@ function Structure:postDrawOnScreen(x, y, width, height, cameraScale)
         return
     end
 
+	local minX, minY, maxX, maxY = self:getScreenBounds(x, y, cameraScale)
+	local centerX = minX + (maxX - minX) * .5
+    local centerY = minY + (maxY - minY) * .5
+
+	for i, unitTypeId in ipairs(self.unitGenerationQueue:getAll()) do
+		local unitGenerationInfo = self.structureType:getUnitGenerationInfo(unitTypeId)
+
+		if (unitGenerationInfo) then
+			local radius, progress
+
+			if (i == 1) then
+				radius = (maxX - minX) * .2
+				progress = self.lastUnitGenerationTime / unitGenerationInfo.timeInSeconds
+			else
+				radius = (maxX - minX) * .1
+				progress = 1
+			end
+
+            self:drawUnitProgress(unitGenerationInfo, centerX, centerY, radius, progress)
+
+			centerX = centerX + radius + Sizes.padding(2)
+		end
+	end
+
     self:getBase():postDrawOnScreen(x, y, width, height, cameraScale)
 
 	if (self.structureType.postDrawOnScreen) then
-		local minX, minY, maxX, maxY = self:getScreenBounds(x, y, cameraScale)
-
-		-- if (self:getIsSelected()) then
-		-- 	self:drawScreenBorder(minX, minY, maxX, maxY)
-		-- end
-
 		self.structureType:postDrawOnScreen(self, minX, minY, maxX, maxY)
 	end
 end
@@ -143,19 +163,198 @@ function Structure:update(deltaTime)
         return
     end
 
-	if (not self.nextUpdateTime) then
-		self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds
-	end
+    if (not self.nextUpdateTime) then
+        self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds
+    end
 
-	self.nextUpdateTime = self.nextUpdateTime - deltaTime
+    self.nextUpdateTime = self.nextUpdateTime - deltaTime
 
-	if (self.nextUpdateTime <= 0) then
-		self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds
+    if (self.nextUpdateTime <= 0) then
+        self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds
 
-		if (self.structureType.onTimedUpdate) then
-			self.structureType:onTimedUpdate(self)
+        if (self.structureType.unitGenerationInfo) then
+            self:handleUnitGenerationTimedUpdate()
+        end
+
+        if (self.structureType.onTimedUpdate) then
+            self.structureType:onTimedUpdate(self)
+        end
+    end
+end
+
+--- Gets whether the structure can generate a unit
+--- @param unitGenerationInfo table
+--- @return boolean
+function Structure:canGenerateUnit(unitGenerationInfo)
+    local factionInventory = self:getFaction():getResourceInventory()
+
+	for i, cost in ipairs(unitGenerationInfo.costs) do
+		if (not factionInventory:has(cost.resourceTypeId, cost.value)) then
+			return false
 		end
 	end
+
+	return true
+end
+
+--- @return table
+function Structure:getDefaultActions()
+	local actions = {}
+
+    for _, unitGenerationInfo in ipairs(self.structureType.unitGenerationInfo) do
+        local action = {}
+        action.text = unitGenerationInfo.text
+        action.icon = unitGenerationInfo.icon
+
+        action.isEnabled = function(actionButton)
+			return self:canGenerateUnit(unitGenerationInfo)
+		end
+
+        action.onRun = function(actionButton, selectionOverlay)
+			self:enqueueUnitGeneration(unitGenerationInfo)
+        end
+
+        table.insert(actions, action)
+    end
+
+	return actions
+end
+
+--- Enqueues a unit generation
+--- @param unitGenerationInfo table
+--- @return boolean
+function Structure:enqueueUnitGeneration(unitGenerationInfo)
+    if (not self:canGenerateUnit(unitGenerationInfo)) then
+        return false
+    end
+
+    local factionInventory = self:getFaction():getResourceInventory()
+
+    for i, cost in ipairs(unitGenerationInfo.costs) do
+        factionInventory:remove(cost.resourceTypeId, cost.value)
+    end
+
+    if (self.lastUnitGenerationTime == nil) then
+        self.lastUnitGenerationTime = 0
+    end
+
+    self.unitGenerationQueue:enqueue(unitGenerationInfo.unitTypeId)
+
+    return true
+end
+
+--- Cancels the unit generation
+--- @param unitTypeId string
+function Structure:cancelUnitGeneration(unitTypeId)
+    if (not self.unitGenerationQueue:dequeue(unitTypeId)) then
+        return
+    end
+
+    local factionInventory = self:getFaction():getResourceInventory()
+    local unitGenerationInfo = self.structureType:getUnitGenerationInfo(unitTypeId)
+
+    for i, cost in ipairs(unitGenerationInfo.costs) do
+        factionInventory:add(cost.resourceTypeId, cost.value)
+    end
+end
+
+--- Gets the current unit generation info
+--- @return table|nil
+function Structure:getCurrentUnitGenerationInfo()
+    local unitTypeId = self.unitGenerationQueue:peek()
+
+	if (not unitTypeId) then
+		return
+	end
+
+    local currentUnitGenerationInfo = self.structureType:getUnitGenerationInfo(unitTypeId)
+
+	assert(currentUnitGenerationInfo, 'Unit generation info not found for unit type id: ' .. unitTypeId)
+
+	return currentUnitGenerationInfo
+end
+
+--- Handles the generation of units
+--- Called at the same rate as onTimedUpdate
+function Structure:handleUnitGenerationTimedUpdate()
+    local currentUnitGenerationInfo = self:getCurrentUnitGenerationInfo()
+
+	if (not currentUnitGenerationInfo) then
+		return
+	end
+
+	local faction = self:getFaction()
+    local units = faction:getUnits()
+    local housing = faction:getResourceInventory():getValue('housing')
+
+    if (#units >= housing) then
+		print('Cannot generate unit.', #units, housing)
+
+		return
+	end
+
+	if (not self.lastUnitGenerationTime) then
+		self.lastUnitGenerationTime = 0
+	end
+
+    self.lastUnitGenerationTime = self.lastUnitGenerationTime + GameConfig.structureUpdateTimeInSeconds
+
+    if (self.lastUnitGenerationTime < currentUnitGenerationInfo.timeInSeconds) then
+        return
+    end
+
+	self.lastUnitGenerationTime = 0
+    self.unitGenerationQueue:dequeue() -- Remove the unit from the queue, it has been generated
+    self:generateUnit(currentUnitGenerationInfo.unitTypeId)
+end
+
+--- Generates a unit
+--- @param unitTypeOrId UnitTypeRegistry.UnitRegistration|string
+function Structure:generateUnit(unitTypeOrId)
+	local faction = self:getFaction()
+    local units = faction:getUnits()
+    local housing = faction:getResourceInventory():getValue('housing')
+
+	local unitType = type(unitTypeOrId) == 'string' and UnitTypeRegistry:getUnitType(unitTypeOrId) or unitTypeOrId
+
+	if (#units >= housing) then
+		return
+	end
+
+    local x, y = self:getFreeTileNearby()
+
+    if (not x or not y) then
+        print('No free tile found around the town hall.')
+        return
+    end
+
+	faction:spawnUnit(
+        unitType,
+        x, y
+	)
+end
+
+--- Draws how much progress has been made generating a unit
+--- @param unitGenerationInfo table
+--- @param x number
+--- @param y number
+--- @param radius number
+--- @param progress number
+function Structure:drawUnitProgress(unitGenerationInfo, x, y, radius, progress)
+	love.graphics.drawProgressCircle(
+		x,
+		y,
+        radius,
+		progress)
+
+	-- Draw the villager icon over the progress circle
+	local padding = Sizes.padding()
+	local iconWidth = radius * 2 - padding * 2
+	local iconHeight = radius * 2 - padding * 2
+	local unitType = UnitTypeRegistry:getUnitType(unitGenerationInfo.unitTypeId)
+
+	love.graphics.setColor(1, 1, 1)
+	unitType:drawHudIcon(nil, x - radius + padding, y - radius + padding, iconWidth, iconHeight)
 end
 
 --- When an interactable is interacted with
