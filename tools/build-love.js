@@ -1,75 +1,122 @@
+import { fileURLToPath } from 'url';
+import archiver from 'archiver';
+import process from 'process';
+import chalk from 'chalk';
+import fs from 'fs';
+
 /**
- * This script packages the game files into a .love file.
+ * Packages game files into a .love file while excluding unused sound assets.
+ * @param {string} sourceDir - Source directory containing game files
+ * @param {string} outputFile - Path for the output .love file
+ * @returns {Promise<void>}
  */
-const fs = require('fs');
-const archiver = require('archiver');
+async function packageLoveGame(sourceDir, outputFile) {
+  if (!sourceDir || !outputFile) {
+    throw new Error('Source directory and output file path are required');
+  }
 
-// Get the source directory that contains the game files
-const sourceDir = process.argv[2];
-
-// Get the output directory where the .love file will be saved
-const outputFile = process.argv[3];
-
-const output = fs.createWriteStream(outputFile);
-
-const archive = archiver('zip', {
-  zlib: { level: 9 } // Sets the compression level.
-});
-
-archive.on('error', function(err) {
-  throw err;
-})
-
-archive.pipe(output);
-
-// archive.directory(sourceDir, false);
-
-// Instead of adding the entire directory to the bundle, we reduce its size by
-// not including any sounds that aren't used in .lua files
-const soundAssetsDir = `assets/sounds`;
-const soundFiles = [];
-
-const getSoundFiles = (dir) => {
-  const files = fs.readdirSync(dir);
-  files.forEach(file => {
-    const filePath = `${dir}/${file}`;
-    if (fs.statSync(filePath).isDirectory()) {
-      getSoundFiles(filePath);
-    } else {
-      soundFiles.push(filePath.replace(`${sourceDir}/${soundAssetsDir}/`, ''));
-    }
+  // Create write stream and archive
+  const output = fs.createWriteStream(outputFile);
+  const archive = archiver('zip', {
+    zlib: { level: 9 } // Maximum compression
   });
-};
-getSoundFiles(`${sourceDir}/${soundAssetsDir}`);
 
-// For quick searching we just concat all Lua files into one string
-let concatenatedLuaFiles = '';
+  // Set up archive event handlers
+  archive.pipe(output);
 
-const getLuaFiles = (dir) => {
-  const files = fs.readdirSync(dir);
-  files.forEach(file => {
-    const filePath = `${dir}/${file}`;
-    if (fs.statSync(filePath).isDirectory()) {
-      getLuaFiles(filePath);
-    } else {
-      concatenatedLuaFiles += fs.readFileSync(filePath, 'utf8');
-    }
+  archive.on('error', (err) => {
+    throw new Error(`Archive error: ${err.message}`);
   });
-};
 
-getLuaFiles(sourceDir);
+  // Get list of all sound files
+  const soundAssetsDir = 'assets/sounds';
+  const fullSoundAssetsDir = `${sourceDir}/${soundAssetsDir}`;
+  const soundFiles = getAllFiles(fullSoundAssetsDir)
+    .map(file => file.replace(`${fullSoundAssetsDir}/`, ''));
 
-const ignoredSoundFiles = soundFiles.filter(soundFile => {
-  return !concatenatedLuaFiles.includes(soundFile);
-}).map(soundFile => `${soundAssetsDir}/${soundFile}`);
+  // Get concatenated content of all Lua files
+  const luaContent = getAllLuaContent(sourceDir);
 
-console.log('Ignoring the following unreferenced sound files:', ignoredSoundFiles);
+  // Find unused sound files by checking if they are referenced in Lua files
+  const unusedSoundFiles = soundFiles
+    .filter(soundFile => !luaContent.includes(soundFile))
+    .map(soundFile => `${soundAssetsDir}/${soundFile}`);
 
-archive.glob('**', {
-  ignore: ignoredSoundFiles,
-  cwd: sourceDir
-});
+  console.log(
+    chalk.gray('Excluding unused sound files (to reduce bundle size):\n - ', unusedSoundFiles.join('\n - '))
+  );
 
-archive.finalize();
+  // Add files to archive, excluding unused sounds
+  archive.glob('**', {
+    ignore: unusedSoundFiles,
+    cwd: sourceDir
+  });
 
-console.log('Packaging .love complete!');
+  // Return promise that resolves when archive is finalized
+  return new Promise((resolve, reject) => {
+    output.on('close', () => {
+      console.log(
+        chalk.green('\nSuccessfully created .love package!')
+      );
+
+      resolve();
+    });
+
+    output.on('error', reject);
+    archive.finalize();
+  });
+}
+
+/**
+ * Recursively gets all files in a directory
+ * @param {string} dir - Directory to scan
+ * @returns {string[]} Array of file paths
+ */
+function getAllFiles(dir) {
+  const files = [];
+
+  function scan(directory) {
+    const items = fs.readdirSync(directory);
+
+    items.forEach(item => {
+      const fullPath = `${directory}/${item}`;
+
+      if (fs.statSync(fullPath).isDirectory()) {
+        scan(fullPath);
+      } else {
+        files.push(fullPath);
+      }
+    });
+  }
+
+  scan(dir);
+
+  return files;
+}
+
+/**
+ * Gets concatenated content of all Lua files in directory
+ * @param {string} dir - Directory to scan
+ * @returns {string} Concatenated Lua file contents
+ */
+function getAllLuaContent(dir) {
+  return getAllFiles(dir)
+    .filter(file => file.endsWith('.lua'))
+    .map(file => fs.readFileSync(file, 'utf8'))
+    .join('');
+}
+
+// Execute if run directly
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const [,, sourceDir, outputFile] = process.argv;
+
+  packageLoveGame(sourceDir, outputFile)
+    .catch(err => {
+      console.log(
+        chalk.red('\nError packaging game:', err)
+      );
+      process.exit(1);
+    });
+}
+
+export { packageLoveGame };

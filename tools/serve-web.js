@@ -1,5 +1,5 @@
-const handler = require('serve-handler');
-const http = require('http');
+import handler from 'serve-handler';
+import http from 'http';
 
 const webSourceDirectory = process.argv[2] || './builds/web';
 const port = process.argv[3] ? parseInt(process.argv[3], 10) : 8000;
