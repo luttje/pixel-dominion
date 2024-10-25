@@ -41,21 +41,6 @@ function Structure:getFaction()
 	return self.faction
 end
 
---- Checks if the interactable is in the given position
---- @param x number
---- @param y number
---- @return boolean
-function Structure:isInPosition(x, y)
-	-- We check all tiles
-	for _, tile in ipairs(self.tiles) do
-		if (tile.x == x and tile.y == y) then
-			return true
-		end
-	end
-
-	return false
-end
-
 --- Draws the interactable on the hud
 --- @param x number
 --- @param y number

@@ -117,6 +117,15 @@ end
 --- @param y number
 --- @return boolean
 function Interactable:isInPosition(x, y)
+	-- We check all tiles if we have a multi-tile interactable
+	if (self.tiles) then
+		for _, tile in ipairs(self.tiles) do
+			if (tile.x == x and tile.y == y) then
+				return true
+			end
+		end
+	end
+
 	return self.x == x and self.y == y
 end
 

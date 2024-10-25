@@ -218,8 +218,13 @@ function Unit:update(deltaTime)
     -- If we have a target interactable, interact with it if we are at the same position
     local targetInteractable = self:getCurrentActionInteractable()
 
-    if (targetInteractable and not self:isMoving() and targetInteractable:getDistanceTo(self.x, self.y) < 2) then
-        targetInteractable:updateInteract(deltaTime, self)
+	if (targetInteractable and not self:isMoving()) then
+		if (targetInteractable:getDistanceTo(self.x, self.y) < 2) then
+			targetInteractable:updateInteract(deltaTime, self)
+		else
+			-- Move closer to the target interactable
+			self:commandTo(targetInteractable.x, targetInteractable.y, targetInteractable, self.formation)
+		end
 	end
 
     if (not self:isMoving()) then
@@ -265,6 +270,7 @@ function Unit:reachedTarget()
 
 	-- Check if the next position is occupied
 	local unitInTheWay = self:isPositionOccupied(self.nextX, self.nextY)
+
 	if (unitInTheWay) then
 		-- If someone is in the way and they are not moving, move them out of the way
         if (not unitInTheWay:isMoving()) then
