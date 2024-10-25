@@ -12,6 +12,13 @@ function WorldMap:initialize(config)
 	self.dragging = false
 	self.dragStart = { x = 0, y = 0 }
 
+	self.holdTimer = 0
+	self.heldInteractable = nil
+	self.isHolding = false
+
+	-- This is used so holding on a interactable doesn't keep toggling the selection
+	self.hasReleasedSinceLastSelection = true
+
 	self:centerOnTownHall()
 
 	self.placeStructureButton = Button({
@@ -21,21 +28,21 @@ function WorldMap:initialize(config)
 		width = 100,
 		height = 50,
 		-- isVisible = false,
-        onClick = function()
-            local structureToBuild, builders, position = CurrentPlayer:getCurrentStructureToBuild()
+		onClick = function()
+			local structureToBuild, builders, position = CurrentPlayer:getCurrentStructureToBuild()
 
-            if (not position) then
-                print('TODO: Error sound')
-                return
-            end
+			if (not position) then
+				print('TODO: Error sound')
+				return
+			end
 
 			assert(builders[1], 'No builders to build the structure')
-            local faction = builders[1]:getFaction()
+			local faction = builders[1]:getFaction()
 
-            if (not structureToBuild:canBeBuilt(faction)) then
-                print('TODO: Error sound')
-                return
-            end
+			if (not structureToBuild:canBeBuilt(faction)) then
+				print('TODO: Error sound')
+				return
+			end
 
 			-- TODO: Have the builders build the structure
 			print('TODO: success sound')
@@ -44,8 +51,8 @@ function WorldMap:initialize(config)
 			CurrentPlayer:getFaction():spawnStructure(structureToBuild, position.x, position.y, builders)
 			CurrentPlayer:clearCurrentStructureToBuild()
 		end
-    })
-    self.childFragments:add(self.placeStructureButton)
+	})
+	self.childFragments:add(self.placeStructureButton)
 
 	self.cancelStructureButton = Button({
 		text = 'Cancel',
@@ -96,49 +103,85 @@ function WorldMap:performUpdate(deltaTime)
 		return
 	end
 
-    -- Require both mouse buttons to be down to drag the camera (or two fingers on a touch screen)
-    local wantsToDrag = (love.mouse.isDown(1) and love.mouse.isDown(2))
-        or (#love.touch.getTouches() == 2)
+	-- Require both mouse buttons to be down to drag the camera (or two fingers on a touch screen)
+	local wantsToDrag = (love.mouse.isDown(1) and love.mouse.isDown(2))
+		or (#love.touch.getTouches() == 2)
 
-    if (not wantsToDrag) then
+	if (not wantsToDrag) then
 		if (self.dragging) then
 			TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT_RELEASED, Times.clickInterval, function()
-            	self.dragging = false
+				self.dragging = false
 			end)
-        elseif (love.mouse.isDown(1)) then
+		else
 			local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
-            local interactable = self.world:getInteractableUnderPosition(worldX, worldY)
+			local interactable = self.world:getInteractableUnderPosition(worldX, worldY)
 
-            -- If we clicked on a unit, structure or resource instance, clear if our current selection is not the same
-            if (interactable and interactable.isSelectable and interactable:getFaction() == CurrentPlayer:getFaction()) then
-				if (CurrentPlayer:isSameTypeAsSelected(interactable)) then
-					TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
-						-- If the unit is selected, deselect it
-						if (interactable.isSelected) then
-							interactable:setSelected(false)
-						else
-							-- If the unit is not selected, select it
-							interactable:setSelected(true)
+			if (love.mouse.isDown(1)) then
+				-- Start or update hold timer logic
+				if (
+						not self.isHolding
+						and self.hasReleasedSinceLastSelection
+						and interactable
+						and interactable.isSelectable
+						and interactable:getFaction() == CurrentPlayer:getFaction()
+					) then
+					-- Initialize hold
+					self.isHolding = true
+					self.holdTimer = 0
+					self.heldInteractable = interactable
+					self.hasReleasedSinceLastSelection = false
+				elseif (self.isHolding) then
+					-- Check if we're still hovering over the same interactable
+					if (interactable == self.heldInteractable) then
+						-- Update hold timer
+						self.holdTimer = self.holdTimer + deltaTime
+
+						-- Check if we've held long enough
+						if (self.holdTimer >= GameConfig.selectHoldTimeInSeconds) then
+							if (CurrentPlayer:isSameTypeAsSelected(self.heldInteractable)) then
+								-- If the unit is selected, deselect it
+								if (self.heldInteractable.isSelected) then
+									self.heldInteractable:setSelected(false)
+								else
+									-- If the unit is not selected, select it
+									self.heldInteractable:setSelected(true)
+								end
+							else
+								-- If the unit is not the same type, deselect all units and select this one
+								CurrentPlayer:clearSelectedInteractables()
+								self.heldInteractable:setSelected(not self.heldInteractable.isSelected)
+							end
+
+							-- Reset hold state after selection
+							self.isHolding = false
+							self.holdTimer = 0
+							self.heldInteractable = nil
 						end
-					end)
-				else
-					-- If the unit is not the same type, deselect all units and select this one
-					TryCallIfNotOnCooldown(COMMON_COOLDOWNS.POINTER_INPUT, Times.clickInterval, function()
-						CurrentPlayer:clearSelectedInteractables()
-						interactable:setSelected(not interactable.isSelected)
-					end)
+					else
+						-- Reset hold if we're no longer over the same interactable
+						self.isHolding = false
+						self.holdTimer = 0
+						self.heldInteractable = nil
+					end
+				end
+
+				-- Handle regular clicks for movement commands
+				if (not self.isHolding and self.hasReleasedSinceLastSelection) then
+					-- If any unit is selected, move it to the clicked position
+					CurrentPlayer:sendCommandTo(worldX, worldY, interactable)
+					self.hasReleasedSinceLastSelection = false
 				end
 			else
-				TryCallIfNotOnCooldown(COMMON_COOLDOWNS.WORLD_COMMAND, Times.clickInterval, function()
-					-- If any unit is selected, move it to the clicked position, give the interactable if it is not selectable (e.g: a tree)
+				-- Handle mouse release before holding completes for interaction commands
+				if (self.isHolding and interactable and self.heldInteractable == interactable) then
 					CurrentPlayer:sendCommandTo(worldX, worldY, interactable)
+				end
 
-					-- Stop selecting if we sent a command
-					-- TODO: We aren't guaranteed to have successfully sent a command, so we should check that
-					if (interactable) then
-						CurrentPlayer:clearSelectedInteractables()
-					end
-				end)
+				-- Reset hold state when mouse button is released
+				self.isHolding = false
+				self.holdTimer = 0
+				self.heldInteractable = nil
+				self.hasReleasedSinceLastSelection = true
 			end
 		end
 
@@ -152,7 +195,6 @@ function WorldMap:performUpdate(deltaTime)
 	if (self.dragging) then
 		local newX = (self.dragStart.x - pointerX) / self.cameraWorldScale
 		local newY = (self.dragStart.y - pointerY) / self.cameraWorldScale
-
 		self.camera.x = newX
 		self.camera.y = newY
 	end
@@ -160,7 +202,7 @@ end
 
 function WorldMap:pushWorldSpace()
 	love.graphics.push()
-    love.graphics.translate(-self.camera.x * self.cameraWorldScale, -self.camera.y * self.cameraWorldScale)
+	love.graphics.translate(-self.camera.x * self.cameraWorldScale, -self.camera.y * self.cameraWorldScale)
 	love.graphics.scale(self.cameraWorldScale, self.cameraWorldScale)
 end
 
@@ -184,7 +226,7 @@ function WorldMap:performDraw(x, y, width, height)
 	scaleX = self.cameraWorldScale
 	scaleY = self.cameraWorldScale
 
-    self.world:draw(translateX, translateY, scaleX, scaleY)
+	self.world:draw(translateX, translateY, scaleX, scaleY)
 
 	-- Draw a rectangle around the current mouse tile (if there is one)
 	if (love.mouse.isCursorSupported()) then
@@ -221,45 +263,45 @@ function WorldMap:performDraw(x, y, width, height)
 		drawPostScreen(interactable)
 	end
 
-    -- If we're building a structure, draw a ghost of it
-    local structureToBuild, builders = CurrentPlayer:getCurrentStructureToBuild()
+	-- If we're building a structure, draw a ghost of it
+	local structureToBuild, builders = CurrentPlayer:getCurrentStructureToBuild()
 
-    if (structureToBuild) then
+	if (structureToBuild) then
 		local buildScreenX, buildScreenY = width * .5, height * .5
-        local worldX, worldY = self:screenToWorld(buildScreenX, buildScreenY, true)
-        local screenX, screenY = self:worldToScreen(worldX, worldY)
+		local worldX, worldY = self:screenToWorld(buildScreenX, buildScreenY, true)
+		local screenX, screenY = self:worldToScreen(worldX, worldY)
 
-        -- Check if the structure can be placed at the current location
-        local canPlace = structureToBuild:canPlaceAt(worldX, worldY)
+		-- Check if the structure can be placed at the current location
+		local canPlace = structureToBuild:canPlaceAt(worldX, worldY)
 
 		CurrentPlayer:setCurrentStructureBuildPosition(worldX, worldY, canPlace)
 
-        -- Draw the structure
+		-- Draw the structure
 		structureToBuild:drawGhost(screenX, screenY, self.cameraWorldScale, canPlace)
 
-        -- Draw a hint above the ghost
-        local hint = 'Drag around to choose a location'
-        local hintHeight = Fonts.defaultHud:getHeight()
-        love.graphics.setColor(0, 0, 0, 0.5)
-        love.graphics.printf(hint, width * .1,
-        screenY - hintHeight - Sizes.padding() - (GameConfig.tileSize * self.cameraWorldScale), width * .8, 'center')
+		-- Draw a hint above the ghost
+		local hint = 'Drag around to choose a location'
+		local hintHeight = Fonts.defaultHud:getHeight()
+		love.graphics.setColor(0, 0, 0, 0.5)
+		love.graphics.printf(hint, width * .1,
+			screenY - hintHeight - Sizes.padding() - (GameConfig.tileSize * self.cameraWorldScale), width * .8, 'center')
 
-        -- Show the place and cancel buttons below the ghost
-        self.placeStructureButton.x = love.graphics.getWidth() * .5 - (self.placeStructureButton.width * .5)
-        self.placeStructureButton.y = screenY + Sizes.padding() + GameConfig.tileSize * self.cameraWorldScale
-        self.placeStructureButton:setEnabled(canPlace)
-        self.placeStructureButton:setVisible(true)
+		-- Show the place and cancel buttons below the ghost
+		self.placeStructureButton.x = love.graphics.getWidth() * .5 - (self.placeStructureButton.width * .5)
+		self.placeStructureButton.y = screenY + Sizes.padding() + GameConfig.tileSize * self.cameraWorldScale
+		self.placeStructureButton:setEnabled(canPlace)
+		self.placeStructureButton:setVisible(true)
 
-        self.cancelStructureButton.x = self.placeStructureButton.x
-        self.cancelStructureButton.y = self.placeStructureButton.y + self.placeStructureButton.height + Sizes.padding()
-        self.cancelStructureButton:setEnabled(true)
-        self.cancelStructureButton:setVisible(true)
-    else
-        self.placeStructureButton:setVisible(false)
-        self.placeStructureButton:setEnabled(false)
+		self.cancelStructureButton.x = self.placeStructureButton.x
+		self.cancelStructureButton.y = self.placeStructureButton.y + self.placeStructureButton.height + Sizes.padding()
+		self.cancelStructureButton:setEnabled(true)
+		self.cancelStructureButton:setVisible(true)
+	else
+		self.placeStructureButton:setVisible(false)
+		self.placeStructureButton:setEnabled(false)
 		self.cancelStructureButton:setVisible(false)
-        self.cancelStructureButton:setEnabled(false)
-    end
+		self.cancelStructureButton:setEnabled(false)
+	end
 end
 
 return WorldMap
