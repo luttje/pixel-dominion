@@ -89,6 +89,7 @@ end
 
 --- Draws the unit
 function Unit:draw()
+	love.graphics.setColor(1, 1, 1)
     self.unitType:draw(self, self:getCurrentActionAnimation())
 end
 
@@ -108,6 +109,11 @@ end
 --- @param height number
 --- @param cameraScale number
 function Unit:postDrawOnScreen(x, y, width, height, cameraScale)
+	CurrentWorldMap:drawInWorldSpace(function()
+		love.graphics.setColor(1, 1, 1, 0.25)
+		self.unitType:draw(self, self:getCurrentActionAnimation())
+	end)
+
     self:getBase():postDrawOnScreen(x, y, width, height, cameraScale)
 
 	-- Apply the draw offset to x and y
@@ -302,8 +308,9 @@ function Unit:getDrawOffset()
         offsetX = (self.nextX - self.x) * factor * GameConfig.tileSize
         offsetY = (self.nextY - self.y) * factor * GameConfig.tileSize
 
-        -- Add bouncing effect with our formation index as a bit of an offset so units never exactly overlap
-        offsetY = offsetY + math.sin(love.timer.getTime() * 10 + ((self.formation and self.formation.index or 1) * 2)) * -1
+        -- Add bouncing effect with our formation index as a bit of an offset so units never exactly overlap,
+        -- ensuring the bounce is within the tile
+		offsetY = offsetY + (math.sin(love.timer.getTime() * 10 + (self.formation and self.formation.index or 1)) * GameConfig.tileSize * .25) - (GameConfig.tileSize * .25)
     elseif (self:isInteracting()) then
         offsetY = math.sin(self.id * GameConfig.tileSize)
 		offsetX = math.cos(self.id * GameConfig.tileSize)

@@ -10,7 +10,8 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
 		anchorHorizontally = 'fill',
 		anchorVertically = 'fill',
 		world = CurrentWorld
-	})
+    })
+	CurrentWorldMap = self.worldMap -- TODO: Remove this global variable, needed for hacky unit overlay drawing atm
     fragments:add(self.worldMap)
 
     -- Resource bar

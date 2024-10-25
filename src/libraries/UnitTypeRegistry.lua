@@ -115,7 +115,6 @@ function UnitTypeRegistry.UnitRegistration:draw(unit, animationName)
 	-- love.graphics.ellipse('fill', x + GameConfig.tileSize * .5, y + GameConfig.tileSize, GameConfig.tileSize * .3, GameConfig.tileSize * .3)
 
 	-- TODO: Draw units using a sprite batch for performance
-	love.graphics.setColor(1, 1, 1)
 	love.graphics.draw(self.image, quad, x, y)
 end
 
