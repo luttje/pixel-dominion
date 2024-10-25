@@ -437,7 +437,7 @@ end
 --- @return boolean
 function Unit:commandTo(targetX, targetY, interactable, formation)
     if (self.isRemoved) then
-        return
+        return false
     end
 
 	-- Commented because farmland has the unit stand on it, but the structure redirects to the resource instance on the same tile.

@@ -148,19 +148,19 @@ function Player:sendCommandTo(targetX, targetY, targetInteractable)
 		return
 	end
 
-	if (targetInteractable and targetInteractable.interactSounds) then
-		targetInteractable:playSound(table.Random(targetInteractable.interactSounds))
-	end
-
 	for i, interactable in ipairs(allSelectedInteractables) do
 		if (interactable.commandTo) then
-			interactable:commandTo(targetX, targetY, targetInteractable, {
+			local interacted = interactable:commandTo(targetX, targetY, targetInteractable, {
 				-- formation
 				index = i,
 				type = 'circle',
 				size = sizeOfAllSelectedInteractables,
 				centerUnit = allSelectedInteractables[1]
 			})
+
+			if (interacted and targetInteractable and targetInteractable.interactSounds) then
+				targetInteractable:playSound(table.Random(targetInteractable.interactSounds))
+			end
 		end
 	end
 end
