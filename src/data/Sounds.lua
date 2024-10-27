@@ -7,10 +7,14 @@ end
 
 --- Makes a source sound cuter and more 8bit
 local function cutify(source)
-	source:setVolume(0.8)
-	source:setPitch(1.8)
-	return source
+    source:setVolume(0.8)
+    source:setPitch(1.8)
+    return source
 end
+
+Sounds.musicMain = newSource('leohpaz/plain_sight_music.wav', 'stream')
+Sounds.musicMain:setVolume(0.2)
+Sounds.musicMain:setLooping(true)
 
 Sounds.treeRustling1 = cutify(newSource('leohpaz/02_tree_rustling_1.wav'))
 Sounds.treeRustling2 = cutify(newSource('leohpaz/02_tree_rustling_2.wav'))

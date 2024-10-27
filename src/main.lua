@@ -70,6 +70,11 @@ function love.load()
 	-- TODO: End of hard-coded tests
 
     StateManager:setCurrentState(InGameState)
+
+	if (not GameConfig.disableMusic) then
+		-- TODO: Create music manager that will handle playing more intense music during battles
+		Sounds.musicMain:play()
+	end
 end
 
 function love.update(deltaTime)

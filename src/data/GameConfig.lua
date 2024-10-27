@@ -109,4 +109,8 @@ GameConfig.debugCheatsEnabled = true
 --- @type boolean
 -- GameConfig.disableTutorial = true -- unused atm
 
+--- Disable music for less distraction during testing.
+--- @type boolean
+GameConfig.disableMusic = false
+
 return GameConfig
