@@ -68,7 +68,7 @@ function love.load()
 
 	local testEnemyPlayer = PlayerComputer()
 	table.insert(computerPlayers, testEnemyPlayer)
-	testEnemyFaction = Faction({
+	local testEnemyFaction = Faction({
 		factionType = FactionTypeRegistry:getFactionType('bandits'),
 		player = testEnemyPlayer
 	})
@@ -186,14 +186,17 @@ function love.keyreleased(key)
 				print('  - #' .. structure.id)
 			end
         elseif (key == 'f7') then
-            -- Spawn a villager for testEnemyFaction
-            local townHall = testEnemyFaction:getTownHall()
-            townHall:getStructureType():generateUnit(townHall)
+            -- Spawn a villager for the enemy factions
+			for _, computerPlayer in ipairs(computerPlayers) do
+				local faction = computerPlayer:getFaction()
+				local townHall = faction:getTownHall()
+				townHall:generateUnit('villager')
+			end
         elseif (key == 'f11') then
-            GameConfig.gameSpeed = math.Round(math.min(1000, GameConfig.gameSpeed * 2), 1)
+            GameConfig.gameSpeed = math.min(1000, GameConfig.gameSpeed + 1)
             print('Game speed increased to ' .. GameConfig.gameSpeed)
 		elseif (key == 'f12') then
-            GameConfig.gameSpeed = math.Round(math.max(0.1, GameConfig.gameSpeed * .5), 1)
+            GameConfig.gameSpeed = math.max(1, GameConfig.gameSpeed - 1)
 			print('Game speed decreased to ' .. GameConfig.gameSpeed)
 		end
 	end

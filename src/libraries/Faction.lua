@@ -123,17 +123,39 @@ end
 --- @param isFree? boolean
 --- @return Structure
 function Faction:spawnStructure(structureType, x, y, builders, isFree)
-	assert(structureType.id == 'town_hall' or #self.structures > 0, 'Town hall must be spawned first.')
+    assert(structureType.id == 'town_hall' or #self.structures > 0, 'Town hall must be spawned first.')
 
     if (not isFree) then
         structureType:subtractResources(self)
     end
 
-	local structure = structureType:spawnAtTile(self:getWorld(), self, x, y, builders)
+    local structure = structureType:spawnAtTile(self:getWorld(), self, x, y, builders)
 
-	table.insert(self.structures, structure)
+    table.insert(self.structures, structure)
 
-	return structure
+    return structure
+end
+
+--- Finds a suitable location to build the structure, by scanning outward from the town hall
+--- @param structureType StructureTypeRegistry.StructureRegistration
+--- @return number, number
+function Faction:findSuitableLocationToBuild(structureType)
+	for range = 1, math.huge do
+        for _, offset in pairs(GameConfig.unitPathingOffsets) do
+			local newX, newY = self:getTownHall().x + (offset.x * range), self:getTownHall().y + (offset.y * range)
+
+			if (structureType:canPlaceAt(self:getWorld(), newX, newY)) then
+				return newX, newY
+			end
+		end
+
+		if (range > 100) then
+			-- Prevent infinite loop
+			break
+		end
+	end
+
+	assert(false, 'No suitable location to build structure')
 end
 
 --- Returns all structures

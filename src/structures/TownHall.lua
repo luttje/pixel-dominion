@@ -16,7 +16,7 @@ STRUCTURE.unitGenerationInfo = {
 		unitTypeId = 'villager',
         generationTimeInSeconds = GameConfig.timeInSeconds(15),
         costs = {
-			{ resourceTypeId = 'food', value = 25 },
+			food = 25,
 		}
 	}
 }

@@ -48,6 +48,16 @@ function ResourceInventory:getRemainingResourceSpace()
 	return self.maxResources - self.currentResources
 end
 
+--- Whether the inventory is full
+--- @return boolean
+function ResourceInventory:isFull()
+	if (not self.maxResources) then
+		return false
+	end
+
+	return self.currentResources >= self.maxResources
+end
+
 --- Sets the maximum resources
 --- @param maxResources number
 function ResourceInventory:setMaxResources(maxResources)

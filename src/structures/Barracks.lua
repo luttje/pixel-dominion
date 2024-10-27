@@ -18,8 +18,8 @@ STRUCTURE.unitGenerationInfo = {
 		unitTypeId = 'warrior',
 		generationTimeInSeconds = GameConfig.timeInSeconds(60),
         costs = {
-            { resourceTypeId = 'food', value = 50 },
-			{ resourceTypeId = 'gold', value = 10 },
+            food = 50,
+			gold = 10,
 		}
 	}
 }

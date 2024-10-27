@@ -14,6 +14,8 @@
 --- @field interactSounds table|nil
 ---
 --- @field health number
+--- @field nextDamagableAt number
+--- @field lastDamagedBy Interactable
 ---
 local Interactable = DeclareClass('Interactable')
 
@@ -57,7 +59,7 @@ end
 
 --- Applies damage to the interactable
 --- @param damage number
---- @param interactor Interactable
+--- @param interactor Interactable # The interactable that caused the damage
 --- @return boolean # Whether the interactable was destroyed
 function Interactable:damage(damage, interactor)
     if (self.health <= 0) then
@@ -242,7 +244,13 @@ end
 --- Plays a sound on the interactable
 --- @param sound Source
 function Interactable:playSound(sound)
-	sound:play()
+    sound:play()
+end
+
+--- Checks if recently damaged
+--- @return boolean, Interactable
+function Interactable:recentlyDamaged()
+	return self.nextDamagableAt and self.nextDamagableAt < love.timer.getTime(), self.lastDamagedBy
 end
 
 --- When an interactable is interacted with
@@ -270,7 +278,8 @@ function Interactable:updateInteract(deltaTime, interactor)
             return false
         end
 
-		self.nextDamagableAt = love.timer.getTime() + GameConfig.interactableDamageTimeInSeconds()
+        self.nextDamagableAt = love.timer.getTime() + GameConfig.interactableDamageTimeInSeconds()
+		self.lastDamagedBy = interactor
 
         if (self:damage(unitType.damageStrength, interactor)) then
             interactor:onInteractWithDestroyedInteractable(self)

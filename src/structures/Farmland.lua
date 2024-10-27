@@ -78,7 +78,7 @@ function STRUCTURE:onSpawn(structure, builders)
 	structure.resource = resource
 
     -- Have the builders start harvesting the resource
-	for _, builder in ipairs(builders) do
+    for _, builder in ipairs(builders) do
 		builder:commandTo(x, y, resource)
 	end
 

@@ -173,8 +173,8 @@ end
 function Structure:canGenerateUnit(unitGenerationInfo)
     local factionInventory = self:getFaction():getResourceInventory()
 
-	for i, cost in ipairs(unitGenerationInfo.costs) do
-		if (not factionInventory:has(cost.resourceTypeId, cost.value)) then
+	for resourceTypeId, amount in pairs(unitGenerationInfo.costs) do
+		if (not factionInventory:has(resourceTypeId, amount)) then
 			return false
 		end
 	end
@@ -219,8 +219,8 @@ function Structure:enqueueUnitGeneration(unitGenerationInfo)
 
     local factionInventory = self:getFaction():getResourceInventory()
 
-    for i, cost in ipairs(unitGenerationInfo.costs) do
-        factionInventory:remove(cost.resourceTypeId, cost.value)
+    for resourceTypeId, amount in pairs(unitGenerationInfo.costs) do
+        factionInventory:remove(resourceTypeId, amount)
     end
 
     if (self.nextUnitGeneratedAt == nil) then
@@ -242,8 +242,8 @@ function Structure:cancelUnitGeneration(unitTypeId)
     local factionInventory = self:getFaction():getResourceInventory()
     local unitGenerationInfo = self.structureType:getUnitGenerationInfo(unitTypeId)
 
-    for i, cost in ipairs(unitGenerationInfo.costs) do
-        factionInventory:add(cost.resourceTypeId, cost.value)
+    for resourceTypeId, amount in pairs(unitGenerationInfo.costs) do
+        factionInventory:add(resourceTypeId, amount)
     end
 end
 

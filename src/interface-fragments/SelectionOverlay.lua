@@ -157,8 +157,8 @@ function SelectionOverlay:refreshSelectionActions(selectedInteractables)
 			buttonType = ResourceButton
 
 			-- Append required resources
-			for i, resourceCost in pairs(action.costs) do
-				resourceInventory:add(resourceCost.resourceTypeId, resourceCost.value)
+			for resourceTypeId, amount in pairs(action.costs) do
+				resourceInventory:add(resourceTypeId, amount)
 			end
 		end
 
