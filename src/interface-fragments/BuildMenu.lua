@@ -11,7 +11,7 @@ function BuildMenu:initialize(config)
 
     table.Merge(self, config)
 
-    self.structures = {}
+    self.structureButtons = {}
 
     self:refreshStructures()
 
@@ -19,7 +19,7 @@ function BuildMenu:initialize(config)
 end
 
 function BuildMenu:refreshStructures()
-    self.structures = {}
+    self.structureButtons = {}
 
     local faction = CurrentPlayer:getFaction()
     local availableStructures = faction:getAvailableStructures()
@@ -29,7 +29,7 @@ function BuildMenu:refreshStructures()
 		return a.name < b.name
 	end)
 
-    for i, structureType in ipairs(availableStructures) do
+	local buttons = table.Map(availableStructures, function(structureType, index)
 		local text = structureType.name
 
         -- Append required resources
@@ -62,8 +62,26 @@ function BuildMenu:refreshStructures()
 			self:setEnabled(structureType:canBeBuilt(faction))
 		end
 
+		return button
+    end)
+
+    -- Add the cancel button at the end
+	table.insert(buttons, Button({
+		text = 'Cancel',
+		isClippingDisabled = true,
+		x = 0,
+		y = 0,
+		width = 64,
+		height = 64,
+		onClick = function()
+			CurrentPlayer:clearCurrentStructureToBuild()
+			self:destroy()
+		end
+    }))
+
+    for i, button in ipairs(buttons) do
+        self.structureButtons[i] = button
         self.childFragments:add(button)
-        self.structures[i] = button
     end
 end
 
@@ -71,7 +89,7 @@ function BuildMenu:performDraw(x, y, width, height)
     -- TODO: At some point we need to fix that childFragments is causing us to not have the correct size if we use anchors
 	-- TODO: For now we just hackily draw ourselves using isClippingDisabled
     width = love.graphics.getWidth()
-    height = #self.structures * 64 + Sizes.padding(2 + #self.structures) + Fonts.defaultHud:getHeight()
+    height = #self.structureButtons * 64 + Sizes.padding(2 + #self.structureButtons) + Fonts.defaultHud:getHeight()
 
 	x, y = width * .25, (love.graphics.getHeight() - height) * 0.5
     width = width * 0.5
@@ -91,8 +109,11 @@ function BuildMenu:performDraw(x, y, width, height)
 	local buttonX = x + Sizes.padding()
 	local buttonY = y + Fonts.defaultHud:getHeight() + Sizes.padding()
 
-    for i, button in ipairs(self.structures) do
-		button:updateEnabledByResources()
+    for i, button in ipairs(self.structureButtons) do
+        if (button.updateEnabledByResources) then
+            button:updateEnabledByResources()
+        end
+
 		button:setWidth(width - Sizes.padding() * 2)
         button:setPosition(buttonX, buttonY)
 

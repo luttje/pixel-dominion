@@ -57,7 +57,7 @@ function UNIT:getActions(selectedInteractable)
     ACTION_BUILD.icon = 'assets/images/icons/build.png'
 
     function ACTION_BUILD:onRun(selectionOverlay)
-		if (not self.buildMenu) then
+		if (not self.buildMenu or self.buildMenu.isDestroyed) then
 			self.buildMenu = BuildMenu({
 				isVisible = false
             })

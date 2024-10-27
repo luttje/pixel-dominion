@@ -199,3 +199,23 @@ function table.Queue(source)
 
 	return queue
 end
+
+--- Maps the values of a table to a new table.
+--- @param source table
+--- @param callback function
+--- @return table # The mapped table
+function table.Map(source, callback)
+	local mapped = {}
+
+	for key, value in pairs(source) do
+        local newValue, newKey = callback(value, key)
+
+		if (newKey) then
+			mapped[newKey] = newValue
+		else
+			mapped[key] = newValue
+		end
+	end
+
+	return mapped
+end

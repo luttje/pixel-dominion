@@ -13,6 +13,7 @@
 ---
 --- @field isVisible boolean
 --- @field isClippingDisabled boolean
+--- @field isDestroyed boolean
 ---
 --- @field events EventManager
 ---
@@ -523,6 +524,8 @@ end
 --- Destroys the InterfaceFragment.
 --- This will remove the fragment from its parent container.
 function InterfaceFragment:destroy()
+    self.isDestroyed = true
+
 	if (self.parentContainer) then
 		self.parentContainer:remove(self)
 	end
