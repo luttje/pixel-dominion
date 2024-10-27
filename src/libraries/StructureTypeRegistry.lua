@@ -69,7 +69,8 @@ function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction,
 		faction = faction,
 		x = x,
 		y = y,
-		tiles = tiles
+		tiles = tiles,
+		world = world
 	})
 
     structure:onSpawn(builders)
@@ -113,12 +114,11 @@ function StructureTypeRegistry.StructureRegistration:drawGhost(screenX, screenY,
 end
 
 --- Determines whether the structure can be placed at the given tile position
+--- @param world World
 --- @param worldX number
 --- @param worldY number
 --- @return boolean
-function StructureTypeRegistry.StructureRegistration:canPlaceAt(worldX, worldY)
-    local world = CurrentWorld
-
+function StructureTypeRegistry.StructureRegistration:canPlaceAt(world, worldX, worldY)
     -- Use the world to check if the structure can be placed at the given tile position
     for _, tileInfo in ipairs(self.structureTilesetInfo[1]) do
         local tileX = worldX + (tileInfo.offsetX or 0)

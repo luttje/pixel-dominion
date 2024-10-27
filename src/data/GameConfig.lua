@@ -24,33 +24,9 @@ GameConfig.mapLayersToRemove = {
 --- @type number
 GameConfig.tileSize = 8
 
---- How long the user has to hold down on a unit to select it
---- @type number
-GameConfig.selectHoldTimeInSeconds = 0.3
-
---- How long it takes for a unit to move from one tile to another in seconds.
---- @type number
-GameConfig.unitMoveTimeInSeconds = 0.5
-
---- How long it takes to take a single supply from a resource in seconds.
---- @type number
-GameConfig.resourceHarvestTimeInSeconds = 2
-
---- How long between a structure calls its update function in seconds.
---- @type number
-GameConfig.structureUpdateTimeInSeconds = 0.5
-
---- How many seconds between dealing damage to a structure or unit.
---- @type number
-GameConfig.interactableDamageTimeInSeconds = 1
-
 --- How many supplies a unit can carry.
 --- @type number
 GameConfig.unitSupplyCapacity = 5
-
---- How long in between animation frames in seconds.
---- @type number
-GameConfig.animationFrameTimeInSeconds = 0.2
 
 --- The pathing offsets for looking around interactables.
 --- @type table
@@ -93,6 +69,49 @@ GameConfig.factionSpawnTileIds = {
 }
 
 --[[
+	Game time/speed settings
+--]]
+
+--- The game speed, all other time values are sped up by this.
+--- @type number
+GameConfig.gameSpeed = 1
+
+--- @alias GameTimeGetter fun():number
+
+--- Helper function which returns a function that returns the time, sped up by a game speed factor.
+--- @param seconds number
+--- @return GameTimeGetter
+local function timeInSeconds(seconds)
+	return function()
+		return seconds / GameConfig.gameSpeed
+	end
+end
+
+--- How long the user has to hold down on a unit to select it
+--- @type GameTimeGetter
+GameConfig.selectHoldTimeInSeconds = timeInSeconds(0.3)
+
+--- How long it takes for a unit to move from one tile to another in seconds.
+--- @type GameTimeGetter
+GameConfig.unitMoveTimeInSeconds = timeInSeconds(0.5)
+
+--- How long it takes to take a single supply from a resource in seconds.
+--- @type GameTimeGetter
+GameConfig.resourceHarvestTimeInSeconds = timeInSeconds(2)
+
+--- How long between a structure calls its update function in seconds.
+--- @type GameTimeGetter
+GameConfig.structureUpdateTimeInSeconds = timeInSeconds(0.5)
+
+--- How many seconds between dealing damage to a structure or unit.
+--- @type GameTimeGetter
+GameConfig.interactableDamageTimeInSeconds = timeInSeconds(1)
+
+--- How long in between animation frames in seconds.
+--- @type GameTimeGetter
+GameConfig.animationFrameTimeInSeconds = timeInSeconds(0.2)
+
+--[[
 	Debug/testing options
 --]]
 
@@ -111,6 +130,6 @@ GameConfig.debugCheatsEnabled = true
 
 --- Disable music for less distraction during testing.
 --- @type boolean
-GameConfig.disableMusic = false
+GameConfig.disableMusic = true
 
 return GameConfig

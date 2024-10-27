@@ -103,6 +103,7 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     local faction = structure:getFaction()
     local factionInventory = faction:getResourceInventory()
     local lastResourceInstance = interactor:getLastResourceInstance()
+	local world = faction:getWorld()
 
 	assert(lastResourceInstance, 'No last resource instance found.')
 
@@ -120,7 +121,7 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     end
 
 	-- Find the nearest resource instance of the same type
-    local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(lastResourceInstance:getResourceType(), structure.x, structure.y)
+    local nearestResourceInstance = world:findNearestResourceInstance(lastResourceInstance:getResourceType(), structure.x, structure.y)
 
     if (not nearestResourceInstance) then
         print('No resource instance found. Stopping')

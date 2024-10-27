@@ -1,5 +1,8 @@
 require('init')
 
+--- @type World
+local currentWorld
+
 function love.load()
     love.window.setIcon(love.image.newImageData('assets/images/game-icon-64.png'))
 
@@ -50,17 +53,16 @@ function love.load()
     })
     CurrentPlayer:setFaction(playerFaction)
 
+	currentWorld = World({
+		mapPath = 'assets/worlds/forest_8x8.lua'
+    })
+    CurrentPlayer:setWorld(currentWorld)
+    currentWorld:spawnFaction(playerFaction)
+
 	testEnemyFaction = Faction({
 		factionType = FactionTypeRegistry:getFactionType('bandits'),
 	})
-
-	CurrentWorld = World({
-		mapPath = 'assets/worlds/forest_8x8.lua'
-    })
-    CurrentPlayer:setWorld(CurrentWorld)
-    CurrentWorld:spawnFaction(playerFaction)
-
-	CurrentWorld:spawnFaction(testEnemyFaction)
+	currentWorld:spawnFaction(testEnemyFaction)
 
     -- Add a barracks for testing
     playerFaction:spawnStructure(
@@ -69,7 +71,7 @@ function love.load()
 	)
 	-- TODO: End of hard-coded tests
 
-    StateManager:setCurrentState(InGameState)
+    StateManager:setCurrentState(InGameState, currentWorld)
 
 	if (not GameConfig.disableMusic) then
 		-- TODO: Create music manager that will handle playing more intense music during battles
@@ -127,7 +129,7 @@ function love.keyreleased(key)
                 local resourceType = ResourceTypeRegistry:getRandomResourceType(function(resourceType)
                     return resourceType:isHarvestable()
                 end)
-                local resource = CurrentWorld:findNearestResourceInstance(resourceType, villager.x, villager.y)
+                local resource = currentWorld:findNearestResourceInstance(resourceType, villager.x, villager.y)
 
                 if (resource) then
                     villager:commandTo(resource.x, resource.y, resource)
@@ -141,7 +143,7 @@ function love.keyreleased(key)
             print('Resources:')
 
             for _, resourceType in ipairs(ResourceTypeRegistry:getAllResourceTypes()) do
-				local resources = CurrentWorld:getResourceInstancesOfType(resourceType)
+				local resources = currentWorld:getResourceInstancesOfType(resourceType)
 
                 print(resourceType.id .. ': ')
 
@@ -168,7 +170,13 @@ function love.keyreleased(key)
         elseif (key == 'f7') then
             -- Spawn a villager for testEnemyFaction
             local townHall = testEnemyFaction:getTownHall()
-			townHall:getStructureType():generateUnit(townHall)
+            townHall:getStructureType():generateUnit(townHall)
+        elseif (key == 'f11') then
+            GameConfig.gameSpeed = math.min(1000, GameConfig.gameSpeed + 1)
+            print('Game speed increased to ' .. GameConfig.gameSpeed)
+		elseif (key == 'f12') then
+            GameConfig.gameSpeed = math.max(0.1, GameConfig.gameSpeed - 1)
+			print('Game speed decreased to ' .. GameConfig.gameSpeed)
 		end
 	end
 end

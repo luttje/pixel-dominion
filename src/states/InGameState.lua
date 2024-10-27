@@ -1,15 +1,15 @@
 local InGameState = DeclareClassWithBase('InGameState', BaseState)
 
-function InGameState:onStateInitialize(...)
-	self:getBase():onStateInitialize(...)
+function InGameState:onStateInitialize(world, ...)
+	self:getBase():onStateInitialize(world, ...)
 end
 
-function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
+function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, world, ...)
 	-- World map background
 	self.worldMap = WorldMap({
 		anchorHorizontally = 'fill',
 		anchorVertically = 'fill',
-		world = CurrentWorld
+		world = world
     })
 	CurrentWorldMap = self.worldMap -- TODO: Remove this global variable, needed for hacky unit overlay drawing atm
     fragments:add(self.worldMap)
@@ -19,7 +19,7 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, ...)
 		anchorHorizontally = 'fill',
         anchorVertically = 'start',
 		height = 64,
-		world = CurrentWorld
+		world = world
 	})
     fragments:add(resourceBar)
 

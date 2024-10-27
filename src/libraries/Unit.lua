@@ -172,9 +172,10 @@ end
 --- @param interactable Interactable
 function Unit:onInteractWithDestroyedInteractable(interactable)
 	local enemyFaction = interactable:getFaction()
+	local world = self:getWorld()
 
 	-- Find a nearby faction interactable to now target
-	local nearbyInteractable = CurrentWorld:findNearestInteractable(self.x, self.y, function(otherInteractable)
+	local nearbyInteractable = world:findNearestInteractable(self.x, self.y, function(otherInteractable)
 		return otherInteractable:getFaction() == enemyFaction and not otherInteractable.isRemoved
 	end)
 
@@ -231,16 +232,14 @@ function Unit:update(deltaTime)
         return
     end
 
-	assert(CurrentWorld, 'World is required.')
-
     self.moveTimer = self.moveTimer + deltaTime
 
-    if (self.moveTimer < GameConfig.unitMoveTimeInSeconds) then
+    if (self.moveTimer < GameConfig.unitMoveTimeInSeconds()) then
         return
     end
 
 	-- Time to move to the next tile
-	self.moveTimer = self.moveTimer - GameConfig.unitMoveTimeInSeconds
+	self.moveTimer = self.moveTimer - GameConfig.unitMoveTimeInSeconds()
     self.x, self.y = self.nextX, self.nextY
 
 	-- Update next position
@@ -311,7 +310,7 @@ function Unit:getDrawOffset()
 
 	if (self:isMoving()) then
         -- Calculate interpolation factor between the current and next tile
-        local factor = self.moveTimer / GameConfig.unitMoveTimeInSeconds
+        local factor = self.moveTimer / GameConfig.unitMoveTimeInSeconds()
 
         -- Interpolate between current position and next position
         offsetX = (self.nextX - self.x) * factor * GameConfig.tileSize
@@ -399,18 +398,19 @@ end
 
 --- Finds a path to or near the target position
 function Unit:findPathTo(targetX, targetY)
-    assert(CurrentWorld, 'World is required.')
-
-	local pathPoints = CurrentWorld:findPath(self.x, self.y, targetX, targetY)
+	local world = self:getWorld()
+	local pathPoints = world:findPath(self.x, self.y, targetX, targetY)
 
     if (not pathPoints) then
+        local world = self:getWorld()
+
 		-- Look further and further away until we find a free tile is found around the target.
 		for range = 1, math.huge do
 			for _, offset in ipairs(GameConfig.unitPathingOffsets) do
 				local offsetX = targetX + (offset.x * range)
 				local offsetY = targetY + (offset.y * range)
 
-                pathPoints = CurrentWorld:findPath(self.x, self.y, offsetX, offsetY)
+                pathPoints = world:findPath(self.x, self.y, offsetX, offsetY)
 
 				if (pathPoints) then
 					targetX = offsetX
@@ -445,8 +445,6 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
     -- if (self.x == targetX and self.y == targetY) then
     --     return false
     -- end
-
-    assert(CurrentWorld, 'World is required.')
 
 	local pathPoints
     pathPoints, targetX, targetY = self:findPathTo(targetX, targetY)

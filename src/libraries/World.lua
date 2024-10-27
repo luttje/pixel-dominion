@@ -523,6 +523,7 @@ end
 --- Adds a faction to the world
 --- @param faction Faction
 function World:addFaction(faction)
+	faction:setWorld(self)
 	table.insert(self.factions, faction)
 end
 

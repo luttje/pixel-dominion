@@ -149,13 +149,13 @@ function Structure:update(deltaTime)
     end
 
     if (not self.nextUpdateTime) then
-        self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds
+        self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds()
     end
 
     self.nextUpdateTime = self.nextUpdateTime - deltaTime
 
     if (self.nextUpdateTime <= 0) then
-        self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds
+        self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds()
 
         if (self.structureType.unitGenerationInfo) then
             self:handleUnitGenerationTimedUpdate()
@@ -286,7 +286,7 @@ function Structure:handleUnitGenerationTimedUpdate()
 		self.lastUnitGenerationTime = 0
 	end
 
-    self.lastUnitGenerationTime = self.lastUnitGenerationTime + GameConfig.structureUpdateTimeInSeconds
+    self.lastUnitGenerationTime = self.lastUnitGenerationTime + GameConfig.structureUpdateTimeInSeconds()
 
     if (self.lastUnitGenerationTime < currentUnitGenerationInfo.timeInSeconds) then
         return
@@ -382,7 +382,7 @@ function Structure:remove()
 
     self.isRemoved = true
 
-    local world = CurrentWorld
+	local world = self:getWorld()
 
     for _, tile in pairs(self.tiles) do
         world:removeTile(tile.layerName, tile.x, tile.y)

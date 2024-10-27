@@ -97,7 +97,7 @@ function UnitTypeRegistry.UnitRegistration:draw(unit, animationName)
 
     animation.animationTimer = animation.animationTimer + love.timer.getDelta()
 
-	if (animation.animationTimer >= GameConfig.animationFrameTimeInSeconds) then
+	if (animation.animationTimer >= GameConfig.animationFrameTimeInSeconds()) then
 		animation:advance()
 		animation.animationTimer = 0
 	end

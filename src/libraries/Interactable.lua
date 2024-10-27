@@ -3,6 +3,7 @@
 ---
 --- @field id number # The id of the interactable
 ---
+--- @field world World # The world the interactable is in
 --- @field x number # The x position of the interactable
 --- @field y number # The y position of the interactable
 ---
@@ -21,7 +22,7 @@ local NEXT_ID = 1
 --- Initializes the interactable
 --- @param config table
 function Interactable:initialize(config)
-    config = config or {}
+	assert(config.world, 'Interactable must have a world set.')
 
 	self.isSelectable = true
 	self.health = 100
@@ -34,6 +35,18 @@ function Interactable:initialize(config)
 
     self.id = NEXT_ID
 	NEXT_ID = NEXT_ID + 1
+end
+
+--- Sets the world for the interactable
+--- @param world World
+function Interactable:setWorld(world)
+    self.world = world
+end
+
+--- Gets the world for the interactable
+--- @return World
+function Interactable:getWorld()
+	return self.world
 end
 
 --- When an interactable is interacted with
@@ -212,7 +225,7 @@ function Interactable:getFreeTileNearby(interactables, nearX, nearY)
                 end
             end
 
-            if (not isInteractableInWay and not CurrentWorld:isTileOccupied(newX, newY)) then
+            if (not isInteractableInWay and not self:getWorld():isTileOccupied(newX, newY)) then
                 return newX, newY
             end
         end
@@ -259,7 +272,7 @@ function Interactable:updateInteract(deltaTime, interactor)
 
 		self.lastDamageTime = self.lastDamageTime + deltaTime
 
-        if (self.lastDamageTime < GameConfig.interactableDamageTimeInSeconds) then
+        if (self.lastDamageTime < GameConfig.interactableDamageTimeInSeconds()) then
             return false
         end
 

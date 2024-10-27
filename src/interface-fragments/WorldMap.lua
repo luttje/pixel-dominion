@@ -44,9 +44,7 @@ function WorldMap:initialize(config)
 				return
 			end
 
-			-- TODO: Have the builders build the structure
-			print('TODO: success sound')
-
+			-- TODO: Have the builders build the structure instead of just spawning it
 			structureToBuild:subtractResources(faction)
 			CurrentPlayer:getFaction():spawnStructure(structureToBuild, position.x, position.y, builders)
 			CurrentPlayer:clearCurrentStructureToBuild()
@@ -137,7 +135,7 @@ function WorldMap:performUpdate(deltaTime)
 						self.holdTimer = self.holdTimer + deltaTime
 
 						-- Check if we've held long enough
-						if (self.holdTimer >= GameConfig.selectHoldTimeInSeconds) then
+						if (self.holdTimer >= GameConfig.selectHoldTimeInSeconds()) then
 							if (CurrentPlayer:isSameTypeAsSelected(self.heldInteractable)) then
 								-- If the unit is selected, deselect it
 								if (self.heldInteractable.isSelected) then
@@ -272,7 +270,7 @@ function WorldMap:performDraw(x, y, width, height)
 		local screenX, screenY = self:worldToScreen(worldX, worldY)
 
 		-- Check if the structure can be placed at the current location
-		local canPlace = structureToBuild:canPlaceAt(worldX, worldY)
+		local canPlace = structureToBuild:canPlaceAt(self.world, worldX, worldY)
 
 		CurrentPlayer:setCurrentStructureBuildPosition(worldX, worldY, canPlace)
 

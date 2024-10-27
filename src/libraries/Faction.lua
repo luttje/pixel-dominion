@@ -2,7 +2,10 @@ require('libraries.ResourceInventory')
 
 --- Represents a faction in the game
 --- @class Faction
+---
 --- @field factionType FactionTypeRegistry.FactionRegistration
+--- @field world World|nil
+---
 --- @field resourceInventory ResourceInventory
 --- @field units table<number, Unit> # The units in the world
 --- @field structures table<number, Structure> # The structures in the world
@@ -11,7 +14,7 @@ local Faction = DeclareClass('Faction')
 --- Initializes the faction
 --- @param config table
 function Faction:initialize(config)
-	config = config or {}
+	assert(config.factionType, 'Faction must have a faction type.')
 
 	self.resourceInventory = ResourceInventory({
 		withDefaultValues = true,
@@ -20,6 +23,18 @@ function Faction:initialize(config)
 	self.structures = {}
 
     table.Merge(self, config)
+end
+
+--- Sets the world for the faction
+--- @param world World
+function Faction:setWorld(world)
+    self.world = world
+end
+
+--- Gets the world for the faction
+--- @return World
+function Faction:getWorld()
+	return self.world
 end
 
 --- Gets the resource inventory
@@ -47,7 +62,8 @@ function Faction:spawnUnit(unitType, x, y)
 		y = y,
 		targetX = x,
 		targetY = y,
-		health = 100,
+        health = 100,
+		world = self:getWorld(),
     })
 
 	unit:onSpawn()
@@ -100,10 +116,9 @@ end
 --- @param builders Unit[]
 --- @return Structure
 function Faction:spawnStructure(structureType, x, y, builders)
-    assert(CurrentWorld, 'World is required to spawn a structure.')
 	assert(structureType.id == 'town_hall' or #self.structures > 0, 'Town hall must be spawned first.')
 
-	local structure = structureType:spawnAtTile(CurrentWorld, self, x, y, builders)
+	local structure = structureType:spawnAtTile(self:getWorld(), self, x, y, builders)
 
 	table.insert(self.structures, structure)
 

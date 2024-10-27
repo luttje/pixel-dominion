@@ -95,7 +95,8 @@ function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
 		x = x,
         y = y,
         tiles = tiles,
-		interactSounds = treeInfo.harvestSounds
+        interactSounds = treeInfo.harvestSounds,
+		world = world
     })
 
     resource:onSpawn()

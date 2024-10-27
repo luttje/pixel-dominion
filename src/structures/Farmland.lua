@@ -54,7 +54,7 @@ local sounds = {
 --- @param structure Structure
 --- @param builders Unit[]
 function STRUCTURE:onSpawn(structure, builders)
-    local world = CurrentWorld
+    local world = structure:getWorld()
 
 	local foodResource = ResourceTypeRegistry:getResourceType('food')
 
@@ -65,6 +65,7 @@ function STRUCTURE:onSpawn(structure, builders)
 		resourceType = foodResource,
 		x = x,
         y = y,
+		world = world
     })
 
 	-- If the resource depletes, remove the structure

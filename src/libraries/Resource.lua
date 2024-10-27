@@ -47,7 +47,8 @@ function Resource:stopInteract(interactor)
 
     if (inventory:getCurrentResources() == 0) then
         -- Find another resource to go to of the same type
-        local nearestResourceInstance = CurrentWorld:findNearestResourceInstance(
+		local world = self:getWorld()
+        local nearestResourceInstance = world:findNearestResourceInstance(
             self.resourceType, interactor.x, interactor.y)
 
         if (nearestResourceInstance) then
@@ -90,11 +91,9 @@ function Resource:updateInteract(deltaTime, interactor)
     -- Set the action active and on the current interactable
     interactor:setCurrentAction('action', self)
 
-    assert(CurrentWorld, 'World is required.')
-
     self.harvestTimer = self.harvestTimer + deltaTime
 
-    if (self.harvestTimer < GameConfig.resourceHarvestTimeInSeconds) then
+    if (self.harvestTimer < GameConfig.resourceHarvestTimeInSeconds()) then
         return
     end
 
@@ -123,7 +122,7 @@ function Resource:remove()
 
     self.isRemoved = true
 
-	local world = CurrentWorld
+	local world = self:getWorld()
 
     world:removeResourceInstance(self)
 
