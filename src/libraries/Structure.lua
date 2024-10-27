@@ -191,7 +191,8 @@ function Structure:getActions()
             local action = {}
 			action.id = unitGenerationInfo.id
 			action.text = unitGenerationInfo.text
-			action.icon = unitGenerationInfo.icon
+            action.icon = unitGenerationInfo.icon
+			action.costs = unitGenerationInfo.costs
 
 			action.isEnabled = function(actionButton)
 				return self:canGenerateUnit(unitGenerationInfo)

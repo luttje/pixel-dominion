@@ -14,32 +14,6 @@ function SelectionOverlay:initialize(config)
 
     self.selectedInteractables = CurrentPlayer:getSelectedInteractables()
 
-	-- self.selectAllButton = Button({
-	-- 	text = 'Select All',
-	-- 	isClippingDisabled = true,
-	-- 	x = 0,
-	-- 	y = 0,
-	-- 	width = 64,
-	-- 	height = 32,
-	-- 	onClick = function()
-	-- 		CurrentPlayer:selectAllInteractablesOfSameType()
-	-- 	end
-	-- })
-    -- self.childFragments:add(self.selectAllButton)
-
-    -- self.deselectButton = Button({
-    --     text = 'Deselect',
-    --     isClippingDisabled = true,
-    --     x = 0,
-    --     y = 0,
-    --     width = 64,
-    --     height = 32,
-    --     onClick = function()
-    --         CurrentPlayer:clearSelectedInteractables()
-    --     end
-    -- })
-    -- self.childFragments:add(self.deselectButton)
-
 	self.actionButtons = {}
 
     return self
@@ -174,17 +148,31 @@ function SelectionOverlay:refreshSelectionActions(selectedInteractables)
 		end
 	end
 
-	for i, action in ipairs(uniqueActions) do
-		local button = Button({
+    for i, action in ipairs(uniqueActions) do
+		local resourceInventory
+        local buttonType = Button
+
+		if (action.costs) then
+			resourceInventory = ResourceInventory()
+			buttonType = ResourceButton
+
+			-- Append required resources
+			for i, resourceCost in pairs(action.costs) do
+				resourceInventory:add(resourceCost.resourceTypeId, resourceCost.value)
+			end
+		end
+
+		local button = buttonType({
 			text = action.text,
 			icon = action.icon,
 			isClippingDisabled = true,
 			isEnabled = action.isEnabled,
 			x = 0,
 			y = 0,
-			width = 64,
-			height = 32,
+			width = 64, -- Set later
+			height = 64,
 			action = action,
+			resourceInventory = resourceInventory,
 			onClick = function(button)
 				button.action:onRun(selectionOverlay)
 			end
@@ -203,7 +191,8 @@ function SelectionOverlay:refreshSelectionActions(selectedInteractables)
 end
 
 function SelectionOverlay:performDraw(x, y)
-    local interactableSize = GameConfig.tileSize * 4
+	local zoom = 6
+    local interactableSize = GameConfig.tileSize * zoom
     local interactablesPerRow = 3
     local totalInteractables = #self.selectedInteractables
 	local shadowHeight = Sizes.padding()
@@ -225,7 +214,10 @@ function SelectionOverlay:performDraw(x, y)
         + shadowHeight
         + Fonts.default:getHeight()
         + (Sizes.padding() * rows)
-		+ buttonHeights
+        + buttonHeights
+
+    -- Center us vertically
+	y = y - (height * .5)
 
     -- Offset x so its right aligned
 	x = x - width - Sizes.padding()
@@ -288,7 +280,7 @@ function SelectionOverlay:performDraw(x, y)
     local actionButtonY = interactableY + interactableSize + Sizes.padding()
 
     for i, button in ipairs(self.actionButtons) do
-        button:setSize(width, 32)
+        button:setWidth(width)
         button:setPosition(
             x,
             actionButtonY

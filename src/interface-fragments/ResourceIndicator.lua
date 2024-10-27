@@ -38,12 +38,14 @@ end
 
 --- Refreshes the icon image
 function ResourceIndicator:refreshIconImage()
-	if (self.iconImageData) then
+    if (self.iconImageData) then
         self.iconImageData:release()
-		self.iconImage:release()
-	end
+        self.iconImage:release()
+    end
+
 	if (self:getEnabled()) then
-		self.iconImage = ImageCache:get(self.resourceType.imagePath)
+        self.iconImage = ImageCache:get(self.resourceType.imagePath)
+		self.iconImageData = nil
 	else
 		local iconImageData = love.image.newImageData(self.resourceType.imagePath)
 		iconImageData:mapPixel(function(x, y, r, g, b, a)
@@ -87,7 +89,7 @@ function ResourceIndicator:performDraw(x, y, width, height)
 	love.graphics.draw(self.iconImage, iconX, iconY, 0, iconSize / self.iconImage:getWidth(), iconSize / self.iconImage:getHeight())
 
     if (tonumber(resourceValue) and tonumber(resourceValue) < 0) then
-        love.graphics.setColor(1, 0.2, 0.2)
+        love.graphics.setColor(1, 0.6, 0.6)
     else
         love.graphics.setColor(0, 0, 0)
     end
