@@ -81,35 +81,35 @@ GameConfig.gameSpeed = 1
 --- Helper function which returns a function that returns the time, sped up by a game speed factor.
 --- @param seconds number
 --- @return GameTimeGetter
-local function timeInSeconds(seconds)
-	return function()
-		return seconds / GameConfig.gameSpeed
-	end
+function GameConfig.timeInSeconds(seconds)
+    return function()
+        return seconds / GameConfig.gameSpeed
+    end
 end
 
 --- How long the user has to hold down on a unit to select it
 --- @type GameTimeGetter
-GameConfig.selectHoldTimeInSeconds = timeInSeconds(0.3)
+GameConfig.selectHoldTimeInSeconds = GameConfig.timeInSeconds(0.3)
 
 --- How long it takes for a unit to move from one tile to another in seconds.
 --- @type GameTimeGetter
-GameConfig.unitMoveTimeInSeconds = timeInSeconds(0.5)
+GameConfig.unitMoveTimeInSeconds = GameConfig.timeInSeconds(0.5)
 
 --- How long it takes to take a single supply from a resource in seconds.
 --- @type GameTimeGetter
-GameConfig.resourceHarvestTimeInSeconds = timeInSeconds(2)
+GameConfig.resourceHarvestTimeInSeconds = GameConfig.timeInSeconds(2)
 
 --- How long between a structure calls its update function in seconds.
 --- @type GameTimeGetter
-GameConfig.structureUpdateTimeInSeconds = timeInSeconds(0.5)
+GameConfig.structureUpdateTimeInSeconds = GameConfig.timeInSeconds(0.5)
 
 --- How many seconds between dealing damage to a structure or unit.
 --- @type GameTimeGetter
-GameConfig.interactableDamageTimeInSeconds = timeInSeconds(1)
+GameConfig.interactableDamageTimeInSeconds = GameConfig.timeInSeconds(1)
 
 --- How long in between animation frames in seconds.
 --- @type GameTimeGetter
-GameConfig.animationFrameTimeInSeconds = timeInSeconds(0.2)
+GameConfig.animationFrameTimeInSeconds = GameConfig.timeInSeconds(0.2)
 
 --[[
 	Debug/testing options

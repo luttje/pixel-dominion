@@ -26,7 +26,7 @@ function Unit:initialize(config)
 
     table.Merge(self, config)
 
-    self.moveTimer = 0
+	self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
     self.nextX = self.x
     self.nextY = self.y
 
@@ -232,14 +232,12 @@ function Unit:update(deltaTime)
         return
     end
 
-    self.moveTimer = self.moveTimer + deltaTime
-
-    if (self.moveTimer < GameConfig.unitMoveTimeInSeconds()) then
+    if (self.moveArriveAt > love.timer.getTime()) then
         return
     end
 
 	-- Time to move to the next tile
-	self.moveTimer = self.moveTimer - GameConfig.unitMoveTimeInSeconds()
+	self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
     self.x, self.y = self.nextX, self.nextY
 
 	-- Update next position
@@ -310,7 +308,7 @@ function Unit:getDrawOffset()
 
 	if (self:isMoving()) then
         -- Calculate interpolation factor between the current and next tile
-        local factor = self.moveTimer / GameConfig.unitMoveTimeInSeconds()
+		local factor = 1 - ((self.moveArriveAt - love.timer.getTime()) / GameConfig.unitMoveTimeInSeconds())
 
         -- Interpolate between current position and next position
         offsetX = (self.nextX - self.x) * factor * GameConfig.tileSize
@@ -464,7 +462,7 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
 
     -- Only update the target if we're not currently moving
     if (self.x == self.nextX and self.y == self.nextY) then
-        self.moveTimer = 0 -- Reset move timer when starting a new move
+        self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
     end
 
     if (interactable) then

@@ -67,7 +67,10 @@ function love.load()
     -- Add a barracks for testing
     playerFaction:spawnStructure(
 		StructureTypeRegistry:getStructureType('barracks'),
-		26, 16
+        26,
+		16,
+		nil,
+		FORCE_FREE_PLACEMENT
 	)
 	-- TODO: End of hard-coded tests
 
@@ -172,10 +175,10 @@ function love.keyreleased(key)
             local townHall = testEnemyFaction:getTownHall()
             townHall:getStructureType():generateUnit(townHall)
         elseif (key == 'f11') then
-            GameConfig.gameSpeed = math.min(1000, GameConfig.gameSpeed + 1)
+            GameConfig.gameSpeed = math.Round(math.min(1000, GameConfig.gameSpeed * 2), 1)
             print('Game speed increased to ' .. GameConfig.gameSpeed)
 		elseif (key == 'f12') then
-            GameConfig.gameSpeed = math.max(0.1, GameConfig.gameSpeed - 1)
+            GameConfig.gameSpeed = math.Round(math.max(0.1, GameConfig.gameSpeed * .5), 1)
 			print('Game speed decreased to ' .. GameConfig.gameSpeed)
 		end
 	end

@@ -52,7 +52,7 @@ local sounds = {
 
 --- Called when the structure is created in the world
 --- @param structure Structure
---- @param builders Unit[]
+--- @param builders? Unit[]
 function STRUCTURE:onSpawn(structure, builders)
     local world = structure:getWorld()
 

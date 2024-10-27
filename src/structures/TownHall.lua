@@ -14,7 +14,7 @@ STRUCTURE.unitGenerationInfo = {
 		text = 'Villager',
 		icon = 'assets/images/icons/villager.png',
 		unitTypeId = 'villager',
-        timeInSeconds = 15,
+        generationTimeInSeconds = GameConfig.timeInSeconds(15),
         costs = {
 			{ resourceTypeId = 'food', value = 25 },
 		}
@@ -73,7 +73,7 @@ STRUCTURE.structureTilesetInfo = {
 
 --- Called when the structure is created in the world
 --- @param structure Structure
---- @param builders Unit[]
+--- @param builders? Unit[]
 function STRUCTURE:onSpawn(structure, builders)
 	-- Start with 1 villager
     structure:generateUnit('villager')

@@ -1,5 +1,8 @@
 require('libraries.ResourceInventory')
 
+--- Clear constant to show that placement is free
+FORCE_FREE_PLACEMENT = true
+
 --- Represents a faction in the game
 --- @class Faction
 ---
@@ -113,10 +116,15 @@ end
 --- @param structureType StructureTypeRegistry.StructureRegistration
 --- @param x number
 --- @param y number
---- @param builders Unit[]
+--- @param builders? Unit[]
+--- @param isFree? boolean
 --- @return Structure
-function Faction:spawnStructure(structureType, x, y, builders)
+function Faction:spawnStructure(structureType, x, y, builders, isFree)
 	assert(structureType.id == 'town_hall' or #self.structures > 0, 'Town hall must be spawned first.')
+
+    if (not isFree) then
+        structureType:subtractResources(self)
+    end
 
 	local structure = structureType:spawnAtTile(self:getWorld(), self, x, y, builders)
 

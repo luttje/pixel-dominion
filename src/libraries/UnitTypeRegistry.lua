@@ -16,7 +16,7 @@ function UnitTypeRegistry.UnitAnimation:initialize(config)
 	config = config or {}
 
     self.quads = {}
-	self.animationTimer = 0
+	self.nextAnimationFrameAt = 0
 	self.currentQuadIndex = 1
 
 	table.Merge(self, config)
@@ -95,11 +95,9 @@ function UnitTypeRegistry.UnitRegistration:draw(unit, animationName)
         error('No animation found with name ' .. animationName)
     end
 
-    animation.animationTimer = animation.animationTimer + love.timer.getDelta()
-
-	if (animation.animationTimer >= GameConfig.animationFrameTimeInSeconds()) then
+	if (animation.nextAnimationFrameAt < love.timer.getTime()) then
 		animation:advance()
-		animation.animationTimer = 0
+		animation.nextAnimationFrameAt = love.timer.getTime() + GameConfig.animationFrameTimeInSeconds()
 	end
 
 	local quad = animation:getCurrentQuad()

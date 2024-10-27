@@ -10,15 +10,17 @@ function Timer:initialize(config)
 
 	table.Merge(self, config)
 
-	self.timePassed = 0
+	self.nextCallbackAt = nil
 
 	table.insert(registeredTimers, self)
 end
 
 function Timer:update(deltaTime)
-	self.timePassed = self.timePassed + deltaTime
+    if (self.nextCallbackAt == nil) then
+        self.nextCallbackAt = love.timer.getTime() + (self.interval / GameConfig.gameSpeed)
+    end
 
-	if (self.timePassed < self.interval) then
+	if (self.nextCallbackAt > love.timer.getTime()) then
 		return
 	end
 
@@ -31,7 +33,7 @@ function Timer:update(deltaTime)
 		self:destroy()
 	end
 
-	self.timePassed = 0
+	self.nextCallbackAt = nil
 end
 
 function Timer:destroy()

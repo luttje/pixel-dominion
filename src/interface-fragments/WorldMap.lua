@@ -12,7 +12,7 @@ function WorldMap:initialize(config)
 	self.dragging = false
 	self.dragStart = { x = 0, y = 0 }
 
-	self.holdTimer = 0
+	self.finishHoldAt = nil
 	self.heldInteractable = nil
 	self.isHolding = false
 
@@ -45,7 +45,6 @@ function WorldMap:initialize(config)
 			end
 
 			-- TODO: Have the builders build the structure instead of just spawning it
-			structureToBuild:subtractResources(faction)
 			CurrentPlayer:getFaction():spawnStructure(structureToBuild, position.x, position.y, builders)
 			CurrentPlayer:clearCurrentStructureToBuild()
 		end
@@ -125,17 +124,14 @@ function WorldMap:performUpdate(deltaTime)
 					) then
 					-- Initialize hold
 					self.isHolding = true
-					self.holdTimer = 0
+					self.finishHoldAt = love.timer.getTime() + GameConfig.selectHoldTimeInSeconds()
 					self.heldInteractable = interactable
 					self.hasReleasedSinceLastSelection = false
 				elseif (self.isHolding) then
 					-- Check if we're still hovering over the same interactable
 					if (interactable == self.heldInteractable) then
-						-- Update hold timer
-						self.holdTimer = self.holdTimer + deltaTime
-
 						-- Check if we've held long enough
-						if (self.holdTimer >= GameConfig.selectHoldTimeInSeconds()) then
+						if (self.finishHoldAt <= love.timer.getTime()) then
 							if (CurrentPlayer:isSameTypeAsSelected(self.heldInteractable)) then
 								-- If the unit is selected, deselect it
 								if (self.heldInteractable.isSelected) then
@@ -152,13 +148,13 @@ function WorldMap:performUpdate(deltaTime)
 
 							-- Reset hold state after selection
 							self.isHolding = false
-							self.holdTimer = 0
+							self.finishHoldAt = nil
 							self.heldInteractable = nil
 						end
 					else
 						-- Reset hold if we're no longer over the same interactable
 						self.isHolding = false
-						self.holdTimer = 0
+						self.finishHoldAt = nil
 						self.heldInteractable = nil
 					end
 				end
@@ -177,7 +173,7 @@ function WorldMap:performUpdate(deltaTime)
 
 				-- Reset hold state when mouse button is released
 				self.isHolding = false
-				self.holdTimer = 0
+				self.finishHoldAt = nil
 				self.heldInteractable = nil
 				self.hasReleasedSinceLastSelection = true
 			end

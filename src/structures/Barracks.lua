@@ -16,7 +16,7 @@ STRUCTURE.unitGenerationInfo = {
 		text = 'Train Warrior',
         icon = 'assets/images/icons/train.png',
 		unitTypeId = 'warrior',
-		timeInSeconds = 60,
+		generationTimeInSeconds = GameConfig.timeInSeconds(60),
         costs = {
             { resourceTypeId = 'food', value = 50 },
 			{ resourceTypeId = 'gold', value = 10 },
@@ -123,7 +123,7 @@ local sounds = {
 
 --- Called when the structure is created in the world
 --- @param structure Structure
---- @param builders Unit[]
+--- @param builders? Unit[]
 function STRUCTURE:onSpawn(structure, builders)
 end
 

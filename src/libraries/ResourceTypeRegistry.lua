@@ -11,7 +11,7 @@ local ResourceTypeRegistry = DeclareClass('ResourceTypeRegistry')
 --- @field name string The name of the resource type.
 --- @field image Image The image representing the resource type.
 --- @field defaultValue number The default value of the resource type.
---- @field formatValue fun(resourceType: ResourceTypeRegistry.ResourceRegistration, value: number): string A function that formats the value of the resource type.
+--- @field formatValue fun(faction: Faction, resourceType: ResourceTypeRegistry.ResourceRegistration, value: number): string|number A function that formats the value of the resource type.
 ---
 --- @field harvestableTilesetInfo table<number, table> The tileset information used to render the resource in the world.
 --- @field spawnAtTileId string The id of the tileset to spawn the resource at.

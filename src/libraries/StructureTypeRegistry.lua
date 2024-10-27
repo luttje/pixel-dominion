@@ -30,7 +30,7 @@ end
 --- @param faction Faction The faction that owns the resource
 --- @param x number
 --- @param y number
---- @param builders Unit[]
+--- @param builders? Unit[]
 --- @return Structure
 function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction, x, y, builders)
 	assert(self.structureTilesetInfo, 'Resource structureTilesetInfo is required.')

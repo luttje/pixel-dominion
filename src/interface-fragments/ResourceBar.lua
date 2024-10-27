@@ -17,6 +17,7 @@ function ResourceBar:initialize(config)
     for i, resourceType in ipairs(types) do
 		local resourceIndicator = ResourceIndicator({
             resourceType = resourceType,
+			faction = CurrentPlayer:getFaction(),
 
             x = 0,
 			y = 0,

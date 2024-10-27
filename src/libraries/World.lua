@@ -556,7 +556,7 @@ function World:spawnFaction(faction)
 	self:addFaction(faction)
 
     local townHallStructure = StructureTypeRegistry:getStructureType('town_hall')
-    faction:spawnStructure(townHallStructure, spawnpoint.x, spawnpoint.y)
+    faction:spawnStructure(townHallStructure, spawnpoint.x, spawnpoint.y, nil, FORCE_FREE_PLACEMENT)
 end
 
 return World

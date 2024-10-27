@@ -2,6 +2,7 @@
 --- @class ResourceIndicator: InterfaceFragment
 ---
 --- @field resourceType ResourceTypeRegistry.ResourceRegistration
+--- @field faction Faction|nil # The faction to display the resource for (if value is nil)
 --- @field value number|nil # The value to display, if nil, it will be fetched from the player faction resource inventory
 ---
 --- @field isEnabled boolean
@@ -63,11 +64,12 @@ function ResourceIndicator:getValue()
         return self.value
     end
 
-	local faction = CurrentPlayer:getFaction()
-    local resourceAmount = faction:getResourceInventory():getValue(self.resourceType) or 0
+	assert(self.faction, 'Faction is required to get the resource value')
+
+    local resourceAmount = self.faction:getResourceInventory():getValue(self.resourceType) or 0
 
 	if (self.resourceType.formatValue) then
-		resourceAmount = self.resourceType:formatValue(resourceAmount)
+		resourceAmount = self.resourceType:formatValue(self.faction, resourceAmount)
 	end
 
 	return resourceAmount
@@ -88,7 +90,9 @@ function ResourceIndicator:performDraw(x, y, width, height)
     love.graphics.setColor(1, 1, 1)
 	love.graphics.draw(self.iconImage, iconX, iconY, 0, iconSize / self.iconImage:getWidth(), iconSize / self.iconImage:getHeight())
 
-    if (tonumber(resourceValue) and tonumber(resourceValue) < 0) then
+    local valueAsNumber = tonumber(resourceValue)
+
+    if (valueAsNumber and valueAsNumber < 0 or not valueAsNumber and resourceValue:sub(1, 1) == '-') then
         love.graphics.setColor(1, 0.6, 0.6)
     else
         love.graphics.setColor(0, 0, 0)

@@ -14,7 +14,6 @@ function Resource:initialize(config)
 
 	self.isSelectable = false
 	self.supply = 100
-	self.harvestTimer = 0
 
 	table.Merge(self, config)
 
@@ -59,7 +58,7 @@ function Resource:stopInteract(interactor)
 		end
 	else
 		-- TODO: and go towards the resource camp, for now we will go to the town hall
-		local resourceCamp = CurrentPlayer:getFaction():getTownHall()
+		local resourceCamp = interactor:getFaction():getTownHall()
         interactor:commandTo(resourceCamp.x, resourceCamp.y, resourceCamp)
 	end
 end
@@ -91,13 +90,11 @@ function Resource:updateInteract(deltaTime, interactor)
     -- Set the action active and on the current interactable
     interactor:setCurrentAction('action', self)
 
-    self.harvestTimer = self.harvestTimer + deltaTime
-
-    if (self.harvestTimer < GameConfig.resourceHarvestTimeInSeconds()) then
+    if (self.nextHarvestAt and self.nextHarvestAt > love.timer.getTime()) then
         return
     end
 
-    self.harvestTimer = 0
+    self.nextHarvestAt = love.timer.getTime() + (self.resourceType.harvestTimeInSeconds or GameConfig.resourceHarvestTimeInSeconds())
 
     local resourceHarvested = math.min(self.supply, 1, inventory:getRemainingResourceSpace())
 

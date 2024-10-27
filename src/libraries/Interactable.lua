@@ -266,17 +266,11 @@ function Interactable:updateInteract(deltaTime, interactor)
     end
 
 	if (unitType.damageStrength and self:canTakeDamageFrom(interactor)) then
-        if (not self.lastDamageTime) then
-            self.lastDamageTime = 0
-        end
-
-		self.lastDamageTime = self.lastDamageTime + deltaTime
-
-        if (self.lastDamageTime < GameConfig.interactableDamageTimeInSeconds()) then
+        if (self.nextDamagableAt and self.nextDamagableAt < love.timer.getTime()) then
             return false
         end
 
-		self.lastDamageTime = 0
+		self.nextDamagableAt = love.timer.getTime() + GameConfig.interactableDamageTimeInSeconds()
 
         if (self:damage(unitType.damageStrength, interactor)) then
             interactor:onInteractWithDestroyedInteractable(self)

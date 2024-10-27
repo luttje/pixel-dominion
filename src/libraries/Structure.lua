@@ -22,7 +22,7 @@ function Structure:initialize(config)
 end
 
 --- Called when the structure spawns
---- @param builders Unit[]
+--- @param builders? Unit[]
 function Structure:onSpawn(builders)
 	if (self.structureType.onSpawn) then
 		self.structureType:onSpawn(self, builders)
@@ -73,7 +73,7 @@ function Structure:postDrawOnScreen(x, y, width, height, cameraScale)
 
 			if (i == 1) then
 				radius = (maxX - minX) * .2
-				progress = self.lastUnitGenerationTime / unitGenerationInfo.timeInSeconds
+				progress = (self.nextUnitGeneratedAt - love.timer.getTime()) / unitGenerationInfo.generationTimeInSeconds()
 			else
 				radius = (maxX - minX) * .1
 				progress = 1
@@ -148,23 +148,23 @@ function Structure:update(deltaTime)
         return
     end
 
-    if (not self.nextUpdateTime) then
-        self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds()
+    if (not self.nextUpdateAt) then
+        self.nextUpdateAt = love.timer.getTime() + GameConfig.structureUpdateTimeInSeconds()
     end
 
-    self.nextUpdateTime = self.nextUpdateTime - deltaTime
-
-    if (self.nextUpdateTime <= 0) then
-        self.nextUpdateTime = GameConfig.structureUpdateTimeInSeconds()
-
-        if (self.structureType.unitGenerationInfo) then
-            self:handleUnitGenerationTimedUpdate()
-        end
-
-        if (self.structureType.onTimedUpdate) then
-            self.structureType:onTimedUpdate(self)
-        end
+    if (self.nextUpdateAt > love.timer.getTime()) then
+        return
     end
+
+	self.nextUpdateAt = nil
+
+	if (self.structureType.unitGenerationInfo) then
+		self:handleUnitGenerationTimedUpdate()
+	end
+
+	if (self.structureType.onTimedUpdate) then
+		self.structureType:onTimedUpdate(self)
+	end
 end
 
 --- Gets whether the structure can generate a unit
@@ -223,8 +223,8 @@ function Structure:enqueueUnitGeneration(unitGenerationInfo)
         factionInventory:remove(cost.resourceTypeId, cost.value)
     end
 
-    if (self.lastUnitGenerationTime == nil) then
-        self.lastUnitGenerationTime = 0
+    if (self.nextUnitGeneratedAt == nil) then
+        self.nextUnitGeneratedAt = love.timer.getTime() + unitGenerationInfo.generationTimeInSeconds()
     end
 
     self.unitGenerationQueue:enqueue(unitGenerationInfo.unitTypeId)
@@ -282,17 +282,11 @@ function Structure:handleUnitGenerationTimedUpdate()
 		return
 	end
 
-	if (not self.lastUnitGenerationTime) then
-		self.lastUnitGenerationTime = 0
-	end
-
-    self.lastUnitGenerationTime = self.lastUnitGenerationTime + GameConfig.structureUpdateTimeInSeconds()
-
-    if (self.lastUnitGenerationTime < currentUnitGenerationInfo.timeInSeconds) then
+    if (self.nextUnitGeneratedAt > love.timer.getTime()) then
         return
     end
 
-	self.lastUnitGenerationTime = 0
+	self.nextUnitGeneratedAt = nil
     self.unitGenerationQueue:dequeue() -- Remove the unit from the queue, it has been generated
     self:generateUnit(currentUnitGenerationInfo.unitTypeId)
 end
