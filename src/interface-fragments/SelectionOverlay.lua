@@ -14,31 +14,31 @@ function SelectionOverlay:initialize(config)
 
     self.selectedInteractables = CurrentPlayer:getSelectedInteractables()
 
-	self.selectAllButton = Button({
-		text = 'Select All',
-		isClippingDisabled = true,
-		x = 0,
-		y = 0,
-		width = 64,
-		height = 32,
-		onClick = function()
-			CurrentPlayer:selectAllInteractablesOfSameType()
-		end
-	})
-    self.childFragments:add(self.selectAllButton)
+	-- self.selectAllButton = Button({
+	-- 	text = 'Select All',
+	-- 	isClippingDisabled = true,
+	-- 	x = 0,
+	-- 	y = 0,
+	-- 	width = 64,
+	-- 	height = 32,
+	-- 	onClick = function()
+	-- 		CurrentPlayer:selectAllInteractablesOfSameType()
+	-- 	end
+	-- })
+    -- self.childFragments:add(self.selectAllButton)
 
-    self.deselectButton = Button({
-        text = 'Deselect',
-        isClippingDisabled = true,
-        x = 0,
-        y = 0,
-        width = 64,
-        height = 32,
-        onClick = function()
-            CurrentPlayer:clearSelectedInteractables()
-        end
-    })
-    self.childFragments:add(self.deselectButton)
+    -- self.deselectButton = Button({
+    --     text = 'Deselect',
+    --     isClippingDisabled = true,
+    --     x = 0,
+    --     y = 0,
+    --     width = 64,
+    --     height = 32,
+    --     onClick = function()
+    --         CurrentPlayer:clearSelectedInteractables()
+    --     end
+    -- })
+    -- self.childFragments:add(self.deselectButton)
 
 	self.actionButtons = {}
 
@@ -74,6 +74,35 @@ function SelectionOverlay:getHash(selectedInteractables)
 	return hash:sub(1, -2)
 end
 
+--- Returns the default actions for the selection overlay, such
+--- as selecting all units of the same type, deselecting all units, etc.
+--- @return table[]
+function SelectionOverlay:getDefaultActions()
+	local actions = {}
+
+	actions[#actions + 1] = {
+		id = 'select_all',
+		text = 'Select All',
+		icon = 'select_all',
+		isEnabled = true,
+		onRun = function(self)
+			CurrentPlayer:selectAllInteractablesOfSameType()
+		end
+	}
+
+	actions[#actions + 1] = {
+		id = 'deselect_all',
+		text = 'Deselect All',
+		icon = 'deselect_all',
+		isEnabled = true,
+		onRun = function(self)
+			CurrentPlayer:clearSelectedInteractables()
+		end
+	}
+
+	return actions
+end
+
 --- Refreshes the unit actions
 --- @param selectedInteractables Interactable[]|nil
 function SelectionOverlay:refreshSelectionActions(selectedInteractables)
@@ -103,6 +132,8 @@ function SelectionOverlay:refreshSelectionActions(selectedInteractables)
     local selectionOverlay = self
 	local actions = {}
 
+	table.Append(actions, self:getDefaultActions())
+
     for i, interactable in ipairs(selectedInteractables) do
         local selectionType
 
@@ -115,8 +146,8 @@ function SelectionOverlay:refreshSelectionActions(selectedInteractables)
         end
 
         if (selectionType) then
-            if (interactable.getDefaultActions) then
-                table.Append(actions, interactable:getDefaultActions())
+            if (interactable.getActions) then
+                table.Append(actions, interactable:getActions())
             end
 
             if (selectionType.getActions) then
@@ -178,14 +209,10 @@ function SelectionOverlay:performDraw(x, y)
 	local shadowHeight = Sizes.padding()
 
 	if (totalInteractables == 0) then
-		self.selectAllButton:setEnabled(false)
-		self.selectAllButton:setVisible(false)
-		self.deselectButton:setEnabled(false)
-		self.deselectButton:setVisible(false)
 		return
 	end
 
-    local buttonHeights = self.selectAllButton.height + self.deselectButton.height + Sizes.padding()
+    local buttonHeights = Sizes.padding()
 
 	for i, button in ipairs(self.actionButtons) do
 		buttonHeights = buttonHeights + button.height + Sizes.padding()
@@ -197,7 +224,6 @@ function SelectionOverlay:performDraw(x, y)
     local height = interactableSize * rows
         + shadowHeight
         + Fonts.default:getHeight()
-        + Sizes.padding(2)
         + (Sizes.padding() * rows)
 		+ buttonHeights
 
@@ -258,30 +284,13 @@ function SelectionOverlay:performDraw(x, y)
 		end)
     end
 
-	self.selectAllButton:setEnabled(true)
-	self.selectAllButton:setVisible(true)
-	self.selectAllButton:setSize(width, 32)
-    self.selectAllButton:setPosition(
-		x + width * .5 - self.selectAllButton.width * .5,
-        interactableY + interactableSize + Sizes.padding()
-    )
-	interactableY = interactableY + self.selectAllButton.height + Sizes.padding()
-
-	self.deselectButton:setEnabled(true)
-	self.deselectButton:setVisible(true)
-	self.deselectButton:setSize(width, 32)
-    self.deselectButton:setPosition(
-		x + width * .5 - self.deselectButton.width * .5,
-        interactableY + interactableSize + Sizes.padding()
-	)
-
     -- Draw the action buttons below the deselect button
-    local actionButtonY = self.deselectButton.y + self.deselectButton.height + Sizes.padding()
+    local actionButtonY = interactableY + interactableSize + Sizes.padding()
 
     for i, button in ipairs(self.actionButtons) do
         button:setSize(width, 32)
         button:setPosition(
-            x + width * .5 - self.deselectButton.width * .5,
+            x,
             actionButtonY
         )
         actionButtonY = actionButtonY + button.height + Sizes.padding()

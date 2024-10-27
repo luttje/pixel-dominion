@@ -183,7 +183,7 @@ function Structure:canGenerateUnit(unitGenerationInfo)
 end
 
 --- @return table
-function Structure:getDefaultActions()
+function Structure:getActions()
 	local actions = {}
 
 	if (self.structureType.unitGenerationInfo) then
