@@ -1,5 +1,13 @@
 require('init')
 
+--- The current human player that is interacting with menus and the world.
+--- @type PlayerHuman
+CurrentPlayer = nil
+
+--- Computer players that are controlled by AI.
+--- @type PlayerComputer[]
+local computerPlayers = {}
+
 --- @type World
 local currentWorld
 
@@ -45,22 +53,24 @@ function love.load()
 	end)
 
 	-- TODO: Eventually we'll want to be able to load/restore player data, for now we just create a new player.
-	CurrentPlayer = Player()
+	CurrentPlayer = PlayerHuman()
 
 	-- TODO: Currently hard-coded, just for testing our systems
     local playerFaction = Faction({
 		factionType = FactionTypeRegistry:getFactionType('homelanders'),
+		player = CurrentPlayer
     })
-    CurrentPlayer:setFaction(playerFaction)
 
 	currentWorld = World({
 		mapPath = 'assets/worlds/forest_8x8.lua'
     })
-    CurrentPlayer:setWorld(currentWorld)
     currentWorld:spawnFaction(playerFaction)
 
+	local testEnemyPlayer = PlayerComputer()
+	table.insert(computerPlayers, testEnemyPlayer)
 	testEnemyFaction = Faction({
 		factionType = FactionTypeRegistry:getFactionType('bandits'),
+		player = testEnemyPlayer
 	})
 	currentWorld:spawnFaction(testEnemyFaction)
 
@@ -88,6 +98,11 @@ function love.update(deltaTime)
 	StateManager:call('onUpdate', deltaTime)
 
 	Timer.updateAll(deltaTime)
+
+    -- Have all the computer players think
+	for _, computerPlayer in ipairs(computerPlayers) do
+		computerPlayer:update(deltaTime)
+	end
 end
 
 function love.draw()

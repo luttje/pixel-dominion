@@ -1,4 +1,4 @@
-require('libraries.Interactable')
+local Interactable = require('libraries.Interactable')
 
 --- Represents a unit in the game
 --- @class Unit : Interactable

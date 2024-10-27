@@ -1,5 +1,3 @@
-require('libraries.ResourceInventory')
-
 --- Clear constant to show that placement is free
 FORCE_FREE_PLACEMENT = true
 
@@ -8,6 +6,7 @@ FORCE_FREE_PLACEMENT = true
 ---
 --- @field factionType FactionTypeRegistry.FactionRegistration
 --- @field world World|nil
+--- @field player Player
 ---
 --- @field resourceInventory ResourceInventory
 --- @field units table<number, Unit> # The units in the world
@@ -17,7 +16,8 @@ local Faction = DeclareClass('Faction')
 --- Initializes the faction
 --- @param config table
 function Faction:initialize(config)
-	assert(config.factionType, 'Faction must have a faction type.')
+    assert(config.factionType, 'Faction must have a faction type.')
+	assert(config.player, 'Faction must have a player.')
 
 	self.resourceInventory = ResourceInventory({
 		withDefaultValues = true,
@@ -26,12 +26,15 @@ function Faction:initialize(config)
 	self.structures = {}
 
     table.Merge(self, config)
+
+    self.player:setFaction(self)
 end
 
 --- Sets the world for the faction
 --- @param world World
 function Faction:setWorld(world)
     self.world = world
+    self.player:setWorld(self.world)
 end
 
 --- Gets the world for the faction

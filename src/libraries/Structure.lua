@@ -1,4 +1,4 @@
-require('libraries.Interactable')
+local Interactable = require('libraries.Interactable')
 
 --- Represents a structure value in the game
 --- @class Structure : Interactable
