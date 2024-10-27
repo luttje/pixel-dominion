@@ -68,6 +68,10 @@ end
 --- every update.
 --- @param isEnabled boolean|fun(button: Button): boolean
 function Button:setEnabled(isEnabled)
+    if (self.isEnabled == isEnabled) then
+        return
+    end
+
     self.isEnabled = isEnabled
     self:refreshIconImage()
 end
@@ -155,6 +159,10 @@ function Button:performUpdate(deltaTime)
 	end
 end
 
+function Button:getTextY(y, height, textHeight)
+	return y + (height * .5) - (textHeight * .5)
+end
+
 function Button:performDraw(x, y, width, height)
 	x, y = self:getPosition()
 
@@ -214,7 +222,7 @@ function Button:performDraw(x, y, width, height)
 				self.text
 			},
 			x,
-			y + (height * .5) - (textHeight * .5),
+			self:getTextY(y, height, textHeight),
 			width,
 			'center')
 

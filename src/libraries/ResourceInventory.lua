@@ -83,7 +83,7 @@ function ResourceInventory:add(resourceTypeOrId, amount)
 
     self.resourceValues[resourceTypeId].value = self.resourceValues[resourceTypeId].value + amount
 
-	self.currentResources = self.currentResources + amount
+    self.currentResources = self.currentResources + amount
 end
 
 --- Removes the given amount of resources from the faction

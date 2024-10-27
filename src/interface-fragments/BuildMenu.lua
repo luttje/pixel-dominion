@@ -29,29 +29,26 @@ function BuildMenu:refreshStructures()
 		return a.name < b.name
 	end)
 
-	local buttons = table.Map(availableStructures, function(structureType, index)
+    local buttons = table.Map(availableStructures, function(structureType, index)
+		local resourceInventory = ResourceInventory()
 		local text = structureType.name
 
         -- Append required resources
         if (structureType.requiredResources) then
-			text = text .. "\n("
-
 			for resourceName, resourceAmount in pairs(structureType.requiredResources) do
-				text = text .. resourceName .. ": " .. resourceAmount .. ", "
+                resourceInventory:add(resourceName, resourceAmount)
 			end
-
-			text = text:sub(1, -3)
-			text = text .. ")"
 		end
 
-        local button = Button({
+        local button = ResourceButton({
             text = text,
             icon = structureType.imagePath,
             isClippingDisabled = true,
             x = 0,
             y = 0,
-            width = 64,
+            width = 64, -- will be recalculated
             height = 64,
+			resourceInventory = resourceInventory,
             onClick = function()
                 CurrentPlayer:setCurrentStructureToBuild(structureType, table.ShallowCopy(CurrentPlayer:getSelectedInteractables()))
 				CurrentPlayer:clearSelectedInteractables()
