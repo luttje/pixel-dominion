@@ -8,7 +8,6 @@ function WorldMap:initialize(config)
 	table.Merge(self, config)
 
 	self.camera = { x = 0, y = 0 }
-	self.cameraWorldScale = 4
 	self.dragging = false
 	self.dragStart = { x = 0, y = 0 }
 
@@ -65,12 +64,18 @@ function WorldMap:initialize(config)
 	self.childFragments:add(self.cancelStructureButton)
 end
 
+--- Returns the scale of the world map camera
+--- @return number
+function WorldMap:getCameraWorldScale()
+	return GameConfig.worldMapCameraScale
+end
+
 --- Centers the camera on the current player's faction's town hall
 function WorldMap:centerOnTownHall()
 	local townHall = CurrentPlayer:getFaction():getTownHall()
 
-	self.camera.x = (townHall.x * GameConfig.tileSize) - (self:getWidth() * .5) / self.cameraWorldScale
-	self.camera.y = (townHall.y * GameConfig.tileSize) - (self:getHeight() * .4) / self.cameraWorldScale
+	self.camera.x = (townHall.x * GameConfig.tileSize) - (self:getWidth() * .5) / self:getCameraWorldScale()
+	self.camera.y = (townHall.y * GameConfig.tileSize) - (self:getHeight() * .4) / self:getCameraWorldScale()
 
 	-- Let's select it so players see that that will give them information about villager generation
 	townHall:setSelected(true)
@@ -78,17 +83,17 @@ end
 
 function WorldMap:screenToWorld(x, y, snapToTile)
 	if (snapToTile) then
-		return math.floor((x + self.camera.x * self.cameraWorldScale) / (GameConfig.tileSize * self.cameraWorldScale)),
-			math.floor((y + self.camera.y * self.cameraWorldScale) / (GameConfig.tileSize * self.cameraWorldScale))
+		return math.floor((x + self.camera.x * self:getCameraWorldScale()) / (GameConfig.tileSize * self:getCameraWorldScale())),
+			math.floor((y + self.camera.y * self:getCameraWorldScale()) / (GameConfig.tileSize * self:getCameraWorldScale()))
 	end
 
-	return (x + self.camera.x * self.cameraWorldScale) / (GameConfig.tileSize * self.cameraWorldScale),
-		(y + self.camera.y * self.cameraWorldScale) / (GameConfig.tileSize * self.cameraWorldScale)
+	return (x + self.camera.x * self:getCameraWorldScale()) / (GameConfig.tileSize * self:getCameraWorldScale()),
+		(y + self.camera.y * self:getCameraWorldScale()) / (GameConfig.tileSize * self:getCameraWorldScale())
 end
 
 function WorldMap:worldToScreen(x, y)
-	return x * GameConfig.tileSize * self.cameraWorldScale - self.camera.x * self.cameraWorldScale,
-		y * GameConfig.tileSize * self.cameraWorldScale - self.camera.y * self.cameraWorldScale
+	return x * GameConfig.tileSize * self:getCameraWorldScale() - self.camera.x * self:getCameraWorldScale(),
+		y * GameConfig.tileSize * self:getCameraWorldScale() - self.camera.y * self:getCameraWorldScale()
 end
 
 function WorldMap:performUpdate(deltaTime)
@@ -182,13 +187,13 @@ function WorldMap:performUpdate(deltaTime)
 		return
 	elseif (not self.dragging) then
 		self.dragging = true
-		self.dragStart.x = pointerX + self.camera.x * self.cameraWorldScale
-		self.dragStart.y = pointerY + self.camera.y * self.cameraWorldScale
+		self.dragStart.x = pointerX + self.camera.x * self:getCameraWorldScale()
+		self.dragStart.y = pointerY + self.camera.y * self:getCameraWorldScale()
 	end
 
 	if (self.dragging) then
-		local newX = (self.dragStart.x - pointerX) / self.cameraWorldScale
-		local newY = (self.dragStart.y - pointerY) / self.cameraWorldScale
+		local newX = (self.dragStart.x - pointerX) / self:getCameraWorldScale()
+		local newY = (self.dragStart.y - pointerY) / self:getCameraWorldScale()
 		self.camera.x = newX
 		self.camera.y = newY
 	end
@@ -196,8 +201,8 @@ end
 
 function WorldMap:pushWorldSpace()
 	love.graphics.push()
-	love.graphics.translate(-self.camera.x * self.cameraWorldScale, -self.camera.y * self.cameraWorldScale)
-	love.graphics.scale(self.cameraWorldScale, self.cameraWorldScale)
+	love.graphics.translate(-self.camera.x * self:getCameraWorldScale(), -self.camera.y * self:getCameraWorldScale())
+	love.graphics.scale(self:getCameraWorldScale(), self:getCameraWorldScale())
 end
 
 function WorldMap:popWorldSpace()
@@ -217,8 +222,8 @@ function WorldMap:performDraw(x, y, width, height)
 
 	translateX = -self.camera.x
 	translateY = -self.camera.y
-	scaleX = self.cameraWorldScale
-	scaleY = self.cameraWorldScale
+	scaleX = self:getCameraWorldScale()
+	scaleY = self:getCameraWorldScale()
 
 	self.world:draw(translateX, translateY, scaleX, scaleY)
 
@@ -235,15 +240,15 @@ function WorldMap:performDraw(x, y, width, height)
 	local function drawPostScreen(interactable)
 		-- Check if the interactable is in the camera view, if so share that with the interactable
 		local screenInfo = interactable:isInCameraView(
-			self.camera.x * self.cameraWorldScale,
-			self.camera.y * self.cameraWorldScale,
+			self.camera.x * self:getCameraWorldScale(),
+			self.camera.y * self:getCameraWorldScale(),
 			width,
 			height,
-			self.cameraWorldScale)
+			self:getCameraWorldScale())
 
 		if (screenInfo) then
 			interactable:postDrawOnScreen(screenInfo.x, screenInfo.y, screenInfo.width, screenInfo.height,
-				self.cameraWorldScale)
+				self:getCameraWorldScale())
 		end
 	end
 
@@ -271,18 +276,18 @@ function WorldMap:performDraw(x, y, width, height)
 		CurrentPlayer:setCurrentStructureBuildPosition(worldX, worldY, canPlace)
 
 		-- Draw the structure
-		structureToBuild:drawGhost(screenX, screenY, self.cameraWorldScale, canPlace)
+		structureToBuild:drawGhost(screenX, screenY, self:getCameraWorldScale(), canPlace)
 
 		-- Draw a hint above the ghost
 		local hint = 'Drag around to choose a location'
 		local hintHeight = Fonts.defaultHud:getHeight()
 		love.graphics.setColor(0, 0, 0, 0.5)
 		love.graphics.printf(hint, width * .1,
-			screenY - hintHeight - Sizes.padding() - (GameConfig.tileSize * self.cameraWorldScale), width * .8, 'center')
+			screenY - hintHeight - Sizes.padding() - (GameConfig.tileSize * self:getCameraWorldScale()), width * .8, 'center')
 
 		-- Show the place and cancel buttons below the ghost
 		self.placeStructureButton.x = love.graphics.getWidth() * .5 - (self.placeStructureButton.width * .5)
-		self.placeStructureButton.y = screenY + Sizes.padding() + GameConfig.tileSize * self.cameraWorldScale
+		self.placeStructureButton.y = screenY + Sizes.padding() + GameConfig.tileSize * self:getCameraWorldScale()
 		self.placeStructureButton:setEnabled(canPlace)
 		self.placeStructureButton:setVisible(true)
 

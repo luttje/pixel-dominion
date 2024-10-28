@@ -2,10 +2,11 @@
 	EnsureGatheringResources
 --]]
 
+--- @type BehaviorTreeTask
 local TASK = {}
 
---- @param data BehaviorTreeData
-function TASK:start(data)
+--- @param player PlayerComputer
+function TASK:start(player)
 	local resourceGoal = self.taskInfo.resourceGoal
 
 	if (type(self.taskInfo.resourceGoal) == 'function') then
@@ -23,8 +24,8 @@ function TASK:start(data)
     end
 end
 
---- @param data BehaviorTreeData
-function TASK:run(data)
+--- @param player PlayerComputer
+function TASK:run(player)
 	local resourceCount = 0
 
 	for _, amount in pairs(self.taskInfo.desiredResources) do
@@ -32,12 +33,11 @@ function TASK:run(data)
 	end
 
     if (resourceCount == 0) then
-        print('No resources to gather')
+        self:debugPrint('No resources to gather')
         self:success()
 		return
     end
 
-    local player = data.player
     local faction = player:getFaction()
     local villagers = faction:getUnitsOfType('villager')
     local desiredResources = self.taskInfo.desiredResources
@@ -76,7 +76,7 @@ function TASK:run(data)
         end
     end
 
-	print('EnsureGatheringResources for ' .. desiredResourceKey)
+	self:debugPrint('EnsureGatheringResources for ' .. desiredResourceKey)
 	self:success()
 end
 

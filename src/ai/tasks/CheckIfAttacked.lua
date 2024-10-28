@@ -1,13 +1,14 @@
+--- @type BehaviorTreeTask
 local TASK = {}
 
---- @param data BehaviorTreeData
-function TASK:start(data)
+--- @param player PlayerComputer
+function TASK:start(player)
 
 end
 
---- @param data BehaviorTreeData
-function TASK:run(data)
-	local faction = data.player:getFaction()
+--- @param player PlayerComputer
+function TASK:run(player)
+	local faction = player:getFaction()
 
     -- Check if any of the faction's structures/units are being attacked
 	for i, structure in ipairs(faction:getInteractables()) do

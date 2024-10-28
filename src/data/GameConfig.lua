@@ -12,6 +12,10 @@ GameConfig.name = 'Unnamed RTS'
 	Game functionality settings
 --]]
 
+--- The scaling factor for everything in the world map.
+--- @type number
+GameConfig.worldMapCameraScale = 4
+
 --- The names of layers to remove from the map.
 --- Useful to disable the ground grid or debug layers.
 --- @type table

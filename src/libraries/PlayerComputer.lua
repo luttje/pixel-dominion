@@ -48,21 +48,23 @@ function PlayerComputer:initialize(config)
 	}
 
     self.goalTree = self:createGoalTree()
-
-	--- @alias BehaviorTreeData {blackboard: table, player: PlayerComputer}
-    self.goalTree:setObject({
-        player = self,
-		blackboard = self.blackboard,
-	})
+    self.goalTree:setObject(self)
 end
 
 function PlayerComputer:createTask(taskModuleName, taskInfo)
 	-- We copy so the task info can differ between tasks of the same type
-	local taskDesign = table.Copy(require('ai.tasks.' .. taskModuleName))
-    local task = BehaviorTree.Task:new(taskDesign)
-    task.taskInfo = taskInfo or {}
+    local taskDesign = table.Copy(require('ai.tasks.' .. taskModuleName))
 
-	return task
+	--- @alias BehaviorTreeTask {blackboard: table, player: PlayerComputer, taskInfo: table}
+    local taskNode = BehaviorTree.Task:new(taskDesign)
+    taskNode.taskInfo = taskInfo or {}
+    taskNode.blackboard = self.blackboard
+	taskNode.player = self
+	taskNode.debugPrint = function(taskNode, ...)
+		print('[AI Task] ', self:getName(), ' | ', ...)
+	end
+
+	return taskNode
 end
 
 function PlayerComputer:createGoalTree()

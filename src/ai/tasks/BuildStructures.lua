@@ -1,7 +1,8 @@
+--- @type BehaviorTreeTask
 local TASK = {}
 
---- @param data BehaviorTreeData
-function TASK:start(data)
+--- @param player PlayerComputer
+function TASK:start(player)
     local structureType = self.taskInfo.structureType
 
     if (type(self.taskInfo.structureType) == 'function') then
@@ -13,9 +14,9 @@ function TASK:start(data)
 	self.taskInfo.structureType = structureType
 end
 
---- @param data BehaviorTreeData
-function TASK:run(data)
-    local faction = data.player:getFaction()
+--- @param player PlayerComputer
+function TASK:run(player)
+    local faction = player:getFaction()
 	local structureType = self.taskInfo.structureType
 
 	-- Check if we have enough resources to build the structure
@@ -28,16 +29,16 @@ function TASK:run(data)
     local x, y = faction:findSuitableLocationToBuild(structureType)
 
 	if (not x or not y) then
-		print('No suitable location to build structure', structureType.id)
+		self:debugPrint('No suitable location to build structure', structureType.id)
 		self:fail()
 		return
 	end
 
     -- Find a villager that can build the structure
-    local villager = data.player:findIdleOrRandomUnit('villager')
+    local villager = self.player:findIdleOrRandomUnit('villager')
 
 	if (not villager) then
-		print('No idle villagers to build structure', structureType.id)
+		self:debugPrint('No idle villagers to build structure', structureType.id)
 		self:fail()
 		return
 	end

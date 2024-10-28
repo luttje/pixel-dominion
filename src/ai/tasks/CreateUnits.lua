@@ -8,10 +8,12 @@
 		amount = 1,
 	}),
 --]]
+
+--- @type BehaviorTreeTask
 local TASK = {}
 
---- @param data BehaviorTreeData
-function TASK:start(data)
+--- @param player PlayerComputer
+function TASK:start(player)
     local unitTypeId = self.taskInfo.unitTypeId
     local structureType = self.taskInfo.structureType
     local amount = self.taskInfo.amount
@@ -37,9 +39,8 @@ function TASK:start(data)
     self.taskInfo.amount = amount
 end
 
---- @param data BehaviorTreeData
-function TASK:run(data)
-	local player = data.player
+--- @param player PlayerComputer
+function TASK:run(player)
     local faction = player:getFaction()
 
     -- Fail immediately if we don't have the housing to support the new units
@@ -48,7 +49,7 @@ function TASK:run(data)
 
 	if (#units + self.taskInfo.amount > housing) then
 		-- TODO: Add house to the front of the build queue
-		print('Not enough housing to support new units')
+		self:debugPrint('Not enough housing to support new units')
 		self:fail()
 		return
 	end
@@ -61,7 +62,7 @@ function TASK:run(data)
 	end
 
 	if (#structures == 0) then
-		print('No structures of type', self.taskInfo.structureType)
+		self:debugPrint('No structures of type', self.taskInfo.structureType)
 		self:fail()
 		return
 	end
@@ -81,7 +82,7 @@ function TASK:run(data)
 	local unit = structure:canGenerateUnit(unitGenerationInfo)
 
 	if (unit) then
-        print('enqueueUnitGeneration of id', unitTypeId)
+        self:debugPrint('enqueueUnitGeneration of id', unitTypeId)
 		structure:enqueueUnitGeneration(unitGenerationInfo)
 		self:success()
 		return

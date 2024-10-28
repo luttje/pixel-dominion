@@ -1,3 +1,4 @@
+--- @type BehaviorTreeTask
 local TASK = {}
 
 --[[
@@ -8,9 +9,9 @@ local TASK = {}
 	}),
 --]]
 
---- @param data BehaviorTreeData
-function TASK:run(data)
-	print('FailIfNotEnoughResources', self.taskInfo.resourceGoal)
+--- @param player PlayerComputer
+function TASK:run(player)
+	self:debugPrint('FailIfNotEnoughResources', self.taskInfo.resourceGoal)
 
 	self:fail()
 end

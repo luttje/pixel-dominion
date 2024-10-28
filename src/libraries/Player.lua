@@ -4,9 +4,17 @@
 local Player = DeclareClass('Player')
 
 function Player:initialize(config)
-	config = config or {}
+    assert(config.name, 'Player name not specified')
 
-	table.Merge(self, config)
+    config = config or {}
+
+    table.Merge(self, config)
+end
+
+--- Gets the player name
+--- @return string
+function Player:getName()
+	return self.name
 end
 
 --- Sets the player world

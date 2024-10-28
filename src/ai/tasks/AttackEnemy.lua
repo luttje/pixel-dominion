@@ -1,13 +1,9 @@
+--- @type BehaviorTreeTask
 local TASK = {}
 
---- @param data BehaviorTreeData
-function TASK:start(data)
-
-end
-
---- @param data BehaviorTreeData
-function TASK:run(data)
-	local faction = data.player:getFaction()
+--- @param player PlayerComputer
+function TASK:run(player)
+	local faction = player:getFaction()
 
     -- Find the interactables being attacked
 	local attackers = {}

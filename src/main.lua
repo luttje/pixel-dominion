@@ -53,7 +53,9 @@ function love.load()
 	end)
 
 	-- TODO: Eventually we'll want to be able to load/restore player data, for now we just create a new player.
-	CurrentPlayer = PlayerHuman()
+    CurrentPlayer = PlayerHuman({
+		name = 'human player'
+	})
 
 	-- TODO: Currently hard-coded, just for testing our systems
     local playerFaction = Faction({
@@ -66,13 +68,19 @@ function love.load()
     })
     currentWorld:spawnFaction(playerFaction)
 
-	local testEnemyPlayer = PlayerComputer()
-	table.insert(computerPlayers, testEnemyPlayer)
-	local testEnemyFaction = Faction({
-		factionType = FactionTypeRegistry:getFactionType('bandits'),
-		player = testEnemyPlayer
-	})
-	currentWorld:spawnFaction(testEnemyFaction)
+    local numEnemyPlayers = 2
+
+	for i = 1, numEnemyPlayers do
+		local enemyPlayer = PlayerComputer({
+			name = 'enemy player #' .. i,
+		})
+		table.insert(computerPlayers, enemyPlayer)
+		local enemyFaction = Faction({
+			factionType = FactionTypeRegistry:getFactionType('bandits'),
+			player = enemyPlayer
+		})
+		currentWorld:spawnFaction(enemyFaction)
+	end
 
     -- Add a barracks for testing
     playerFaction:spawnStructure(
@@ -187,11 +195,18 @@ function love.keyreleased(key)
 			end
         elseif (key == 'f7') then
             -- Spawn a villager for the enemy factions
-			for _, computerPlayer in ipairs(computerPlayers) do
-				local faction = computerPlayer:getFaction()
-				local townHall = faction:getTownHall()
-				townHall:generateUnit('villager')
-			end
+            for _, computerPlayer in ipairs(computerPlayers) do
+                local faction = computerPlayer:getFaction()
+                local townHall = faction:getTownHall()
+                townHall:generateUnit('villager')
+            end
+        elseif (key == 'f8') then
+			--- TODO: I think we won't allow free zooming in the final game, but during development it's nice to have
+            GameConfig.worldMapCameraScale = math.min(2, GameConfig.worldMapCameraScale + 1)
+            print('World map camera scale increased to ' .. GameConfig.worldMapCameraScale)
+        elseif (key == 'f9') then
+			GameConfig.worldMapCameraScale = math.max(1, GameConfig.worldMapCameraScale - 1)
+			print('World map camera scale decreased to ' .. GameConfig.worldMapCameraScale)
         elseif (key == 'f11') then
             GameConfig.gameSpeed = math.min(1000, GameConfig.gameSpeed + 1)
             print('Game speed increased to ' .. GameConfig.gameSpeed)
