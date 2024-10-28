@@ -7,6 +7,17 @@ local Pathfinder = require('third-party.jumper.pathfinder')
 WALKABLE = 0
 NOT_WALKABLE = 1
 
+--- Used to reduce memory usage by limiting the cache size
+local PATH_CACHE_SIZE = 1000
+
+--- Used to prevent paths that might not be valid anymore (e.g. due to structures being built)
+local PATH_EXPIRATION_TIME = 10
+
+--- Cache for the paths
+local pathCache = table.CircularBufferWithLookup({}, PATH_CACHE_SIZE, function(path)
+	return path.startX .. ',' .. path.startY .. '-' .. path.endX .. ',' .. path.endY
+end)
+
 --- Represents a world that contains factions
 --- @class World
 ---
@@ -315,26 +326,56 @@ function World:findPath(startX, startY, endX, endY, withFallback)
     endX = endX + 1
     endY = endY + 1
 
-    -- Ensure its within bounds of the map
-    if (startX < 1 or startY < 1 or endX < 1 or endY < 1) then
-        return nil
-    end
-
-    if (startX > self.map.width or startY > self.map.height or endX > self.map.width or endY > self.map.height) then
+	-- Ensure its within bounds of the map
+	if (startX < 1 or startY < 1 or endX < 1 or endY < 1) then
 		return nil
 	end
 
-    local path = self.pathfinder:getPath(startX, startY, endX, endY)
+	if (startX > self.map.width or startY > self.map.height or endX > self.map.width or endY > self.map.height) then
+		return nil
+	end
 
-    if (not path) then
-		if (withFallback) then
-            path = self.pathfinderFallback:getPath(startX, startY, endX, endY)
+    -- Check if we have a cached path that is still valid
+    local cachedPath = pathCache:find({
+        startX = startX,
+        startY = startY,
+        endX = endX,
+		endY = endY
+    })
+
+	local path
+
+	if (cachedPath) then
+		if (cachedPath.expiresAt < love.timer.getTime()) then
+			cachedPath = nil
+		else
+			path = cachedPath.path
+		end
+	end
+
+	if (not path) then
+        path = self.pathfinder:getPath(startX, startY, endX, endY)
+
+		if (not path and withFallback) then
+			path = self.pathfinderFallback:getPath(startX, startY, endX, endY)
 		end
 
 		if (not path) then
-            return nil
+			return nil
 		end
-    end
+	end
+
+	if (not cachedPath) then
+		-- Cache the path
+		pathCache:push({
+			startX = startX,
+			startY = startY,
+			endX = endX,
+			endY = endY,
+			path = path,
+			expiresAt = love.timer.getTime() + PATH_EXPIRATION_TIME
+		})
+	end
 
     -- Convert back to 0-based indexes
     local points = {}

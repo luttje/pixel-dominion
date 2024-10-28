@@ -119,6 +119,10 @@ end
 --- @param interactor Interactable
 --- @return boolean # Whether the interaction was successful, false stops the unit
 function STRUCTURE:updateInteract(structure, deltaTime, interactor)
+    if (interactor:getFaction() ~= structure:getFaction()) then
+        return false
+    end
+
     -- Have the interactor start harvesting the resource which is at this structure's location
 	interactor:commandTo(structure.resource.x, structure.resource.y, structure.resource)
 

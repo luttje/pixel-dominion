@@ -128,7 +128,7 @@ end
 
 --- Creates a stack from a table which provides push and pop operations.
 --- @param source table
---- @return table # The stack
+--- @return Stack # The stack
 function table.Stack(source)
 	--- @class Stack<T>
 	--- @generic T : table
@@ -169,7 +169,7 @@ end
 
 --- Creates a queue from a table which provides enqueue and dequeue operations.
 --- @param source table
---- @return table # The queue
+--- @return Queue # The queue
 function table.Queue(source)
     --- @class Queue<T>
 	--- @generic T : table
@@ -225,6 +225,67 @@ function table.Queue(source)
 	end
 
 	return queue
+end
+
+--- Creates a circular buffer from a table which provides push and pop operations
+--- and keeps a fixed size.
+--- A lookup table is kept to quickly check if a value is in the buffer.
+--- @param source table
+--- @param size number
+--- @param keyFunction function
+--- @return CircularBuffer # The circular buffer
+function table.CircularBufferWithLookup(source, size, keyFunction)
+	--- @class CircularBuffer<T>
+	--- @generic T : table
+    local buffer = {}
+
+	-- The lookup table to quickly get the index of a value
+    local lookup = {}
+
+	-- Tracks the position for the next insertion
+	local currentIndex = 1
+
+	function buffer:push(value)
+		local key = keyFunction(value)
+
+		-- Insert (or overwrite) the value
+		source[currentIndex] = value
+
+		-- If the value already exists, this causes it to only find the most recent index:
+		lookup[key] = currentIndex
+
+		-- Move to the next position
+		currentIndex = currentIndex + 1
+
+		-- If we reached the end, loop back to the beginning
+        if (currentIndex > size) then
+            currentIndex = 1
+        end
+	end
+
+    function buffer:size()
+        return #source
+    end
+
+    function buffer:isEmpty()
+        return #source == 0
+    end
+
+	function buffer:find(value)
+        local index = lookup[keyFunction(value)]
+
+		return index and source[index] or nil
+	end
+
+	function buffer:contains(value)
+		return lookup[keyFunction(value)] ~= nil
+	end
+
+	function buffer:items()
+		return source
+	end
+
+	return buffer
 end
 
 --- Maps the values of a table to a new table.

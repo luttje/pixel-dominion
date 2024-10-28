@@ -152,7 +152,7 @@ function GOAL:setVillagersToGatherResources(player, villagers)
 
                         -- TODO: How do we get the resource, if none are in the world and we don't have a structure that spawns them?
                         -- TODO: Should the AI surrender?
-                        assert(structureTypeForResource, 'No structure type found for resource type')
+                        assert(structureTypeForResource, 'No structure type found for resource type ' .. resourceType.id)
 
                         local structuresToBeBuilt = player:countGoals('BuildStructure', {
                             structureTypeId = structureTypeForResource.id,
