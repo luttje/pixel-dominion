@@ -99,7 +99,7 @@ function STRUCTURE:onRemove(structure)
     end
 
 	-- If we remove the structure before the resource is depleted, remove the resource
-	structure.resource:removeResource()
+	structure.resource:remove()
 end
 
 --- Returns whether the structure can be built by the faction. Resources are checked

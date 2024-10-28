@@ -245,7 +245,7 @@ function Interactable:getFreeTileNearby(interactables, nearX, nearY)
             end
         end
 
-        if (range > 100) then
+        if (range > 1000) then
             -- Prevent infinite loop
             break
         end

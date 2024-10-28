@@ -139,9 +139,9 @@ function Resource:remove()
         for _, tile in pairs(self.tiles) do
             world:removeTile(tile.layerName, tile.x, tile.y)
         end
-
-        world:updateCollisionMap()
     end
+
+	world:updateCollisionMap()
 
     if (self.resourceType.onRemove) then
         self.resourceType:onRemove(self)

@@ -63,7 +63,7 @@ function GOAL:run(player)
 		return false
 	end
 
-	local x, y = faction:findSuitableLocationToBuild(structureType)
+	local x, y = faction:findSuitableLocationToBuild(structureType, true)
 
 	assert(x and y, 'No suitable location to build')
 

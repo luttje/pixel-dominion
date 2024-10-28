@@ -138,18 +138,25 @@ end
 
 --- Finds a suitable location to build the structure, by scanning outward from the town hall
 --- @param structureType StructureTypeRegistry.StructureRegistration
+--- @param withRandomOffset? boolean
 --- @return number, number
-function Faction:findSuitableLocationToBuild(structureType)
+function Faction:findSuitableLocationToBuild(structureType, withRandomOffset)
 	for range = 1, math.huge do
         for _, offset in pairs(GameConfig.unitPathingOffsets) do
-			local newX, newY = self:getTownHall().x + (offset.x * range), self:getTownHall().y + (offset.y * range)
+            local newX, newY = self:getTownHall().x + (offset.x * range), self:getTownHall().y + (offset.y * range)
+
+            -- By adding a bit of random offset the village won't look so uniform
+			if (withRandomOffset) then
+				newX = newX + math.random(-4, 4)
+				newY = newY + math.random(-4, 4)
+			end
 
 			if (structureType:canPlaceAt(self:getWorld(), newX, newY)) then
 				return newX, newY
 			end
 		end
 
-		if (range > 100) then
+		if (range > 1000) then
 			-- Prevent infinite loop
 			break
 		end
