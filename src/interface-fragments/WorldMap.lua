@@ -149,20 +149,28 @@ function WorldMap:performUpdate(deltaTime)
 					end
 				end
 			else
-				if (self.isHolding and interactable and self.heldInteractable == interactable and
-					interactable:getFaction() == CurrentPlayer:getFaction()) then
-					if (CurrentPlayer:isSameTypeAsSelected(self.heldInteractable)) then
-						-- If the unit is selected, deselect it
-						if (self.heldInteractable.isSelected) then
-							self.heldInteractable:setSelected(false)
+				if (self.isHolding) then
+					if (interactable and self.heldInteractable == interactable and interactable:getFaction() == CurrentPlayer:getFaction()) then
+						if (CurrentPlayer:isSameTypeAsSelected(self.heldInteractable)) then
+							-- If the unit is selected, deselect it
+							if (self.heldInteractable.isSelected) then
+								self.heldInteractable:setSelected(false)
+							else
+								-- If the unit is not selected, select it
+								self.heldInteractable:setSelected(true)
+							end
 						else
-							-- If the unit is not selected, select it
-							self.heldInteractable:setSelected(true)
+							-- If the unit is not the same type, deselect all units and select this one
+							CurrentPlayer:clearSelectedInteractables()
+							self.heldInteractable:setSelected(not self.heldInteractable.isSelected)
 						end
-					else
-						-- If the unit is not the same type, deselect all units and select this one
-						CurrentPlayer:clearSelectedInteractables()
-						self.heldInteractable:setSelected(not self.heldInteractable.isSelected)
+                    else
+						-- If we didn't click anything, just move the selected units here
+						if (self.hasReleasedSinceLastSelection) then
+							-- If any unit is selected, move it to the clicked position and/or interact with it
+							CurrentPlayer:sendCommandTo(worldX, worldY, interactable)
+							self.hasReleasedSinceLastSelection = false
+						end
 					end
 				end
 
