@@ -54,13 +54,19 @@ function PlayerComputer:generateNewGoals()
 	self:appendGoal(
 		self:createGoal('GatherResources', {
 			resourceTypeId = 'food',
-			amount = 50,
+			amount = 150,
+		})
+	)
+	self:appendGoal(
+		self:createGoal('GatherResources', {
+			resourceTypeId = 'wood',
+			amount = 100,
 		})
 	)
 	self:appendGoal(
 		self:createGoal('GatherResources', {
 			resourceTypeId = 'stone',
-			amount = 50,
+			amount = 100,
 		})
 	)
 	self:appendGoal(
@@ -74,8 +80,8 @@ end
 
 --- Generates important new goals for the AI to work on, like when the AI is under attack
 function PlayerComputer:generateImportantNewGoals()
-    -- Check if we're under attack
-    local attackingUnits = self.faction:getAttackingUnits()
+	-- Check if we're under attack
+	local attackingUnits = self.faction:getAttackingUnits()
 
 	if (#attackingUnits == 0) then
 		return
@@ -85,13 +91,68 @@ function PlayerComputer:generateImportantNewGoals()
 		return
 	end
 
-    -- Force warriors to attack the enemy (which will automatically add goals to create warriors if we don't have them)
+	-- Force warriors to attack the enemy (which will automatically add goals to create warriors if we don't have them)
 	-- TODO: Split our warriors into multiple groups, so we can defend from multiple locations
 	self:prependGoal(
 		self:createGoal('AttackUnits', {
 			units = attackingUnits,
 		})
 	)
+end
+
+--- Optimizes the goals where possible, by combining them where possible
+--- For example multiple sequential GatherResources goals will be merged into GatherMultipleResources
+function PlayerComputer:optimizeGoals()
+    local newGoals = {}
+    local currentGatherGoals = {}
+
+	local function createMergedGoal(currentGatherGoals)
+		local resourceRequirements = {}
+
+		for _, gatherGoal in ipairs(currentGatherGoals) do
+			table.insert(resourceRequirements, {
+				resourceTypeId = gatherGoal.goalInfo.resourceTypeId,
+				amount = gatherGoal.goalInfo.amount,
+			})
+		end
+
+		local newGoal = self:createGoal('GatherMultipleResources', {
+            requirements = resourceRequirements,
+		})
+		newGoal:init(self)
+        table.insert(newGoals, newGoal)
+	end
+
+    -- Collect goals and identify optimization opportunities
+    for _, goal in ipairs(self.blackboard.goals) do
+        if (goal.id == 'GatherResources') then
+            table.insert(currentGatherGoals, goal)
+        else
+            -- Process any accumulated gather goals before adding the non-gather goal
+            if #currentGatherGoals > 1 then
+				createMergedGoal(currentGatherGoals)
+            elseif (#currentGatherGoals == 1) then
+                -- Just add the single gather goal as is
+                table.insert(newGoals, currentGatherGoals[1])
+            end
+
+            -- Add the non-gather goal
+			table.insert(newGoals, goal)
+
+            -- Reset gather goals collection
+            currentGatherGoals = {}
+        end
+    end
+
+    -- Handle any remaining gather goals at the end
+    if (#currentGatherGoals > 1) then
+		createMergedGoal(currentGatherGoals)
+    elseif #currentGatherGoals == 1 then
+        table.insert(newGoals, currentGatherGoals[1])
+    end
+
+    -- Replace the old goals with the optimized ones
+	self.blackboard.goals = newGoals
 end
 
 --- Adds a goal to the AI blackboard at the specified index
@@ -272,6 +333,7 @@ function PlayerComputer:update(deltaTime)
 	end
 
 	self:generateImportantNewGoals()
+	self:optimizeGoals()
 end
 
 function PlayerComputer:findIdleUnits(unitTypeId)
