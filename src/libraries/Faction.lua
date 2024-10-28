@@ -242,15 +242,45 @@ end
 --- Returns the available structures for the faction
 --- @return StructureTypeRegistry.StructureRegistration[]
 function Faction:getAvailableStructures()
-	local availableStructures = {}
+    local availableStructures = {}
 
-	for _, structureType in pairs(StructureTypeRegistry:getAllStructureTypes()) do
-		if (not structureType.isInternal) then
-			table.insert(availableStructures, structureType)
-		end
+    for _, structureType in pairs(StructureTypeRegistry:getAllStructureTypes()) do
+        if (not structureType.isInternal) then
+            table.insert(availableStructures, structureType)
+        end
+    end
+
+    return availableStructures
+end
+
+--- Returns the units currently attacking the faction
+--- @return Interactable[]
+function Faction:getAttackingUnits()
+	local attackers = {}
+
+    for i, structure in ipairs(self:getInteractables()) do
+        local recentlyDamaged, damagedBy = structure:recentlyDamaged()
+
+        if (recentlyDamaged) then
+            table.insert(attackers, damagedBy)
+        end
+    end
+
+	return attackers
+end
+
+--- Removes the faction and all its units and structures
+function Faction:remove()
+	for _, unit in ipairs(self.units) do
+		unit:remove()
 	end
 
-	return availableStructures
+	for _, structure in ipairs(self.structures) do
+		structure:remove()
+	end
+
+	self.world:removeFaction(self)
+	self.player:setFaction(nil)
 end
 
 return Faction

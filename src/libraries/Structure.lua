@@ -389,6 +389,7 @@ function Structure:remove()
 	end
 
 	self:getFaction():removeStructure(self)
+	self:setSelected(false)
 
     self.events:trigger('structureRemoved')
 end

@@ -68,7 +68,6 @@ function GOAL:run(player)
 	assert(x and y, 'No suitable location to build')
 
     faction:spawnStructure(structureType, x, y, villagers, isFree)
-	self:debugPrint('Building structure with ' .. #villagers .. ' villagers')
 
 	return true
 end

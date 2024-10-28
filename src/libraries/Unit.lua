@@ -12,6 +12,7 @@ local Interactable = require('libraries.Interactable')
 --- @field health number # The health of the unit
 ---
 --- @field currentAction table # The current action the unit is performing
+--- @field isAutoAttacking boolean # Whether the unit should find and attack enemies after killing the current target
 ---
 --- @field lastResourceInstance Resource|nil # The last resource instance the unit interacted with
 --- @field resourceInventory ResourceInventory
@@ -33,6 +34,7 @@ function Unit:initialize(config)
 	self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
     self.nextX = self.x
     self.nextY = self.y
+	self.isAutoAttacking = true
 
 	self:reachedTarget()
 end
@@ -57,6 +59,11 @@ end
 --- Gets the current action interactable
 --- @return Interactable|nil
 function Unit:getCurrentActionInteractable()
+    if (not self.currentAction.targetInteractable
+		or self.currentAction.targetInteractable.isRemoved) then
+        return nil
+    end
+
     return self.currentAction.targetInteractable
 end
 
@@ -169,6 +176,12 @@ end
 --- Called when this unit destroyed the given interactable
 --- @param interactable Interactable
 function Unit:onInteractWithDestroyedInteractable(interactable)
+    if (not self.isAutoAttacking) then
+		print('Unit is not auto attacking, stopping.')
+		self:stop()
+        return
+    end
+
 	local enemyFaction = interactable:getFaction()
 	local world = self:getWorld()
 
@@ -493,7 +506,8 @@ function Unit:remove()
 		self.unitType:onRemove(self)
 	end
 
-	self:getFaction():removeUnit(self)
+    self:getFaction():removeUnit(self)
+	self:setSelected(false)
 
     self.events:trigger('unitRemoved')
 end

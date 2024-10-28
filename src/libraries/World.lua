@@ -555,8 +555,24 @@ function World:spawnFaction(faction)
 	assert(not self:hasFaction(faction), 'Faction already in the world.')
 	self:addFaction(faction)
 
-    local townHallStructure = StructureTypeRegistry:getStructureType('town_hall')
-    faction:spawnStructure(townHallStructure, spawnpoint.x, spawnpoint.y, nil, FORCE_FREE_PLACEMENT)
+    local townHallStructureType = StructureTypeRegistry:getStructureType('town_hall')
+    local townHall = faction:spawnStructure(townHallStructureType, spawnpoint.x, spawnpoint.y, nil, FORCE_FREE_PLACEMENT)
+
+	townHall.events:on('structureRemoved', function()
+        print('Town hall removed, faction lost.')
+		faction:remove()
+	end)
+end
+
+--- Removes the faction from the world
+--- @param faction Faction
+function World:removeFaction(faction)
+	for i, f in ipairs(self.factions) do
+		if (f == faction) then
+			table.remove(self.factions, i)
+			return
+		end
+	end
 end
 
 return World

@@ -17,6 +17,7 @@
 --- @field health number
 --- @field nextDamagableAt number
 --- @field lastDamagedBy Interactable
+--- @field lastDamagedInteractable Interactable
 ---
 local Interactable = DeclareClass('Interactable')
 
@@ -263,7 +264,19 @@ end
 --- Checks if recently damaged
 --- @return boolean, Interactable
 function Interactable:recentlyDamaged()
-	return self.nextDamagableAt and self.nextDamagableAt < love.timer.getTime(), self.lastDamagedBy
+	return self.nextDamagableAt and self.nextDamagableAt > love.timer.getTime(), self.lastDamagedBy
+end
+
+--- Check if the interactable is attacking
+--- @return boolean, Interactable
+function Interactable:attacking()
+	if (not self.lastDamagedInteractable) then
+		return false
+	end
+
+	local victim = self.lastDamagedInteractable
+
+	return victim:recentlyDamaged(), victim
 end
 
 --- When an interactable is interacted with
@@ -287,12 +300,13 @@ function Interactable:updateInteract(deltaTime, interactor)
     end
 
 	if (unitType.damageStrength and self:canTakeDamageFrom(interactor)) then
-        if (self.nextDamagableAt and self.nextDamagableAt < love.timer.getTime()) then
+        if (self.nextDamagableAt and self.nextDamagableAt > love.timer.getTime()) then
             return false
         end
 
         self.nextDamagableAt = love.timer.getTime() + GameConfig.interactableDamageTimeInSeconds()
-		self.lastDamagedBy = interactor
+        self.lastDamagedBy = interactor
+		interactor.lastDamagedInteractable = self
 
         if (self:damage(unitType.damageStrength, interactor)) then
             interactor:onInteractWithDestroyedInteractable(self)

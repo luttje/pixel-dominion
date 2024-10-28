@@ -36,7 +36,7 @@ function PlayerComputer:generateNewGoals()
 		self:createGoal('HaveUnitsOfType', {
 			unitTypeId = 'villager',
 			structureType = StructureTypeRegistry:getStructureType('town_hall'),
-			amount = currentVillagers + 15,
+			amount = currentVillagers + 5,
 		})
     )
 
@@ -46,7 +46,29 @@ function PlayerComputer:generateNewGoals()
 		self:createGoal('HaveUnitsOfType', {
 			unitTypeId = 'warrior',
 			structureType = StructureTypeRegistry:getStructureType('barracks'),
-			amount = currentWarriors + 5,
+			amount = currentWarriors + 1,
+		})
+	)
+end
+
+--- Generates important new goals for the AI to work on, like when the AI is under attack
+function PlayerComputer:generateImportantNewGoals()
+    -- Check if we're under attack
+    local attackingUnits = self.faction:getAttackingUnits()
+
+	if (#attackingUnits == 0) then
+		return
+	end
+
+	if (self:hasGoal('AttackUnits')) then
+		return
+	end
+
+    -- Force warriors to attack the enemy (which will automatically add goals to create warriors if we don't have them)
+	-- TODO: Split our warriors into multiple groups, so we can defend from multiple locations
+	self:prependGoal(
+		self:createGoal('AttackUnits', {
+			units = attackingUnits,
 		})
 	)
 end
@@ -74,7 +96,20 @@ end
 --- Prepends a goal to the front of the AI blackboard goal list
 --- @param goal BehaviorGoal
 function PlayerComputer:prependGoal(goal)
-	self:addGoalAt(goal, 1)
+    self:addGoalAt(goal, 1)
+end
+
+--- Checks if there is a goal with the specified id in the AI blackboard goal list
+--- @param goalId string
+--- @return boolean
+function PlayerComputer:hasGoal(goalId)
+	for _, goal in ipairs(self.blackboard.goals) do
+		if (goal.id == goalId) then
+			return true
+		end
+	end
+
+	return false
 end
 
 --- Removes the first goal from the AI blackboard goal list
@@ -122,6 +157,7 @@ function PlayerComputer:createGoal(goalModuleName, goalInfo)
     --- @field goalInfo table
     --- @field init fun(self: BehaviorGoal, player: PlayerComputer)
     --- @field run fun(self: BehaviorGoal, player: PlayerComputer): boolean
+	--- @field onOtherGoalRun? fun(self: BehaviorGoal, player: PlayerComputer)
     --- @field getInfoString fun(self: BehaviorGoal): string
     local goal = goalDesign
 
@@ -144,18 +180,32 @@ end
 --- If the goals change while we are working on the current goal, we will work on the new current goal
 --- the next update
 function PlayerComputer:update(deltaTime)
+    if (not self:getFaction()) then
+		-- Don't think if we don't have a faction (since we died)
+        return
+    end
+
 	local currentGoal = self:getCurrentGoal()
 
     if (not currentGoal) then
-		self:generateNewGoals()
-		return
-	end
+        self:generateNewGoals()
+        return
+    end
 
 	local isGoalCompleted = currentGoal:run(self)
 
-	if (isGoalCompleted) then
-		self:removeFirstGoal()
+    if (isGoalCompleted) then
+        self:removeFirstGoal()
+    end
+
+    -- Run the queuedUpdate function for all goals so they can still do logic, even if they can't finish
+	for _, goal in ipairs(self.blackboard.goals) do
+		if (goal.queuedUpdate) then
+			goal:queuedUpdate(self)
+		end
 	end
+
+	self:generateImportantNewGoals()
 end
 
 function PlayerComputer:findIdleUnits(unitTypeId)
