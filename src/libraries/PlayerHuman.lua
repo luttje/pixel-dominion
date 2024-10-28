@@ -127,17 +127,13 @@ function PlayerHuman:sendCommandTo(targetX, targetY, targetInteractable)
 
 	for i, interactable in ipairs(allSelectedInteractables) do
 		if (interactable.commandTo) then
-			local interacted = interactable:commandTo(targetX, targetY, targetInteractable, {
+			interactable:commandTo(targetX, targetY, targetInteractable, {
 				-- formation
 				index = i,
 				type = 'circle',
 				size = sizeOfAllSelectedInteractables,
 				centerUnit = allSelectedInteractables[1]
 			})
-
-			if (interacted and targetInteractable and targetInteractable.interactSounds) then
-				targetInteractable:playSound(table.Random(targetInteractable.interactSounds))
-			end
 		end
 	end
 end

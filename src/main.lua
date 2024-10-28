@@ -11,6 +11,12 @@ local computerPlayers = {}
 --- @type World
 local currentWorld
 
+--- Stagger unit commands so pathfinding doesn't get overwhelmed on certain frames.
+--- @type Stagger
+CommandStagger = Stagger({
+	maxPerSecond = 50, -- TODO: Find a good number for this
+})
+
 function love.load()
     love.window.setIcon(love.image.newImageData('assets/images/game-icon-64.png'))
 
@@ -117,6 +123,8 @@ function love.update(deltaTime)
 	for _, computerPlayer in ipairs(computerPlayers) do
 		computerPlayer:update(deltaTime)
 	end
+
+	CommandStagger:update(deltaTime)
 end
 
 function love.draw()

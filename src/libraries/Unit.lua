@@ -517,60 +517,57 @@ end
 --- @param targetY number
 --- @param interactable Interactable
 --- @param formation? table
---- @return boolean
 function Unit:commandTo(targetX, targetY, interactable, formation)
     if (self.isRemoved) then
-        return false
+        return
     end
 
-	-- Commented because farmland has the unit stand on it, but the structure redirects to the resource instance on the same tile.
-    -- -- If it's the same position, do nothing
-    -- if (self.x == targetX and self.y == targetY) then
-    --     return false
-    -- end
+	CommandStagger:stagger(function()
+		local pathPoints
+		pathPoints, targetX, targetY = self:findPathTo(targetX, targetY)
 
-	local pathPoints
-    pathPoints, targetX, targetY = self:findPathTo(targetX, targetY)
+		-- TODO: play a sound or something on fail/succeed walking
 
-    -- TODO: play a sound or something on fail/succeed walking
+		if (not pathPoints) then
+			self.targetX = nil
+			self.targetY = nil
+			self.pathPoints = nil
+			self.pathPointsIndex = nil
+			self.formation = nil
+			return
+		end
 
-    if (not pathPoints) then
-        self.targetX = nil
-		self.targetY = nil
-		self.pathPoints = nil
-		self.pathPointsIndex = nil
-        self.formation = nil
-        return false
-    end
+		self.targetX = targetX
+		self.targetY = targetY
+		self.pathPoints = pathPoints
+		self.pathPointsIndex = math.min(2, #pathPoints)
+		self.nextPathPointsUpdateAt = love.timer.getTime() + GameConfig.unitPathUpdateIntervalInSeconds
+		self.formation = formation
 
-	self.targetX = targetX
-	self.targetY = targetY
-    self.pathPoints = pathPoints
-	self.pathPointsIndex = math.min(2, #pathPoints)
-	self.nextPathPointsUpdateAt = love.timer.getTime() + GameConfig.unitPathUpdateIntervalInSeconds
-	self.formation = formation
+		-- Only update the target if we're not currently moving
+		if (self.x == self.nextX and self.y == self.nextY) then
+			self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
+		end
 
-    -- Only update the target if we're not currently moving
-    if (self.x == self.nextX and self.y == self.nextY) then
-        self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
-    end
+		if (interactable) then
+			self:setCurrentAction('idle', interactable)
+		else
+			self:setCurrentAction('idle', nil)
+		end
 
-    if (interactable) then
-        self:setCurrentAction('idle', interactable)
-	else
-		self:setCurrentAction('idle', nil)
-	end
+		-- for _, point in ipairs(pathPoints) do
+		--     print(('Step: %d - x: %d - y: %d'):format(_, point.x, point.y))
+		-- end
 
-    -- for _, point in ipairs(pathPoints) do
-    --     print(('Step: %d - x: %d - y: %d'):format(_, point.x, point.y))
-    -- end
+		-- The next point in the path becomes our immediate target
+		self.nextX = pathPoints[self.pathPointsIndex].x
+		self.nextY = pathPoints[self.pathPointsIndex].y
+        self.maxSteps = #pathPoints
 
-    -- The next point in the path becomes our immediate target
-    self.nextX = pathPoints[self.pathPointsIndex].x
-    self.nextY = pathPoints[self.pathPointsIndex].y
-    self.maxSteps = #pathPoints
-
-	return true
+		if (interactable and interactable.interactSounds and self:getFaction() == CurrentPlayer:getFaction()) then
+			interactable:playSound(table.Random(interactable.interactSounds))
+		end
+    end)
 end
 
 --- Removes the unit from the world
