@@ -225,8 +225,6 @@ function World:updateCollisionMap()
 						if (layer.properties.collidable) then
                             collisionMap[y][x] = NOT_WALKABLE
 						else
-                            collisionMap[y][x] = WALKABLE
-
 							if (layer.properties.reserved) then
                                 -- For farmland, we want to mark it as walkable but reserved so no other farmland can be placed on it
                                 if (not blockPlacingStructuresMap[y]) then
@@ -312,7 +310,7 @@ end
 --- Checks if the tile at the given position is occupied.
 --- @param x number
 --- @param y number
---- @param isPlacingStructure boolean
+--- @param isPlacingStructure? boolean
 --- @return boolean
 function World:isTileOccupied(x, y, isPlacingStructure)
 	if (not self.map) then
