@@ -91,9 +91,9 @@ function GameConfig.timeInSeconds(seconds)
     end
 end
 
---- How long the user has to hold down on a unit to select it
+--- How long the user has to hold down to interact with something or move to a tile.
 --- @type GameTimeGetter
-GameConfig.selectHoldTimeInSeconds = GameConfig.timeInSeconds(0.3)
+GameConfig.interactHoldTimeInSeconds = GameConfig.timeInSeconds(0.3)
 
 --- How long it takes for a unit to move from one tile to another in seconds.
 --- @type GameTimeGetter

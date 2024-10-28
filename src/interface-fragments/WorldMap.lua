@@ -119,61 +119,53 @@ function WorldMap:performUpdate(deltaTime)
 			local interactable = self.world:getInteractableUnderPosition(worldX, worldY)
 
 			if (love.mouse.isDown(1)) then
-				-- Start or update hold timer logic
 				if (
 						not self.isHolding
 						and self.hasReleasedSinceLastSelection
-						and interactable
-						and interactable.isSelectable
-						and interactable:getFaction() == CurrentPlayer:getFaction()
 					) then
-					-- Initialize hold
+					-- Initialize hold for interacting/moving
 					self.isHolding = true
-					self.finishHoldAt = love.timer.getTime() + GameConfig.selectHoldTimeInSeconds()
-					self.heldInteractable = interactable
-					self.hasReleasedSinceLastSelection = false
+					self.finishHoldAt = love.timer.getTime() + GameConfig.interactHoldTimeInSeconds()
+					self.heldInteractable = interactable -- can be nil
+					self.hasReleasedSinceLastSelection = true
 				elseif (self.isHolding) then
-					-- Check if we're still hovering over the same interactable
+                    -- Check if we've held long enough on an the same interactable, if so interact with it
+					-- Will also work for moving units, because nil (interactable) == nil (self.heldInteractable)
 					if (interactable == self.heldInteractable) then
-						-- Check if we've held long enough
-						if (self.finishHoldAt <= love.timer.getTime()) then
-							if (CurrentPlayer:isSameTypeAsSelected(self.heldInteractable)) then
-								-- If the unit is selected, deselect it
-								if (self.heldInteractable.isSelected) then
-									self.heldInteractable:setSelected(false)
-								else
-									-- If the unit is not selected, select it
-									self.heldInteractable:setSelected(true)
-								end
-							else
-								-- If the unit is not the same type, deselect all units and select this one
-								CurrentPlayer:clearSelectedInteractables()
-								self.heldInteractable:setSelected(not self.heldInteractable.isSelected)
-							end
+                        if (self.finishHoldAt <= love.timer.getTime()) then
+                            if (self.hasReleasedSinceLastSelection) then
+                                -- If any unit is selected, move it to the clicked position and/or interact with it
+                                CurrentPlayer:sendCommandTo(worldX, worldY, interactable)
+                                self.hasReleasedSinceLastSelection = false
+                            end
 
 							-- Reset hold state after selection
 							self.isHolding = false
 							self.finishHoldAt = nil
 							self.heldInteractable = nil
 						end
-					else
+                    else
 						-- Reset hold if we're no longer over the same interactable
 						self.isHolding = false
 						self.finishHoldAt = nil
 						self.heldInteractable = nil
 					end
 				end
-
-				-- Handle regular clicks for movement commands
-				if (not self.isHolding and self.hasReleasedSinceLastSelection) then
-					-- If any unit is selected, move it to the clicked position
-					CurrentPlayer:sendCommandTo(worldX, worldY, interactable)
-					self.hasReleasedSinceLastSelection = false
-				end
 			else
-				-- Handle mouse release before holding completes for interaction commands
 				if (self.isHolding and interactable and self.heldInteractable == interactable) then
-					CurrentPlayer:sendCommandTo(worldX, worldY, interactable)
+					if (CurrentPlayer:isSameTypeAsSelected(self.heldInteractable)) then
+						-- If the unit is selected, deselect it
+						if (self.heldInteractable.isSelected) then
+							self.heldInteractable:setSelected(false)
+						else
+							-- If the unit is not selected, select it
+							self.heldInteractable:setSelected(true)
+						end
+					else
+						-- If the unit is not the same type, deselect all units and select this one
+						CurrentPlayer:clearSelectedInteractables()
+						self.heldInteractable:setSelected(not self.heldInteractable.isSelected)
+					end
 				end
 
 				-- Reset hold state when mouse button is released
