@@ -202,16 +202,19 @@ function love.keyreleased(key)
             end
         elseif (key == 'f8') then
 			--- TODO: I think we won't allow free zooming in the final game, but during development it's nice to have
-            GameConfig.worldMapCameraScale = math.min(2, GameConfig.worldMapCameraScale + 1)
+            GameConfig.worldMapCameraScale = math.min(4, GameConfig.worldMapCameraScale + 1)
             print('World map camera scale increased to ' .. GameConfig.worldMapCameraScale)
         elseif (key == 'f9') then
 			GameConfig.worldMapCameraScale = math.max(1, GameConfig.worldMapCameraScale - 1)
-			print('World map camera scale decreased to ' .. GameConfig.worldMapCameraScale)
+            print('World map camera scale decreased to ' .. GameConfig.worldMapCameraScale)
+        elseif (key == 'f10') then
+			GameConfig.gameSpeed = 1
+			print('Game speed reset to ' .. GameConfig.gameSpeed)
         elseif (key == 'f11') then
-            GameConfig.gameSpeed = math.min(1000, GameConfig.gameSpeed + 2)
+			GameConfig.gameSpeed = math.min(2048, GameConfig.gameSpeed * 2)
             print('Game speed increased to ' .. GameConfig.gameSpeed)
 		elseif (key == 'f12') then
-            GameConfig.gameSpeed = math.max(1, GameConfig.gameSpeed - 2)
+            GameConfig.gameSpeed = math.max(1, GameConfig.gameSpeed * .5)
 			print('Game speed decreased to ' .. GameConfig.gameSpeed)
 		end
 	end

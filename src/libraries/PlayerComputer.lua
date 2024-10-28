@@ -16,6 +16,13 @@ function PlayerComputer:initialize(config)
 		--- @type BehaviorGoal[]
         goals = {},
 	}
+end
+
+--- Generates new goals for the AI to work on
+function PlayerComputer:generateNewGoals()
+	local faction = self:getFaction()
+    local currentVillagers = #faction:getUnitsOfType('villager')
+    local currentWarriors = #faction:getUnitsOfType('warrior')
 
     -- The AI should handle this goal to reach a certain population by:
     -- - Checking if we can create a new villager, if we can, create it
@@ -24,27 +31,14 @@ function PlayerComputer:initialize(config)
     -- - If we can't create a villager, because we don't have enough food, ensure we're gathering food
     -- - If we have no food to gather, create a farm
 	-- - If we have no wood for a farm, ensure we're gathering wood
+	-- Those sub-goals are prepended to the goal list, so they are handled first
     self:appendGoal(
 		self:createGoal('HaveUnitsOfType', {
 			unitTypeId = 'villager',
 			structureType = StructureTypeRegistry:getStructureType('town_hall'),
-			amount = 15,
+			amount = currentVillagers + 15,
 		})
     )
-
-	-- This will be added to the goal tree by the AI itself
-	-- self:appendGoal(
-	-- 	self:createGoal('BuildStructure', {
-	-- 		structureTypeId = 'farmland',
-	-- 	})
-	-- )
-
-	-- -- Build barracks (the AI will think of what it needs to to do to get there)
-    -- self:appendGoal(
-	-- 	self:createGoal('BuildStructure', {
-	-- 		structureTypeId = 'barracks',
-	-- 	})
-    -- )
 
     -- Create a warrior (the AI will think of what it needs to to do to get there)
 	-- Like building barracks first (since those generate warriors)
@@ -52,7 +46,7 @@ function PlayerComputer:initialize(config)
 		self:createGoal('HaveUnitsOfType', {
 			unitTypeId = 'warrior',
 			structureType = StructureTypeRegistry:getStructureType('barracks'),
-			amount = 5,
+			amount = currentWarriors + 5,
 		})
 	)
 end
@@ -152,8 +146,10 @@ end
 function PlayerComputer:update(deltaTime)
 	local currentGoal = self:getCurrentGoal()
 
-	-- TODO: Random goal?
-	assert(currentGoal, 'No goal to work on')
+    if (not currentGoal) then
+		self:generateNewGoals()
+		return
+	end
 
 	local isGoalCompleted = currentGoal:run(self)
 
