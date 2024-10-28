@@ -19,10 +19,10 @@ function love.load()
 	config.minheight = 320
 
 	if (love.system.getOS() == 'Web') then
-		-- Full-screen mode will ensure the mouse input matches 1:1 in browser full-screen mode.
+		-- Full-screen mode will ensure the mouse input matches 1:1 in browser full-screen mode (if the console isn't opened)
         config.fullscreen = true
     else
-        config.display = 2 -- TODO: Make this configurable (just for testing on my machine)
+        -- config.display = 2 -- TODO: Make this configurable (just for testing on my machine)
 		config.resizable = true
     end
 

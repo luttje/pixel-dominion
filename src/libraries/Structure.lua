@@ -216,11 +216,11 @@ function Structure:enqueueUnitGeneration(unitGenerationInfo)
         factionInventory:remove(resourceTypeId, amount)
     end
 
-    if (self.nextUnitGeneratedAt == nil) then
-        self.nextUnitGeneratedAt = love.timer.getTime() + unitGenerationInfo.generationTimeInSeconds()
-    end
-
     self.unitGenerationQueue:enqueue(unitGenerationInfo.unitTypeId)
+
+	if (not self.nextUnitGeneratedAt) then
+		self.nextUnitGeneratedAt = love.timer.getTime() + unitGenerationInfo.generationTimeInSeconds()
+	end
 
     return true
 end
@@ -276,7 +276,7 @@ function Structure:handleUnitGenerationTimedUpdate()
     local units = faction:getUnits()
     local housing = faction:getResourceInventory():getValue('housing')
 
-    if (#units >= housing) then
+	if (#units >= housing) then
 		print('Cannot generate unit.', #units, housing)
 
 		return
@@ -286,7 +286,7 @@ function Structure:handleUnitGenerationTimedUpdate()
         return
     end
 
-	self.nextUnitGeneratedAt = nil
+	self.nextUnitGeneratedAt = love.timer.getTime() + currentUnitGenerationInfo.generationTimeInSeconds()
     self.unitGenerationQueue:dequeue() -- Remove the unit from the queue, it has been generated
     self:generateUnit(currentUnitGenerationInfo.unitTypeId)
 end

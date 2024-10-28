@@ -76,9 +76,6 @@ function WorldMap:centerOnTownHall()
 
 	self.camera.x = (townHall.x * GameConfig.tileSize) - (self:getWidth() * .5) / self:getCameraWorldScale()
 	self.camera.y = (townHall.y * GameConfig.tileSize) - (self:getHeight() * .4) / self:getCameraWorldScale()
-
-	-- Let's select it so players see that that will give them information about villager generation
-	townHall:setSelected(true)
 end
 
 function WorldMap:screenToWorld(x, y, snapToTile)
@@ -125,7 +122,7 @@ function WorldMap:performUpdate(deltaTime)
 					) then
 					-- Initialize hold for interacting/moving
 					self.isHolding = true
-					self.finishHoldAt = love.timer.getTime() + GameConfig.interactHoldTimeInSeconds()
+					self.finishHoldAt = love.timer.getTime() + GameConfig.interactHoldTimeInSeconds
 					self.heldInteractable = interactable -- can be nil
 					self.hasReleasedSinceLastSelection = true
 				elseif (self.isHolding) then

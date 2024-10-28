@@ -12,22 +12,22 @@ local function cutify(source)
     return source
 end
 
-Sounds.musicMain = newSource('leohpaz/plain_sight_music.wav', 'stream')
+Sounds.musicMain = newSource('leohpaz/plain_sight_music.ogg', 'stream')
 Sounds.musicMain:setVolume(0.2)
 Sounds.musicMain:setLooping(true)
 
-Sounds.treeRustling1 = cutify(newSource('leohpaz/02_tree_rustling_1.wav'))
-Sounds.treeRustling2 = cutify(newSource('leohpaz/02_tree_rustling_2.wav'))
-Sounds.treeRustling3 = cutify(newSource('leohpaz/02_tree_rustling_3.wav'))
-Sounds.treeRustling4 = cutify(newSource('leohpaz/02_tree_rustling_4.wav'))
+Sounds.treeRustling1 = cutify(newSource('leohpaz/02_tree_rustling_1.ogg'))
+Sounds.treeRustling2 = cutify(newSource('leohpaz/02_tree_rustling_2.ogg'))
+Sounds.treeRustling3 = cutify(newSource('leohpaz/02_tree_rustling_3.ogg'))
+Sounds.treeRustling4 = cutify(newSource('leohpaz/02_tree_rustling_4.ogg'))
 
--- Sounds.stoneMining1 = cutify(newSource('leohpaz/01_chest_open_1.wav')) -- sounds too much like a chest opening
-Sounds.stoneMining2 = cutify(newSource('leohpaz/01_chest_open_2.wav'))
-Sounds.stoneMining3 = cutify(newSource('leohpaz/01_chest_open_3.wav'))
-Sounds.stoneMining4 = cutify(newSource('leohpaz/01_chest_open_4.wav'))
+-- Sounds.stoneMining1 = cutify(newSource('leohpaz/01_chest_open_1.ogg')) -- sounds too much like a chest opening
+Sounds.stoneMining2 = cutify(newSource('leohpaz/01_chest_open_2.ogg'))
+Sounds.stoneMining3 = cutify(newSource('leohpaz/01_chest_open_3.ogg'))
+Sounds.stoneMining4 = cutify(newSource('leohpaz/01_chest_open_4.ogg'))
 
-Sounds.farming1 = cutify(newSource('leohpaz/01_bush_rustling_1.wav'))
-Sounds.farming2 = cutify(newSource('leohpaz/01_bush_rustling_2.wav'))
-Sounds.farming3 = cutify(newSource('leohpaz/01_bush_rustling_3.wav'))
+Sounds.farming1 = cutify(newSource('leohpaz/01_bush_rustling_1.ogg'))
+Sounds.farming2 = cutify(newSource('leohpaz/01_bush_rustling_2.ogg'))
+Sounds.farming3 = cutify(newSource('leohpaz/01_bush_rustling_3.ogg'))
 
 return Sounds
