@@ -72,9 +72,9 @@ function GOAL:run(player)
 	for resourceTypeId, amount in pairs(resourcesNeeded) do
 		if (not faction:getResourceInventory():has(resourceTypeId, amount)) then
 			player:prependGoal(
-				player:createGoal('GatherResources', {
+				player:createGoal('HaveGatheredResources', {
 					resourceTypeId = resourceTypeId,
-					amount = amount,
+					desiredAmount = amount,
 				})
 			)
 			hasResources = false

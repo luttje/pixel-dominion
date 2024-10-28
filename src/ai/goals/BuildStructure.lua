@@ -1,6 +1,8 @@
 --- @type BehaviorGoal
 local GOAL = {}
 
+GOAL.requiresVillagers = true
+
 --- Called when the goal is added to the goal list.
 --- @param player PlayerComputer
 function GOAL:init(player)
@@ -37,9 +39,9 @@ function GOAL:run(player)
         for resourceTypeId, amount in pairs(structureType.requiredResources) do
             if (not faction:getResourceInventory():has(resourceTypeId, amount)) then
                 player:prependGoal(
-                    player:createGoal('GatherResources', {
+                    player:createGoal('HaveGatheredResources', {
                         resourceTypeId = resourceTypeId,
-                        amount = amount,
+                        desiredAmount = amount,
                     })
                 )
             end

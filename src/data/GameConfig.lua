@@ -34,7 +34,7 @@ GameConfig.unitSupplyCapacity = 5
 
 --- The pathing offsets for looking around interactables.
 --- @type table
-GameConfig.unitPathingOffsets = {
+GameConfig.tileSearchOffsets = {
 	-- Orthagonal
 	{ x = 0, y = 1 },
 	{ x = -1, y = 0 },
@@ -46,6 +46,24 @@ GameConfig.unitPathingOffsets = {
 	{ x = -1, y = 1 },
 	{ x = 1, y = 1 },
 }
+
+--- The boundary of the tile search offsets.
+--- @type {x:number, y:number, width:number, height:number}
+GameConfig.tileSearchOffsetsBoundary = {
+	x = -1,
+	y = -1,
+	width = 3,
+	height = 3,
+}
+
+-- Assert that no mistakes were made in the tile search offsets above.
+do
+	local boundary = GameConfig.tileSearchOffsetsBoundary
+	for _, offset in ipairs(GameConfig.tileSearchOffsets) do
+		assert(offset.x >= boundary.x and offset.x < boundary.x + boundary.width, 'Tile search offset x out of bounds')
+		assert(offset.y >= boundary.y and offset.y < boundary.y + boundary.height, 'Tile search offset y out of bounds')
+	end
+end
 
 --- The tile ids that are spawnpoints for factions.
 --- @type table
@@ -114,6 +132,10 @@ GameConfig.interactableDamageTimeInSeconds = GameConfig.timeInSeconds(1)
 --- How long in between animation frames in seconds.
 --- @type GameTimeGetter
 GameConfig.animationFrameTimeInSeconds = GameConfig.timeInSeconds(0.2)
+
+--- How long it takes for a unit already moving along a path to update its path again (costly).
+--- @type GameTimeGetter
+GameConfig.unitPathUpdateIntervalInSeconds = math.huge -- never for now, lets see what happens (besides walking through walls that were just placed)
 
 --[[
 	Debug/testing options

@@ -311,14 +311,25 @@ function Unit:update(deltaTime)
     end
 
 	-- Time to move to the next tile
-	self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
-    self.x, self.y = self.nextX, self.nextY
+    self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
+	self:setWorldPosition(self.nextX, self.nextY)
 
 	-- Update next position
 	if (self.x ~= self.targetX or self.y ~= self.targetY) then
-        local pathPoints = self:findPathTo(self.targetX, self.targetY)
+        local pathPoints = self.pathPoints
 
-		if (pathPoints and #pathPoints > 1) then
+		if (self.nextPathPointsUpdateAt < love.timer.getTime()) then
+            pathPoints = self:findPathTo(self.targetX, self.targetY, true)
+            self.pathPoints = pathPoints
+			self.pathPointsIndex = math.min(2, #pathPoints)
+			self.nextPathPointsUpdateAt = love.timer.getTime() + GameConfig.unitPathUpdateIntervalInSeconds
+        else
+			self.pathPointsIndex = self.pathPointsIndex + 1
+		end
+
+		assert(pathPoints, 'No path points found to next position')
+
+		if (pathPoints and self.pathPointsIndex <= #pathPoints) then
             self.maxSteps = self.maxSteps - 1
 
             -- We see if pathfinding keeps failing in between similar positions and stop.
@@ -327,7 +338,9 @@ function Unit:update(deltaTime)
 				return
             end
 
-			self.nextX, self.nextY = pathPoints[2].x, pathPoints[2].y
+            self.nextX, self.nextY = pathPoints[self.pathPointsIndex].x, pathPoints[self.pathPointsIndex].y
+        else
+			self:reachedTarget()
 		end
     else
 		self:reachedTarget()
@@ -343,10 +356,12 @@ function Unit:reachedTarget()
 	local unitInTheWay = self:isPositionOccupied(self.nextX, self.nextY)
 
 	if (unitInTheWay) then
+        local searchRange = 10
+
 		-- If someone is in the way and they are not moving, move them out of the way
         if (not unitInTheWay:isMoving()) then
-			if (not unitInTheWay:isInteracting()) then
-				local x, y = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
+            if (not unitInTheWay:isInteracting()) then
+				local x, y = self:getFreeTileNearby(self:getFaction():getUnitsNear(self.nextX, self.nextY, searchRange), self.nextX, self.nextY, searchRange)
 
 				if (not x or not y) then
 					print('No free tile found around the unit in the way.')
@@ -362,7 +377,7 @@ function Unit:reachedTarget()
 		else
 			assert(false, 'Checking if this actually happens') -- don't think this should happen
 			print('Unit in the way, waiting for them to move.')
-			self.nextX, self.nextY = self:getFreeTileNearby(self:getFaction():getUnits(), self.nextX, self.nextY)
+			self.nextX, self.nextY = self:getFreeTileNearby(self:getFaction():getUnitsNear(self.nextX, self.nextY, searchRange), self.nextX, self.nextY, searchRange)
 
 			if (self:isMoving()) then
 				if (self.maxSteps) then
@@ -469,33 +484,29 @@ function Unit:calculateSquareFormationPosition(centerX, centerY, size, formation
 end
 
 --- Finds a path to or near the target position
-function Unit:findPathTo(targetX, targetY)
+function Unit:findPathTo(targetX, targetY, withFallback)
 	local world = self:getWorld()
-	local pathPoints = world:findPath(self.x, self.y, targetX, targetY)
+	local pathPoints = world:findPath(self.x, self.y, targetX, targetY, withFallback)
 
     if (not pathPoints) then
-        local world = self:getWorld()
-
 		-- Look further and further away until we find a free tile is found around the target.
-		for range = 1, math.huge do
-			for _, offset in ipairs(GameConfig.unitPathingOffsets) do
-				local offsetX = targetX + (offset.x * range)
-				local offsetY = targetY + (offset.y * range)
+		for _, offset in ipairs(GameConfig.tileSearchOffsets) do
+			local offsetX = targetX + offset.x
+			local offsetY = targetY + offset.y
 
-                pathPoints = world:findPath(self.x, self.y, offsetX, offsetY)
+			pathPoints = world:findPath(self.x, self.y, offsetX, offsetY, withFallback)
 
-				if (pathPoints) then
-					targetX = offsetX
-					targetY = offsetY
-					break
-				end
-			end
-
-            if (pathPoints or range > 100) then
-				-- Give up after 100 tries
+			if (pathPoints) then
+				targetX = offsetX
+				targetY = offsetY
 				break
 			end
 		end
+	end
+
+    if (not pathPoints and not withFallback) then
+		-- Try again with fallback
+		return self:findPathTo(targetX, targetY, true)
 	end
 
 	return pathPoints, targetX, targetY
@@ -526,12 +537,17 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
     if (not pathPoints) then
         self.targetX = nil
 		self.targetY = nil
-		self.formation = nil
+		self.pathPoints = nil
+		self.pathPointsIndex = nil
+        self.formation = nil
         return false
     end
 
 	self.targetX = targetX
 	self.targetY = targetY
+    self.pathPoints = pathPoints
+	self.pathPointsIndex = math.min(2, #pathPoints)
+	self.nextPathPointsUpdateAt = love.timer.getTime() + GameConfig.unitPathUpdateIntervalInSeconds
 	self.formation = formation
 
     -- Only update the target if we're not currently moving
@@ -550,8 +566,8 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
     -- end
 
     -- The next point in the path becomes our immediate target
-    self.nextX = pathPoints[1].x
-    self.nextY = pathPoints[1].y
+    self.nextX = pathPoints[self.pathPointsIndex].x
+    self.nextY = pathPoints[self.pathPointsIndex].y
     self.maxSteps = #pathPoints
 
 	return true

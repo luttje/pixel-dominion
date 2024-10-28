@@ -1,4 +1,4 @@
---- Represents an interactable object in the wolr.d
+--- Represents an interactable object in the world
 --- @class Interactable
 ---
 --- @field id number # The id of the interactable
@@ -39,6 +39,8 @@ function Interactable:initialize(config)
 
     self.id = NEXT_ID
 	NEXT_ID = NEXT_ID + 1
+
+    self.world.searchTree:insert(self)
 end
 
 --- Sets the world for the interactable
@@ -138,7 +140,19 @@ end
 --- Gets the world position of the interactable
 --- @return number, number
 function Interactable:getWorldPosition()
-	return self.x, self.y
+    return self.x, self.y
+end
+
+--- Sets the position of the interactable
+--- @param x number
+--- @param y number
+function Interactable:setWorldPosition(x, y)
+    self.world.searchTree:remove(self)
+
+	self.x = x
+    self.y = y
+
+    self.world.searchTree:insert(self)
 end
 
 --- Checks if the interactable is in the given position
@@ -220,37 +234,34 @@ end
 --- @param interactables? Interactable[]
 --- @param nearX? number
 --- @param nearY? number
+--- @param searchRange? number
 --- @return number?, number?
-function Interactable:getFreeTileNearby(interactables, nearX, nearY)
+function Interactable:getFreeTileNearby(interactables, nearX, nearY, searchRange)
     nearX, nearY = nearX or self.x, nearY or self.y
+	searchRange = searchRange or 1
 
     -- Look further and further away until we find a free tile is found.
-    for range = 1, math.huge do
-        for _, offset in pairs(GameConfig.unitPathingOffsets) do
-            local newX, newY = nearX + (offset.x * range), nearY + (offset.y * range)
+	for range = 1, searchRange do
+		for _, offset in pairs(GameConfig.tileSearchOffsets) do
+			local newX, newY = nearX + (offset.x * range), nearY + (offset.y * range)
 
-            -- Also check if any interactables are in the way
-            local isInteractableInWay = false
+			-- Also check if any interactables are in the way
+			local isInteractableInWay = false
 
-            if (interactables) then
-                for _, interactable in pairs(interactables) do
-                    if (interactable:isInPosition(newX, newY)) then
-                        isInteractableInWay = true
-                        break
-                    end
-                end
-            end
+			if (interactables) then
+				for _, interactable in pairs(interactables) do
+					if (interactable:isInPosition(newX, newY)) then
+						isInteractableInWay = true
+						break
+					end
+				end
+			end
 
-            if (not isInteractableInWay and not self:getWorld():isTileOccupied(newX, newY)) then
-                return newX, newY
-            end
-        end
-
-        if (range > 1000) then
-            -- Prevent infinite loop
-            break
-        end
-    end
+			if (not isInteractableInWay and not self:getWorld():isTileOccupied(newX, newY, nil, true)) then
+				return newX, newY
+			end
+		end
+	end
 
     return nil, nil
 end

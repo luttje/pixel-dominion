@@ -51,28 +51,30 @@ function PlayerComputer:generateNewGoals()
 	)
 
     -- Always stockpile these resources
+    local factionInventory = faction:getResourceInventory()
+
 	self:appendGoal(
-		self:createGoal('GatherResources', {
+		self:createGoal('HaveGatheredResources', {
 			resourceTypeId = 'food',
-			amount = 150,
+			desiredAmount = 150 + factionInventory:getValue('food'),
 		})
 	)
 	self:appendGoal(
-		self:createGoal('GatherResources', {
+		self:createGoal('HaveGatheredResources', {
 			resourceTypeId = 'wood',
-			amount = 100,
+			desiredAmount = 100 + factionInventory:getValue('wood'),
 		})
 	)
 	self:appendGoal(
-		self:createGoal('GatherResources', {
+		self:createGoal('HaveGatheredResources', {
 			resourceTypeId = 'stone',
-			amount = 100,
+			desiredAmount = 100 + factionInventory:getValue('stone'),
 		})
 	)
 	self:appendGoal(
-		self:createGoal('GatherResources', {
+		self:createGoal('HaveGatheredResources', {
 			resourceTypeId = 'gold',
-			amount = 50,
+			desiredAmount = 50 + factionInventory:getValue('gold'),
 		})
 	)
 
@@ -101,7 +103,7 @@ function PlayerComputer:generateImportantNewGoals()
 end
 
 --- Optimizes the goals where possible, by combining them where possible
---- For example multiple sequential GatherResources goals will be merged into GatherMultipleResources
+--- For example multiple sequential HaveGatheredResources goals will be merged into HaveGatheredMultipleResources
 function PlayerComputer:optimizeGoals()
     local newGoals = {}
     local currentGatherGoals = {}
@@ -112,11 +114,11 @@ function PlayerComputer:optimizeGoals()
 		for _, gatherGoal in ipairs(currentGatherGoals) do
 			table.insert(resourceRequirements, {
 				resourceTypeId = gatherGoal.goalInfo.resourceTypeId,
-				amount = gatherGoal.goalInfo.amount,
+				desiredAmount = gatherGoal.goalInfo.desiredAmount,
 			})
 		end
 
-		local newGoal = self:createGoal('GatherMultipleResources', {
+		local newGoal = self:createGoal('HaveGatheredMultipleResources', {
             requirements = resourceRequirements,
 		})
 		newGoal:init(self)
@@ -125,7 +127,7 @@ function PlayerComputer:optimizeGoals()
 
     -- Collect goals and identify optimization opportunities
     for _, goal in ipairs(self.blackboard.goals) do
-        if (goal.id == 'GatherResources') then
+        if (goal.id == 'HaveGatheredResources') then
             table.insert(currentGatherGoals, goal)
         else
             -- Process any accumulated gather goals before adding the non-gather goal
@@ -246,13 +248,19 @@ end
 function PlayerComputer:removeFirstGoal()
     local goal = table.remove(self.blackboard.goals, 1)
 
-	return goal
+    return goal
 end
 
 --- Gets the current goal the AI is working on
 --- @return BehaviorGoal
 function PlayerComputer:getCurrentGoal()
-	return self.blackboard.goals[1]
+    return self.blackboard.goals[1]
+end
+
+--- Gets the goal list
+--- @return BehaviorGoal[]
+function PlayerComputer:getGoalList()
+	return self.blackboard.goals
 end
 
 --- Prints the current goal list
@@ -284,7 +292,7 @@ function PlayerComputer:createGoal(goalModuleName, goalInfo)
     --- @field goalInfo table
     --- @field init fun(self: BehaviorGoal, player: PlayerComputer)
     --- @field run fun(self: BehaviorGoal, player: PlayerComputer): boolean
-	--- @field onOtherGoalRun? fun(self: BehaviorGoal, player: PlayerComputer)
+	--- @field queuedUpdate? fun(self: BehaviorGoal, player: PlayerComputer): boolean
     --- @field getInfoString fun(self: BehaviorGoal): string
     local goal = goalDesign
 
@@ -325,11 +333,18 @@ function PlayerComputer:update(deltaTime)
         self:removeFirstGoal()
     end
 
-    -- Run the queuedUpdate function for all goals so they can still do logic, even if they can't finish
-	for _, goal in ipairs(self.blackboard.goals) do
-		if (goal.queuedUpdate) then
-			goal:queuedUpdate(self)
-		end
+    -- Run the queuedUpdate function for all goals so they can still do logic
+	local goalsToRemove = {}
+    for i, goal in ipairs(self.blackboard.goals) do
+        if (goal.queuedUpdate) then
+            if (goal:queuedUpdate(self) == true) then
+                table.insert(goalsToRemove, i)
+            end
+        end
+    end
+
+	for i = #goalsToRemove, 1, -1 do
+		table.remove(self.blackboard.goals, goalsToRemove[i])
 	end
 
 	self:generateImportantNewGoals()

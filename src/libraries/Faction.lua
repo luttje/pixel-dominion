@@ -103,6 +103,25 @@ function Faction:getUnits()
     return self.units
 end
 
+--- Returns all units near the given position
+--- @param x number
+--- @param y number
+--- @param searchRange number
+--- @return Unit[]
+function Faction:getUnitsNear(x, y, searchRange)
+    local localRange = GameConfig.tileSearchOffsetsBoundary
+	local range = {
+		x = x + (localRange.x * searchRange),
+		y = y + (localRange.y * searchRange),
+		width = localRange.width * searchRange,
+		height = localRange.height * searchRange,
+	}
+
+    local nearbyUnits = self:getWorld().searchTree:query(range)
+
+	return nearbyUnits
+end
+
 --- Returns all units of the given type
 --- @param unitType UnitTypeRegistry.UnitRegistration|string
 --- @return Unit[]
@@ -160,7 +179,7 @@ end
 --- @return number, number
 function Faction:findSuitableLocationToBuild(structureType, withRandomOffset)
 	for range = 1, math.huge do
-        for _, offset in pairs(GameConfig.unitPathingOffsets) do
+        for _, offset in pairs(GameConfig.tileSearchOffsets) do
             local newX, newY = self:getTownHall().x + (offset.x * range), self:getTownHall().y + (offset.y * range)
 
             -- By adding a bit of random offset the village won't look so uniform
@@ -176,6 +195,7 @@ function Faction:findSuitableLocationToBuild(structureType, withRandomOffset)
 
 		if (range > 1000) then
 			-- Prevent infinite loop
+			print('findSuitableLocationToBuild - No location found to target, stopping.')
 			break
 		end
 	end

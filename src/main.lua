@@ -217,7 +217,7 @@ function love.keyreleased(key)
 			GameConfig.gameSpeed = 1
 			print('Game speed reset to ' .. GameConfig.gameSpeed)
         elseif (key == 'f11') then
-			GameConfig.gameSpeed = math.min(4096, GameConfig.gameSpeed * 2)
+			GameConfig.gameSpeed = math.min(8192, GameConfig.gameSpeed * 2) -- Any higher seems to not work
             print('Game speed increased to ' .. GameConfig.gameSpeed)
         elseif (key == 'f12') then
             -- Dump information about the computer players

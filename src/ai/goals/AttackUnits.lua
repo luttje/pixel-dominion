@@ -60,6 +60,7 @@ end
 
 --- Called while other goals are being worked on, but we're in the goal list.
 --- @param player PlayerComputer
+--- @return boolean # Whether the goal has been completed
 function GOAL:queuedUpdate(player)
     -- If we're under attack and gathering resources, we still want to ensure our warriors are attacking
     local faction = player:getFaction()
@@ -75,16 +76,18 @@ function GOAL:queuedUpdate(player)
 
     -- If we have no units to attack, we're done
     if (#unitsToAttack == 0) then
-        return
+		return false
     end
 
     -- If we have no warriors, we'll wait
     if (#warriors == 0) then
-        return
+		return false
     end
 
     -- Check that our warriors are attacking something
-	self:setWarriorsToAttack(player, warriors, unitsToAttack)
+    self:setWarriorsToAttack(player, warriors, unitsToAttack)
+
+	return false
 end
 
 --- Sets the warriors to attack the specified units

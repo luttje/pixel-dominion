@@ -304,10 +304,10 @@ function Structure:generateUnit(unitTypeOrId)
 		return
 	end
 
-    local x, y = self:getFreeTileNearby()
+    local x, y = self:getFreeTileNearby(nil, nil, nil, 10)
 
     if (not x or not y) then
-        print('No free tile found around the town hall.')
+        print('No free tile found around the structure.')
         return
     end
 

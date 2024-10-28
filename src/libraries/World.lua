@@ -9,10 +9,14 @@ NOT_WALKABLE = 1
 
 --- Represents a world that contains factions
 --- @class World
+---
 --- @field mapPath string # The path to the map file
+---
 --- @field factions Faction[] # The factions in the world
 --- @field resourceInstances Resource[] # The resource instances in the world
+---
 --- @field spawnPoints table<number, table<number, number>> # The spawn points for the factions
+--- @field searchTree QuadTree # The search tree for the world
 local World = DeclareClass('World')
 
 --- Initializes the world
@@ -43,7 +47,17 @@ function World:loadMap()
 	self.world = love.physics.newWorld(0, 0)
 
 	-- Prepare collision objects
-	self.map:box2d_init(self.world)
+    self.map:box2d_init(self.world)
+
+	-- Let us search for objects in the map quickly
+	self.searchTree = QuadTree({
+		boundary = {
+			x = self.map.offsetx,
+			y = self.map.offsety,
+			width = self.map.width,
+			height = self.map.height
+        },
+	})
 
 	-- Call update and draw callbacks for these layers
 	local layersWithCallbacks = {
@@ -196,7 +210,13 @@ end
 --- Additionally it returns the number representing
 --- @return table<number, table<number, number>>
 function World:updateCollisionMap()
-	local collisionMap = {}
+	-- Regular collision map, where we can and can't walk
+    local collisionMap = {}
+
+	-- Fallback, with layers that prefer collision, but are willing to fallback to walkable
+    local collisionMapFallback = {}
+
+	-- Map of structures that block placing other structures
 	local blockPlacingStructuresMap = {}
 
 	if (not self.map) then
@@ -207,10 +227,12 @@ function World:updateCollisionMap()
 	local map = self.map
 
 	for y = 1, map.height do
-		collisionMap[y] = {}
+        collisionMap[y] = {}
+		collisionMapFallback[y] = {}
 
 		for x = 1, map.width do
-			collisionMap[y][x] = WALKABLE
+            collisionMap[y][x] = WALKABLE
+			collisionMapFallback[y][x] = WALKABLE
 		end
 	end
 
@@ -224,6 +246,10 @@ function World:updateCollisionMap()
 						-- Or if the entire layer is collidable, then any tile will be marked as collidable
 						if (layer.properties.collidable) then
                             collisionMap[y][x] = NOT_WALKABLE
+
+							if (not layer.properties.notStrictAboutCollidable) then
+								collisionMapFallback[y][x] = NOT_WALKABLE
+							end
 						else
 							if (layer.properties.reserved) then
                                 -- For farmland, we want to mark it as walkable but reserved so no other farmland can be placed on it
@@ -243,8 +269,14 @@ function World:updateCollisionMap()
     self.collisionMap = collisionMap
     self.collisionGrid = Grid(collisionMap)
 
+    self.collisionMapFallback = collisionMapFallback
+	self.collisionGridFallback = Grid(collisionMapFallback)
+
     self.pathfinder = Pathfinder(self.collisionGrid, 'ASTAR', WALKABLE)
-	self.pathfinder:setMode('ORTHOGONAL')
+    self.pathfinder:setMode('ORTHOGONAL')
+
+	self.pathfinderFallback = Pathfinder(self.collisionGridFallback, 'ASTAR', WALKABLE)
+	self.pathfinderFallback:setMode('ORTHOGONAL')
 
 	self.blockPlacingStructuresMap = blockPlacingStructuresMap
 
@@ -269,8 +301,9 @@ end
 --- @param startY number # The start Y (0-based)
 --- @param endX number # The end X (0-based)
 --- @param endY number # The end Y (0-based)
+--- @param withFallback? boolean # Whether to use the fallback pathfinder if the main one fails
 --- @return table<number, table<number, number>> | nil # A table of path points (0-based) or nil if no path was found
-function World:findPath(startX, startY, endX, endY)
+function World:findPath(startX, startY, endX, endY, withFallback)
     if (not self.map) then
         assert(false, 'No map loaded.')
         return
@@ -294,7 +327,13 @@ function World:findPath(startX, startY, endX, endY)
     local path = self.pathfinder:getPath(startX, startY, endX, endY)
 
     if (not path) then
-        return nil
+		if (withFallback) then
+            path = self.pathfinderFallback:getPath(startX, startY, endX, endY)
+		end
+
+		if (not path) then
+            return nil
+		end
     end
 
     -- Convert back to 0-based indexes
@@ -311,8 +350,9 @@ end
 --- @param x number
 --- @param y number
 --- @param isPlacingStructure? boolean
+--- @param withFallback? boolean
 --- @return boolean
-function World:isTileOccupied(x, y, isPlacingStructure)
+function World:isTileOccupied(x, y, isPlacingStructure, withFallback)
 	if (not self.map) then
 		assert(false, 'No map loaded.')
 		return false
@@ -337,7 +377,19 @@ function World:isTileOccupied(x, y, isPlacingStructure)
 		end
 	end
 
-	return collisionMap[y][x] == NOT_WALKABLE
+	if (collisionMap[y][x] ~= NOT_WALKABLE) then
+		return false
+	end
+
+	if (withFallback == true) then
+		local collisionMapFallback = self.collisionMapFallback
+
+		if (collisionMapFallback[y][x] ~= NOT_WALKABLE) then
+			return false
+		end
+	end
+
+	return true
 end
 
 --- Adds the given tile to the specified layer at the given position.

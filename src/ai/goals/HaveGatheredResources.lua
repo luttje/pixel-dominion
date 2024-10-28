@@ -1,33 +1,35 @@
 --- @type BehaviorGoal
 local GOAL = {}
 
+GOAL.requiresVillagers = true
+
 --- Called when the goal is added to the goal list.
 --- @param player PlayerComputer
 function GOAL:init(player)
     local resourceTypeId = self.goalInfo.resourceTypeId
-    local amount = self.goalInfo.amount
+    local desiredAmount = self.goalInfo.desiredAmount
 
-    if (type(amount) == 'function') then
-        amount = amount()
+    if (type(desiredAmount) == 'function') then
+        desiredAmount = desiredAmount()
     end
 
-    amount = tonumber(amount)
+    desiredAmount = tonumber(desiredAmount)
 
 	assert(resourceTypeId, 'Invalid resource type id')
-	assert(amount, 'Invalid amount')
+	assert(desiredAmount, 'Invalid desiredAmount')
 
     local resourceType = ResourceTypeRegistry:getResourceType(resourceTypeId)
 
 	assert(resourceType, 'Invalid resource type id')
 
 	self.goalInfo.resourceType = resourceType
-    self.goalInfo.amount = amount
+    self.goalInfo.desiredAmount = desiredAmount
 end
 
 --- Returns a string representation of the goal
 --- @return string
 function GOAL:getInfoString()
-	return 'Gather ' .. self.goalInfo.amount .. ' of ' .. self.goalInfo.resourceType.id
+	return 'Gather ' .. self.goalInfo.desiredAmount .. ' of ' .. self.goalInfo.resourceType.id
 end
 
 --- Called while the AI is working on the goal.
@@ -36,17 +38,17 @@ end
 function GOAL:run(player)
     local faction = player:getFaction()
     local resourceType = self.goalInfo.resourceType
-    local amount = self.goalInfo.amount
+    local desiredAmount = self.goalInfo.desiredAmount
 
-    if (faction:getResourceInventory():has(resourceType.id, amount)) then
+    if (faction:getResourceInventory():has(resourceType.id, desiredAmount)) then
         return true
     end
 
-    local villagers = player:findIdleOrRandomUnits('villager', amount / 10)
+    local villagers = player:findIdleOrRandomUnits('villager', desiredAmount / 10)
 
 	assert(#villagers, 'No villager found')
 
-	-- Send all our idle units (or some random units, increasing by the amount) to gather the resource
+	-- Send all our idle units (or some random units, increasing by the desiredAmount) to gather the resource
 	for _, villager in ipairs(villagers) do
         -- If they're already gathering the resource, we don't need to do anything
         local villagerInteractable = villager:getCurrentActionInteractable()

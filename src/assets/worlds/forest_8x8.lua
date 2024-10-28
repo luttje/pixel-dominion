@@ -573,7 +573,8 @@ return {
       parallaxx = 1,
       parallaxy = 1,
       properties = {
-        ["collidable"] = true
+        ["collidable"] = true,
+        ["notStrictAboutCollidable"] = true
       },
       encoding = "lua",
       data = {
@@ -710,7 +711,8 @@ return {
       parallaxx = 1,
       parallaxy = 1,
       properties = {
-        ["collidable"] = true
+        ["collidable"] = true,
+        ["notStrictAboutCollidable"] = true
       },
       encoding = "lua",
       data = {
