@@ -49,6 +49,27 @@ function PlayerComputer:generateNewGoals()
 			amount = currentWarriors + 1,
 		})
 	)
+
+    -- Always stockpile these resources
+	self:appendGoal(
+		self:createGoal('GatherResources', {
+			resourceTypeId = 'food',
+			amount = 50,
+		})
+	)
+	self:appendGoal(
+		self:createGoal('GatherResources', {
+			resourceTypeId = 'stone',
+			amount = 50,
+		})
+	)
+	self:appendGoal(
+		self:createGoal('GatherResources', {
+			resourceTypeId = 'gold',
+			amount = 50,
+		})
+	)
+
 end
 
 --- Generates important new goals for the AI to work on, like when the AI is under attack
@@ -83,8 +104,6 @@ function PlayerComputer:addGoalAt(goal, index)
     if (goal.init) then
         goal:init(self)
     end
-
-	self:debugGoalList()
 end
 
 --- Appends a goal to the end of the AI blackboard goal list
@@ -101,10 +120,27 @@ end
 
 --- Checks if there is a goal with the specified id in the AI blackboard goal list
 --- @param goalId string
+--- @param goalInfo? table
 --- @return boolean
-function PlayerComputer:hasGoal(goalId)
+function PlayerComputer:hasGoal(goalId, goalInfo)
 	for _, goal in ipairs(self.blackboard.goals) do
 		if (goal.id == goalId) then
+			if (goalInfo) then
+				-- Check if the goal info is the same
+				local isSame = true
+
+				for key, value in pairs(goalInfo) do
+					if (goal.goalInfo[key] ~= value) then
+						isSame = false
+						break
+					end
+				end
+
+				if (isSame) then
+					return true
+				end
+			end
+
 			return true
 		end
 	end
@@ -112,12 +148,42 @@ function PlayerComputer:hasGoal(goalId)
 	return false
 end
 
+--- Counts the amount of goals with the specified id in the AI blackboard goal list
+--- @param goalId string
+--- @param goalInfo? table
+--- @return number
+function PlayerComputer:countGoals(goalId, goalInfo)
+	local count = 0
+
+	for _, goal in ipairs(self.blackboard.goals) do
+		if (goal.id == goalId) then
+			if (goalInfo) then
+				-- Check if the goal info is the same
+				local isSame = true
+
+				for key, value in pairs(goalInfo) do
+					if (goal.goalInfo[key] ~= value) then
+						isSame = false
+						break
+					end
+				end
+
+				if (isSame) then
+					count = count + 1
+				end
+			else
+				count = count + 1
+			end
+		end
+	end
+
+	return count
+end
+
 --- Removes the first goal from the AI blackboard goal list
 --- @return BehaviorGoal
 function PlayerComputer:removeFirstGoal()
     local goal = table.remove(self.blackboard.goals, 1)
-
-    self:debugGoalList()
 
 	return goal
 end
@@ -229,11 +295,19 @@ function PlayerComputer:findRandomUnit(unitTypeId)
 	return units[math.random(1, #units)]
 end
 
-function PlayerComputer:findIdleUnitsOrRandomUnit(unitTypeId)
+function PlayerComputer:findIdleOrRandomUnits(unitTypeId, minimumAmount)
+	local faction = self:getFaction()
+	local units = faction:getUnitsOfType(unitTypeId)
+	minimumAmount = math.min(minimumAmount or 1, #units)
+
 	local selectedUnits = self:findIdleUnits(unitTypeId)
 
-	if (#selectedUnits == 0) then
-		selectedUnits = {self:findRandomUnit(unitTypeId)}
+	while (#selectedUnits < minimumAmount) do
+		local randomUnit = self:findRandomUnit(unitTypeId)
+
+		if (not table.HasValue(selectedUnits, randomUnit)) then
+			table.insert(selectedUnits, randomUnit)
+		end
 	end
 
 	return selectedUnits

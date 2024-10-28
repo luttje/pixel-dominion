@@ -42,11 +42,11 @@ function GOAL:run(player)
         return true
     end
 
-    local villagers = player:findIdleUnitsOrRandomUnit('villager')
+    local villagers = player:findIdleOrRandomUnits('villager', amount / 10)
 
 	assert(#villagers, 'No villager found')
 
-	-- Send all our idle units (or 1 random unit) to gather the resource
+	-- Send all our idle units (or some random units, increasing by the amount) to gather the resource
 	for _, villager in ipairs(villagers) do
         -- If they're already gathering the resource, we don't need to do anything
         local villagerInteractable = villager:getCurrentActionInteractable()
@@ -91,17 +91,25 @@ function GOAL:run(player)
 					-- TODO: Should the AI surrender?
 					assert(structureTypeForResource, 'No structure type found for resource type')
 
+					local structuresToBeBuilt = player:countGoals('BuildStructure', {
+						structureTypeId = structureTypeForResource.id,
+					})
+
+					-- Don't queue up more than 3 structures to be built for this
+					if (structuresToBeBuilt >= 3) then
+						return false
+					end
+
 					-- Add a goal to build the structure that spawns the resource
 					player:prependGoal(
 						player:createGoal('BuildStructure', {
 							structureTypeId = structureTypeForResource.id,
+							builders = {villager},
 						})
 					)
-
-					return false
+				else
+					villager:commandTo(resource.x, resource.y, resource)
 				end
-
-				villager:commandTo(resource.x, resource.y, resource)
 			end
 		end
 	end

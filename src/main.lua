@@ -213,9 +213,11 @@ function love.keyreleased(key)
         elseif (key == 'f11') then
 			GameConfig.gameSpeed = math.min(4096, GameConfig.gameSpeed * 2)
             print('Game speed increased to ' .. GameConfig.gameSpeed)
-		elseif (key == 'f12') then
-            GameConfig.gameSpeed = math.max(1, GameConfig.gameSpeed * .5)
-			print('Game speed decreased to ' .. GameConfig.gameSpeed)
+        elseif (key == 'f12') then
+            -- Dump information about the computer players
+			for _, computerPlayer in ipairs(computerPlayers) do
+				computerPlayer:debugGoalList()
+			end
 		end
 	end
 end

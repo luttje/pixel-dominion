@@ -48,7 +48,7 @@ function GOAL:run(player)
 		return false
     end
 
-    local villagers = player:findIdleUnitsOrRandomUnit('villager')
+    local villagers = self.goalInfo.builders or player:findIdleOrRandomUnits('villager')
 
 	if (#villagers == 0) then
 		-- If we don't have a villager, ensure we generate one
