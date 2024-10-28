@@ -1,9 +1,9 @@
 local STRUCTURE = {}
 
-local GRANTS_HOUSING = 5
-
 STRUCTURE.id = 'house'
 STRUCTURE.name = 'House'
+
+STRUCTURE.grantsHousing = 5
 
 STRUCTURE.imagePath = 'assets/images/structures/house.png'
 STRUCTURE.requiredResources = {
@@ -52,14 +52,14 @@ STRUCTURE.structureTilesetInfo = {
 --- @param builders? Unit[]
 function STRUCTURE:onSpawn(structure, builders)
     -- Grant +5 housing to the faction
-    structure:getFaction():getResourceInventory():add('housing', GRANTS_HOUSING)
+    structure:getFaction():getResourceInventory():add('housing', self.grantsHousing)
 end
 
 --- Called when the structure is destroyed/removed from the world
 --- @param structure Structure
 function STRUCTURE:onRemove(structure)
 	-- Remove the housing from the faction
-	structure:getFaction():getResourceInventory():remove('housing', GRANTS_HOUSING)
+	structure:getFaction():getResourceInventory():remove('housing', self.grantsHousing)
 end
 
 --- Returns whether the structure can be built by the faction. Resources are checked

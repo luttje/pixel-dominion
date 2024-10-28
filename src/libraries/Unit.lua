@@ -2,13 +2,17 @@ local Interactable = require('libraries.Interactable')
 
 --- Represents a unit in the game
 --- @class Unit : Interactable
+---
 --- @field unitType UnitTypeRegistry.UnitRegistration
---- @field faction Faction
 --- @field targetX number # The x position the unit is moving towards
 --- @field targetY number # The y position the unit is moving towards
+---
 --- @field formation table # The formation the unit is in
+---
 --- @field health number # The health of the unit
+---
 --- @field currentAction table # The current action the unit is performing
+---
 --- @field lastResourceInstance Resource|nil # The last resource instance the unit interacted with
 --- @field resourceInventory ResourceInventory
 local Unit = DeclareClassWithBase('Unit', Interactable)
@@ -66,12 +70,6 @@ end
 --- @return UnitTypeRegistry.UnitRegistration
 function Unit:getUnitType()
 	return self.unitType
-end
-
---- Gets the faction
---- @return Faction
-function Unit:getFaction()
-	return self.faction
 end
 
 --- Gets the resource inventory
@@ -431,7 +429,7 @@ end
 --- @param targetX number
 --- @param targetY number
 --- @param interactable Interactable
---- @param formation table
+--- @param formation? table
 --- @return boolean
 function Unit:commandTo(targetX, targetY, interactable, formation)
     if (self.isRemoved) then

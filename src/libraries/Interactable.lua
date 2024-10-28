@@ -6,6 +6,7 @@
 --- @field world World # The world the interactable is in
 --- @field x number # The x position of the interactable
 --- @field y number # The y position of the interactable
+--- @field faction? Faction
 ---
 --- @field isSelected boolean # Whether the interactable is selected
 --- @field isSelectable boolean # Whether the interactable is selectable
@@ -49,6 +50,18 @@ end
 --- @return World
 function Interactable:getWorld()
 	return self.world
+end
+
+--- Sets the faction
+--- @param faction Faction
+function Interactable:setFaction(faction)
+	self.faction = faction
+end
+
+--- Gets the faction
+--- @return Faction
+function Interactable:getFaction()
+    return self.faction
 end
 
 --- When an interactable is interacted with

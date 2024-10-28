@@ -1,6 +1,8 @@
 --- @class StructureTypeRegistry
 local StructureTypeRegistry = DeclareClass('StructureTypeRegistry')
 
+--- @alias UnitGenerationInfo {id: string, text: string, icon: string, unitTypeId: string, generationTimeInSeconds: number, costs: table<string, number>}
+
 --[[
 	StructureRegistration
 --]]
@@ -162,7 +164,7 @@ end
 
 --- Gets the unit generation info for a unit type id
 --- @param unitTypeId string
---- @return table|nil
+--- @return UnitGenerationInfo|nil
 function StructureTypeRegistry.StructureRegistration:getUnitGenerationInfo(unitTypeId)
 	if (self.unitGenerationInfo) then
 		for _, unitInfo in ipairs(self.unitGenerationInfo) do

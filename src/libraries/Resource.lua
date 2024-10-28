@@ -46,9 +46,21 @@ function Resource:stopInteract(interactor)
 
     if (inventory:getCurrentResources() == 0) then
         -- Find another resource to go to of the same type
-		local world = self:getWorld()
+        local world = self:getWorld()
+		local faction = interactor:getFaction()
         local nearestResourceInstance = world:findNearestResourceInstance(
-            self.resourceType, interactor.x, interactor.y)
+            self.resourceType,
+            interactor.x,
+			interactor.y,
+			function(resource)
+				local resourceFaction = resource:getFaction()
+
+				if (faction and resourceFaction and resourceFaction ~= faction) then
+					return false
+				end
+
+				return true
+			end)
 
         if (nearestResourceInstance) then
             interactor:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)

@@ -102,6 +102,20 @@ function table.Empty(source)
 	end
 end
 
+--- Finds the index of a value in a table.
+--- @param source table
+--- @param value any
+--- @return number|nil # The index of the value
+function table.IndexOf(source, value)
+	for i, v in pairs(source) do
+		if (v == value) then
+			return i
+		end
+	end
+
+	return nil
+end
+
 --- Returns a random value from a table.
 --- @param source table
 --- @return any # The random value
@@ -189,6 +203,19 @@ function table.Queue(source)
 	--- @return boolean # Whether the queue is empty
 	function queue:isEmpty()
 		return #source == 0
+	end
+
+    --- Checks if the queue contains a value.
+    --- @param value any
+    --- @return boolean # Whether the queue contains the value
+	function queue:contains(value)
+		for _, v in pairs(source) do
+			if (v == value) then
+				return true
+			end
+		end
+
+		return false
 	end
 
     --- Gets all the values in the queue.

@@ -4,7 +4,6 @@ local Interactable = require('libraries.Interactable')
 --- @class Structure : Interactable
 ---
 --- @field structureType StructureTypeRegistry.StructureRegistration
---- @field faction Faction
 --- @field supply number
 --- @field tiles table
 ---
@@ -33,12 +32,6 @@ end
 --- @return StructureTypeRegistry.StructureRegistration
 function Structure:getStructureType()
 	return self.structureType
-end
-
---- Gets the faction
---- @return Faction
-function Structure:getFaction()
-	return self.faction
 end
 
 --- Draws the interactable on the hud
@@ -210,7 +203,7 @@ function Structure:getActions()
 end
 
 --- Enqueues a unit generation
---- @param unitGenerationInfo table
+--- @param unitGenerationInfo UnitGenerationInfo
 --- @return boolean
 function Structure:enqueueUnitGeneration(unitGenerationInfo)
     if (not self:canGenerateUnit(unitGenerationInfo)) then
@@ -230,6 +223,13 @@ function Structure:enqueueUnitGeneration(unitGenerationInfo)
     self.unitGenerationQueue:enqueue(unitGenerationInfo.unitTypeId)
 
     return true
+end
+
+--- Checks if the given unit type id is in the unit generation queue
+--- @param unitTypeId string
+--- @return boolean
+function Structure:isUnitInGenerationQueue(unitTypeId)
+	return self.unitGenerationQueue:contains(unitTypeId)
 end
 
 --- Cancels the unit generation

@@ -1,30 +1,3 @@
-
---[[
-	Let's think about the AI for a moment:
-	- We want to create a simple AI that will gather wood until it has 15 wood,
-	- then create a farm,
-	- then assign idle villagers to gather food,
-	- then create a new villager if it has 15 food.
-
-	However we want the behaviour tree here to be generic enough that it can decide for a strategy based on the current state of the game.
-	For example later it will want to react to enemy units, or build a barracks if it has enough resources, etc.
-
-	Let's consider our outer tree to be a priority tree, where we will have the following tasks:
-	- Check if we're being attacked, if so:
-		- If we have soldiers, attack the enemy
-		- If we don't have soldiers:
-			- If we have barracks, create soldiers
-			- If we don't have barracks, create a barracks if we have enough resources
-			- If we don't have enough resources just forget about this line of the tree
-	- If we're not being attacked:
-		- Check if we have have enough resources to create our next structure, if so:
-			- Create the structure
-		- If we don't have enough resources:
-			- Ensure we're gathering resources
-			- If we're not gathering resources, find an idle villager and send them to gather resources
-
-	We will have a blackboard where we can store information about the AI's state, such as the order of structures to build, etc.
---]]
 local Player = require('libraries.Player')
 
 --- @class PlayerComputer : Player
@@ -39,141 +12,185 @@ function PlayerComputer:initialize(config)
     --- The blackboard for the AI where it can store information
 	--- @type table
     self.blackboard = {
-        -- The order of structures to build
-        structuresToBuild = {
-            'farmland',
-            'house',
-			'barracks',
-		},
+        --- The goals the AI is working on
+		--- @type BehaviorGoal[]
+        goals = {},
 	}
 
-    self.goalTree = self:createGoalTree()
-    self.goalTree:setObject(self)
+    -- The AI should handle this goal to reach a certain population by:
+    -- - Checking if we can create a new villager, if we can, create it
+    -- - If we can't create a new villager, because we have enough food, but not enough housing, build a house
+    -- - If we can't build a house, because we don't have enough resources, ensure we're gathering resources (wood)
+    -- - If we can't create a villager, because we don't have enough food, ensure we're gathering food
+    -- - If we have no food to gather, create a farm
+	-- - If we have no wood for a farm, ensure we're gathering wood
+    self:appendGoal(
+		self:createGoal('HaveUnitsOfType', {
+			unitTypeId = 'villager',
+			structureType = StructureTypeRegistry:getStructureType('town_hall'),
+			amount = 15,
+		})
+    )
+
+	-- This will be added to the goal tree by the AI itself
+	-- self:appendGoal(
+	-- 	self:createGoal('BuildStructure', {
+	-- 		structureTypeId = 'farmland',
+	-- 	})
+	-- )
+
+	-- -- Build barracks (the AI will think of what it needs to to do to get there)
+    -- self:appendGoal(
+	-- 	self:createGoal('BuildStructure', {
+	-- 		structureTypeId = 'barracks',
+	-- 	})
+    -- )
+
+    -- Create a warrior (the AI will think of what it needs to to do to get there)
+	-- Like building barracks first (since those generate warriors)
+	self:appendGoal(
+		self:createGoal('HaveUnitsOfType', {
+			unitTypeId = 'warrior',
+			structureType = StructureTypeRegistry:getStructureType('barracks'),
+			amount = 5,
+		})
+	)
 end
 
-function PlayerComputer:createTask(taskModuleName, taskInfo)
-	-- We copy so the task info can differ between tasks of the same type
-    local taskDesign = table.Copy(require('ai.tasks.' .. taskModuleName))
+--- Adds a goal to the AI blackboard at the specified index
+--- @param goal BehaviorGoal
+--- @param index number
+function PlayerComputer:addGoalAt(goal, index)
+	table.insert(self.blackboard.goals, index, goal)
 
-	--- @alias BehaviorTreeTask {blackboard: table, player: PlayerComputer, taskInfo: table}
-    local taskNode = BehaviorTree.Task:new(taskDesign)
-    taskNode.taskInfo = taskInfo or {}
-    taskNode.blackboard = self.blackboard
-	taskNode.player = self
-	taskNode.debugPrint = function(taskNode, ...)
-		print('[AI Task] ', self:getName(), ' | ', ...)
+    -- Initialize any goal-specific data
+    if (goal.init) then
+        goal:init(self)
+    end
+
+	self:debugGoalList()
+end
+
+--- Appends a goal to the end of the AI blackboard goal list
+--- @param goal BehaviorGoal
+function PlayerComputer:appendGoal(goal)
+	self:addGoalAt(goal, #self.blackboard.goals + 1)
+end
+
+--- Prepends a goal to the front of the AI blackboard goal list
+--- @param goal BehaviorGoal
+function PlayerComputer:prependGoal(goal)
+	self:addGoalAt(goal, 1)
+end
+
+--- Removes the first goal from the AI blackboard goal list
+--- @return BehaviorGoal
+function PlayerComputer:removeFirstGoal()
+    local goal = table.remove(self.blackboard.goals, 1)
+
+    self:debugGoalList()
+
+	return goal
+end
+
+--- Gets the current goal the AI is working on
+--- @return BehaviorGoal
+function PlayerComputer:getCurrentGoal()
+	return self.blackboard.goals[1]
+end
+
+--- Prints the current goal list
+function PlayerComputer:debugGoalList()
+	print('-----------------------------------')
+    if (#self.blackboard.goals > 0) then
+        print('Goals for player: ', self:getName())
+
+		for i, goal in ipairs(self.blackboard.goals) do
+			print(i, goal.id, goal:getInfoString())
+		end
+	else
+		print('No goals for player: ', self:getName())
+	end
+	print('\n')
+end
+
+--- Creates a goal for the AI
+--- @param goalModuleName string
+--- @param goalInfo? table
+--- @return BehaviorGoal
+function PlayerComputer:createGoal(goalModuleName, goalInfo)
+	-- We copy so the goal info can differ between goals of the same type
+	local goalDesign = table.Copy(require('ai.goals.' .. goalModuleName))
+
+    --- @class BehaviorGoal
+    --- @field blackboard table
+    --- @field player PlayerComputer
+    --- @field goalInfo table
+    --- @field init fun(self: BehaviorGoal, player: PlayerComputer)
+    --- @field run fun(self: BehaviorGoal, player: PlayerComputer): boolean
+    --- @field getInfoString fun(self: BehaviorGoal): string
+    local goal = goalDesign
+
+	goal.id = goalModuleName
+	goal.goalInfo = goalInfo or {}
+	goal.blackboard = self.blackboard
+	goal.player = self
+    goal.getInfoString = goal.getInfoString or function(goal)
+        return ''
+    end
+
+	goal.debugPrint = function(goalNode, ...)
+		print('[AI Goal] ', self:getName(), ' | ', ...)
 	end
 
-	return taskNode
+	return goal
 end
 
-function PlayerComputer:createGoalTree()
-	return BehaviorTree:new({
-		tree = BehaviorTree.Priority:new({
-			nodes = {
-				-- Check if we're being attacked
-				BehaviorTree.Sequence:new({
-					nodes = {
-						self:createTask('CheckIfAttacked'),
-						BehaviorTree.Sequence:new({
-							nodes = {
-								-- If we have soldiers, attack the enemy
-								self:createTask('AttackEnemy'),
-								-- If we don't have soldiers
-								BehaviorTree.Priority:new({
-									nodes = {
-										-- If we have barracks, create soldiers
-										self:createTask('CreateUnits', {
-                                            unitTypeId = 'soldier',
-											structureType = StructureTypeRegistry:getStructureType('barracks'),
-											amount = 1,
-										}),
-										-- If we don't have barracks, create a barracks if we have enough resources
-										self:createTask('BuildStructures', {
-											structureType = StructureTypeRegistry:getStructureType('barracks'),
-											amount = 1,
-										}),
-									},
-								}),
-							},
-						}),
-					},
-                }),
-
-                -- If we're not being attacked try to build the structure, or otherwise go gather resources
-				BehaviorTree.Priority:new({
-                    nodes = {
-                        -- TODO: The AI is currently hyper focused on creating units. It uses all its villagers for that. That is not good.
-						-- TODO: Somehow have the AI split its villagers between gathering other resources too.
-						-- Prioritize getting new villagers if we have the housing for them
-                        BehaviorTree.Priority:new({
-                            nodes = {
-								self:createTask('CreateUnits', {
-									unitTypeId = 'villager',
-									structureType = StructureTypeRegistry:getStructureType('town_hall'),
-									amount = 1,
-								}),
-
-								-- If we don't have enough resources for a unit, ensure we're gathering resources
-								self:createTask('EnsureGatheringResources', {
-									desiredResources = StructureTypeRegistry:getStructureType('town_hall'):getUnitGenerationInfo('villager').costs
-								}),
-							},
-						}),
-
-						-- Check if we have have enough resources to create our next structure
-						self:createTask('BuildStructures', {
-							structureType = function()
-								return self:getCurrentStructureToBuild()
-							end,
-                        }),
-
-						-- If we don't have enough resources
-						self:createTask('EnsureGatheringResources', {
-							resourceGoal = function()
-								return self:getCurrentStructureToBuild()
-							end,
-						}),
-					},
-                }),
-			},
-		}),
-	})
-end
-
+--- Will call the run function of the current goal the AI is working on
+--- If the goals change while we are working on the current goal, we will work on the new current goal
+--- the next update
 function PlayerComputer:update(deltaTime)
-    self.goalTree:run()
+	local currentGoal = self:getCurrentGoal()
+
+	-- TODO: Random goal?
+	assert(currentGoal, 'No goal to work on')
+
+	local isGoalCompleted = currentGoal:run(self)
+
+	if (isGoalCompleted) then
+		self:removeFirstGoal()
+	end
 end
 
-function PlayerComputer:findIdleOrRandomUnit(unitTypeId)
-    local faction = self:getFaction()
+function PlayerComputer:findIdleUnits(unitTypeId)
+	local faction = self:getFaction()
+	local units = faction:getUnitsOfType(unitTypeId)
+	local selectedUnits = {}
+
+	for _, unit in ipairs(units) do
+		if (not unit:isInteracting()) then
+			table.insert(selectedUnits, unit)
+		end
+	end
+
+	return selectedUnits
+end
+
+function PlayerComputer:findRandomUnit(unitTypeId)
+	local faction = self:getFaction()
 	local units = faction:getUnitsOfType(unitTypeId)
 
-    for _, unit in ipairs(units) do
-        if (not unit:isInteracting()) then
-            return unit
-        end
-    end
-
-    return units[math.random(1, #units)]
+	return units[math.random(1, #units)]
 end
 
---- Goes through all the structures to build and the faction's structures and returns the next structure to build
-function PlayerComputer:getCurrentStructureToBuild()
-    local faction = self:getFaction()
-	local structuresBuilt = faction:getStructures()
-    local structuresToBuild = self.blackboard.structuresToBuild
+function PlayerComputer:findIdleUnitsOrRandomUnit(unitTypeId)
+	local selectedUnits = self:findIdleUnits(unitTypeId)
 
-    for _, structureId in ipairs(structuresToBuild) do
-        local structureType = StructureTypeRegistry:getStructureType(structureId)
-        local structure = structuresBuilt[structureType.id]
+	if (#selectedUnits == 0) then
+		selectedUnits = {self:findRandomUnit(unitTypeId)}
+	end
 
-        if (not structure) then
-            return structureType
-        end
-    end
-
-	return nil
+	return selectedUnits
 end
 
 return PlayerComputer

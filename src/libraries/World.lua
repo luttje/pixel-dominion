@@ -401,15 +401,15 @@ end
 --- @param resourceType ResourceTypeRegistry.ResourceRegistration
 --- @param x number
 --- @param y number
+--- @param filter? fun(resource: Resource): boolean
 --- @return Resource|nil
-function World:findNearestResourceInstance(resourceType, x, y)
+function World:findNearestResourceInstance(resourceType, x, y, filter)
 	local nearestResourceInstance = nil
 	local nearestDistance = nil
 
 	-- This currently finds all resources of the given type, but that will cause farmland of other factions to be used.
-	-- TODO: Also filter by faction, if applicable to the resource type
 	for _, resource in ipairs(self.resourceInstances) do
-		if (resource.resourceType == resourceType) then
+		if (resource.resourceType == resourceType and (not filter or filter(resource))) then
 			local distance = math.sqrt((resource.x - x) ^ 2 + (resource.y - y) ^ 2)
 
 			if (not nearestDistance or distance < nearestDistance) then

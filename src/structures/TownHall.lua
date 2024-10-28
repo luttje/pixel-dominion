@@ -8,6 +8,7 @@ STRUCTURE.isInternal = true
 
 STRUCTURE.imagePath = 'assets/images/structures/town-hall.png'
 
+--- @type UnitGenerationInfo[]
 STRUCTURE.unitGenerationInfo = {
 	{
 		id = 'create_villager',
@@ -121,7 +122,20 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     end
 
 	-- Find the nearest resource instance of the same type
-    local nearestResourceInstance = world:findNearestResourceInstance(lastResourceInstance:getResourceType(), structure.x, structure.y)
+    local nearestResourceInstance = world:findNearestResourceInstance(
+        lastResourceInstance:getResourceType(),
+        structure.x,
+        structure.y,
+		function(resource)
+			local resourceFaction = resource:getFaction()
+
+			if (faction and resourceFaction and resourceFaction ~= faction) then
+				return false
+			end
+
+			return true
+		end
+	)
 
     if (not nearestResourceInstance) then
         print('No resource instance found. Stopping')

@@ -10,6 +10,7 @@ STRUCTURE.requiredResources = {
 	gold = 10,
 }
 
+--- @type UnitGenerationInfo[]
 STRUCTURE.unitGenerationInfo = {
 	{
 		id = 'create_warrior',

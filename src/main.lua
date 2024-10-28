@@ -208,10 +208,10 @@ function love.keyreleased(key)
 			GameConfig.worldMapCameraScale = math.max(1, GameConfig.worldMapCameraScale - 1)
 			print('World map camera scale decreased to ' .. GameConfig.worldMapCameraScale)
         elseif (key == 'f11') then
-            GameConfig.gameSpeed = math.min(1000, GameConfig.gameSpeed + 1)
+            GameConfig.gameSpeed = math.min(1000, GameConfig.gameSpeed + 2)
             print('Game speed increased to ' .. GameConfig.gameSpeed)
 		elseif (key == 'f12') then
-            GameConfig.gameSpeed = math.max(1, GameConfig.gameSpeed - 1)
+            GameConfig.gameSpeed = math.max(1, GameConfig.gameSpeed - 2)
 			print('Game speed decreased to ' .. GameConfig.gameSpeed)
 		end
 	end

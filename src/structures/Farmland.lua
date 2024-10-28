@@ -3,6 +3,11 @@ local STRUCTURE = {}
 STRUCTURE.id = 'farmland'
 STRUCTURE.name = 'Farmland'
 
+-- TODO: This is currently only used for the AI, but we should also have the Structure class use this to spawn the resource (instead of doing it in the code below like we do now)
+STRUCTURE.spawnsResources = {
+	food = 100,
+}
+
 STRUCTURE.imagePath = 'assets/images/structures/farmland.png'
 STRUCTURE.requiredResources = {
 	wood = 15,
@@ -65,7 +70,8 @@ function STRUCTURE:onSpawn(structure, builders)
 		resourceType = foodResource,
 		x = x,
         y = y,
-		world = world
+        world = world,
+		faction = structure:getFaction(),
     })
 
 	-- If the resource depletes, remove the structure
