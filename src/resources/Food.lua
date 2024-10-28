@@ -3,6 +3,7 @@ local RESOURCE = {}
 RESOURCE.id = 'food'
 RESOURCE.name = 'Food'
 RESOURCE.orderWeight = 1
+RESOURCE.defaultValue = 20
 
 RESOURCE.imagePath = 'assets/images/resources/food.png'
 

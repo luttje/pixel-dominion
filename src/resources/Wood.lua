@@ -3,6 +3,7 @@ local RESOURCE = {}
 RESOURCE.id = 'wood'
 RESOURCE.name = 'Wood'
 RESOURCE.orderWeight = 2
+RESOURCE.defaultValue = 10
 
 RESOURCE.imagePath = 'assets/images/resources/wood.png'
 
