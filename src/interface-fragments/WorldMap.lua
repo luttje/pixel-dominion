@@ -152,7 +152,8 @@ function WorldMap:performUpdate(deltaTime)
 					end
 				end
 			else
-				if (self.isHolding and interactable and self.heldInteractable == interactable) then
+				if (self.isHolding and interactable and self.heldInteractable == interactable and
+					interactable:getFaction() == CurrentPlayer:getFaction()) then
 					if (CurrentPlayer:isSameTypeAsSelected(self.heldInteractable)) then
 						-- If the unit is selected, deselect it
 						if (self.heldInteractable.isSelected) then

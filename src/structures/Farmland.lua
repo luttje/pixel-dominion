@@ -60,8 +60,8 @@ local sounds = {
 --- @param builders? Unit[]
 function STRUCTURE:onSpawn(structure, builders)
     local world = structure:getWorld()
-
 	local foodResource = ResourceTypeRegistry:getResourceType('food')
+	local faction = structure:getFaction()
 
     -- Spawn a hidden farmable resource at this structure's location
     local x, y = structure:getWorldPosition()
@@ -71,7 +71,7 @@ function STRUCTURE:onSpawn(structure, builders)
 		x = x,
         y = y,
         world = world,
-		faction = structure:getFaction(),
+		faction = faction,
     })
 
 	-- If the resource depletes, remove the structure
@@ -88,7 +88,10 @@ function STRUCTURE:onSpawn(structure, builders)
 		builder:commandTo(x, y, resource)
 	end
 
-	structure:playSound(table.Random(sounds))
+	if (faction == CurrentPlayer:getFaction()) then
+		-- Play a sound when the structure is spawned
+		structure:playSound(table.Random(sounds))
+	end
 end
 
 --- Called when the structure is destroyed/removed from the world
