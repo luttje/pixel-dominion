@@ -60,7 +60,8 @@ function love.load()
 	-- TODO: Currently hard-coded, just for testing our systems
     local playerFaction = Faction({
 		factionType = FactionTypeRegistry:getFactionType('homelanders'),
-		player = CurrentPlayer
+        player = CurrentPlayer,
+		color = Colors.factionColors[1]('table'),
     })
 
 	currentWorld = World({
@@ -70,6 +71,10 @@ function love.load()
 
     local numEnemyPlayers = 2
 
+	-- For future reference:
+	assert(numEnemyPlayers <= 6, "Cannot have more than 6 enemy players since there's only that many spawn point markers.")
+	assert(numEnemyPlayers <= #Colors.factionColors, "Cannot have more than " .. #Colors.factionColors .. " enemy players since there's only that many faction colors.")
+
 	for i = 1, numEnemyPlayers do
 		local enemyPlayer = PlayerComputer({
 			name = 'enemy player #' .. i,
@@ -77,7 +82,8 @@ function love.load()
 		table.insert(computerPlayers, enemyPlayer)
 		local enemyFaction = Faction({
 			factionType = FactionTypeRegistry:getFactionType('bandits'),
-			player = enemyPlayer
+            player = enemyPlayer,
+			color = Colors.factionColors[i + 1]('table'),
 		})
 		currentWorld:spawnFaction(enemyFaction)
 	end

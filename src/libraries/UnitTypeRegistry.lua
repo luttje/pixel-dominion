@@ -44,7 +44,8 @@ end
 --- @class UnitTypeRegistry.UnitRegistration
 --- @field id string The unique id of the unit.
 --- @field name string The name of the unit.
---- @field image Image The Image used to render the unit.
+--- @field image Image The Image used to render the unit (if no unit instance is provided)
+--- @field imagePath string The path to the image used to render the unit.
 --- @field animations table<string, UnitTypeRegistry.UnitAnimation> The animations used to render the unit.
 UnitTypeRegistry.UnitRegistration = DeclareClass('UnitTypeRegistry.UnitRegistration')
 
@@ -55,7 +56,34 @@ function UnitTypeRegistry.UnitRegistration:initialize(config)
 
 	table.Merge(self, config)
 
-	self.image = ImageCache:get(self.imagePath)
+    self.imageData = love.image.newImageData(self.imagePath)
+
+	local factionColor = Colors.factionNeutral('table')
+	local factionHighlightColor = Colors.factionNeutralHighlight('table')
+
+    local replacementColors = {
+        {
+            from = Colors.factionReplacementColor('table'),
+			to = factionColor
+		},
+        {
+            from = Colors.factionReplacementHighlightColor('table'),
+			to = factionHighlightColor
+		},
+    }
+
+	-- Replace the colors in the image with the faction color
+	self.imageData:mapPixel(function(x, y, r, g, b, a)
+        for _, replacement in ipairs(replacementColors) do
+            if (r == replacement.from[1] and g == replacement.from[2] and b == replacement.from[3]) then
+				return replacement.to[1], replacement.to[2], replacement.to[3], a
+			end
+		end
+
+		return r, g, b, a
+	end)
+
+	self.image = love.graphics.newImage(self.imageData)
 
 	-- Create animations for the idle and action states
 	local animationConfigs = {
@@ -113,7 +141,7 @@ function UnitTypeRegistry.UnitRegistration:draw(unit, animationName)
 	-- love.graphics.ellipse('fill', x + GameConfig.tileSize * .5, y + GameConfig.tileSize, GameConfig.tileSize * .3, GameConfig.tileSize * .3)
 
 	-- TODO: Draw units using a sprite batch for performance
-	love.graphics.draw(self.image, quad, x, y)
+	love.graphics.draw(unit.image, quad, x, y)
 end
 
 --- Draws the unit hud icon
@@ -129,8 +157,10 @@ function UnitTypeRegistry.UnitRegistration:drawHudIcon(unit, x, y, width, height
     local scaleX = width / imageWidth
 	local scaleY = height / imageHeight
 
-	love.graphics.setColor(1, 1, 1)
-	love.graphics.draw(self.image, quad, x, y, 0, scaleX, scaleY)
+    love.graphics.setColor(1, 1, 1)
+
+	local image = unit and unit.image or self.image
+	love.graphics.draw(image, quad, x, y, 0, scaleX, scaleY)
 end
 
 --[[

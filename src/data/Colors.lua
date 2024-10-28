@@ -47,4 +47,28 @@ Colors.summaryText = Colors.summaryHeadingText
 -- Colors.selectedFriendly = Colors.fromRgb(47, 236, 108)
 Colors.selectedMarker = Colors.fromRgb(193, 0, 78)
 
+--[[
+	Faction colors
+--]]
+
+Colors.factionNeutral = Colors.fromRgb(200, 200, 200)
+Colors.factionNeutralHighlight = Colors.fromRgb(255, 255, 255)
+
+-- TODO: Hard-coded for now, but we probably want to specify this somewhere near the imagePath
+-- The colors that are replaced in the unit images
+Colors.factionReplacementColor = Colors.fromRgb(255, 0, 220)
+Colors.factionReplacementHighlightColor = Colors.fromRgb(255, 127, 237)
+
+-- These are the colours from the palette, but with their saturation maxed out
+Colors.factionColors = {
+	Colors.fromRgb(191, 0, 41),
+	Colors.fromRgb(0, 158, 84),
+	Colors.fromRgb(0, 13, 165),
+	Colors.fromRgb(252, 29, 0),
+	Colors.fromRgb(0, 229, 164),
+	Colors.fromRgb(239, 211, 0),
+	-- Colors.fromRgb(239, 127, 0), -- too close to the previous color
+	Colors.fromRgb(0, 145, 242),
+}
+
 return Colors

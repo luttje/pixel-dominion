@@ -5,6 +5,8 @@ FORCE_FREE_PLACEMENT = true
 --- @class Faction
 ---
 --- @field factionType FactionTypeRegistry.FactionRegistration
+--- @field color table
+--- @field colorHighlight table
 --- @field world World|nil
 --- @field player Player
 ---
@@ -18,6 +20,7 @@ local Faction = DeclareClass('Faction')
 function Faction:initialize(config)
     assert(config.factionType, 'Faction must have a faction type.')
 	assert(config.player, 'Faction must have a player.')
+	assert(config.color, 'Faction must have a color.')
 
 	self.resourceInventory = ResourceInventory({
 		withDefaultValues = true,
@@ -26,6 +29,15 @@ function Faction:initialize(config)
 	self.structures = {}
 
     table.Merge(self, config)
+
+    -- If there's no highlight color, use a brighter version of the color
+    if (not self.colorHighlight) then
+        self.colorHighlight = {
+            math.min(self.color[1] + 0.5, 1),
+            math.min(self.color[2] + 0.5, 1),
+            math.min(self.color[3] + 0.5, 1),
+        }
+    end
 
     self.player:setFaction(self)
 end
@@ -52,7 +64,13 @@ end
 --- Gets the type of faction
 --- @return FactionTypeRegistry.FactionRegistration
 function Faction:getFactionType()
-	return self.factionType
+    return self.factionType
+end
+
+--- Gets the faction's color
+--- @return table, table # The color and highlight color
+function Faction:getColors()
+	return self.color, self.colorHighlight
 end
 
 --- Spawns a unit of the given type at the given position

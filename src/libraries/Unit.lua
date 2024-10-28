@@ -36,7 +36,62 @@ function Unit:initialize(config)
     self.nextY = self.y
 	self.isAutoAttacking = true
 
-	self:reachedTarget()
+    self:reachedTarget()
+
+	if (self.faction) then
+		self:updateUnitImage()
+	end
+end
+
+--- Sets the faction
+--- @param faction Faction
+function Unit:setFaction(faction)
+    self:getBase():setFaction(faction)
+
+	self:updateUnitImage()
+end
+
+--- Updates the unit image, applying the faction color
+function Unit:updateUnitImage()
+    if (self.imageData) then
+        self.imageData:release()
+        self.image:release()
+    end
+
+    self.imageData = love.image.newImageData(self.unitType.imagePath)
+
+    local factionColor, factionHighlightColor
+
+    if (self.faction) then
+        factionColor, factionHighlightColor = self.faction:getColors()
+    else
+        factionColor = Colors.factionNeutral('table')
+		factionHighlightColor = Colors.factionNeutralHighlight('table')
+    end
+
+    local replacementColors = {
+        {
+            from = Colors.factionReplacementColor('table'),
+			to = factionColor
+		},
+        {
+            from = Colors.factionReplacementHighlightColor('table'),
+			to = factionHighlightColor
+		},
+    }
+
+	-- Replace the colors in the image with the faction color
+	self.imageData:mapPixel(function(x, y, r, g, b, a)
+        for _, replacement in ipairs(replacementColors) do
+            if (r == replacement.from[1] and g == replacement.from[2] and b == replacement.from[3]) then
+				return replacement.to[1], replacement.to[2], replacement.to[3], a
+			end
+		end
+
+		return r, g, b, a
+	end)
+
+	self.image = love.graphics.newImage(self.imageData)
 end
 
 --- Sets the current action
@@ -94,6 +149,10 @@ end
 
 --- Draws the unit
 function Unit:draw()
+    if (not self.image) then
+        return
+    end
+
 	love.graphics.setColor(1, 1, 1)
     self.unitType:draw(self, self:getCurrentActionAnimation())
 end
@@ -104,6 +163,10 @@ end
 --- @param width number
 --- @param height number
 function Unit:drawHudIcon(x, y, width, height)
+    if (not self.image) then
+        return
+    end
+
 	self.unitType:drawHudIcon(self, x, y, width, height)
 end
 
