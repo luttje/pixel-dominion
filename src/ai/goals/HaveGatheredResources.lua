@@ -57,10 +57,10 @@ function GOAL:run(player)
         if (not isGathering) then
             -- Check if they're not on their way to the town hall with a full inventory
 			if (villager:getResourceInventory():isFull()) then
-				local townHall = faction:getTownHall()
+				local dropOffStructure = faction:getDropOffStructure(villager:getResourceInventory())
 
-				if (villagerInteractable ~= townHall) then
-					villager:commandTo(townHall.x, townHall.y, townHall)
+				if (villagerInteractable ~= dropOffStructure) then
+					villager:commandTo(dropOffStructure.x, dropOffStructure.y, dropOffStructure)
 				end
 			else
 				-- Put the villager to work

@@ -8,6 +8,14 @@ STRUCTURE.isInternal = true
 
 STRUCTURE.imagePath = 'assets/images/structures/town-hall.png'
 
+-- TODO: Have this config make the structure accept resources, instead of duplicating the code below in the updateInteract function (like its the same in lumber_camp now)
+STRUCTURE.acceptsResources = {
+    wood = true,
+    stone = true,
+    food = true,
+    gold = true,
+}
+
 --- @type UnitGenerationInfo[]
 STRUCTURE.unitGenerationInfo = {
 	{

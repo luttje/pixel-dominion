@@ -294,7 +294,7 @@ end
 --- Returns the units currently attacking the faction
 --- @return Interactable[]
 function Faction:getAttackingUnits()
-	local attackers = {}
+    local attackers = {}
 
     for i, structure in ipairs(self:getInteractables()) do
         local recentlyDamaged, damagedBy = structure:recentlyDamaged()
@@ -304,7 +304,39 @@ function Faction:getAttackingUnits()
         end
     end
 
-	return attackers
+    return attackers
+end
+
+--- Goes through all structures and checks their types to see if resources can be dropped off there
+--- @param resourceInventory ResourceInventory
+--- @return Structure
+function Faction:getDropOffStructure(resourceInventory)
+    local matchedStructures = {
+		self:getTownHall()
+	}
+
+    for _, structure in ipairs(self.structures) do
+		if (structure.structureType.acceptsResources) then
+			local matchesAll = true
+
+			for resourceTypeId, resourceValue in pairs(resourceInventory:getAll()) do
+				local resourceType = ResourceTypeRegistry:getResourceType(resourceTypeId)
+				local acceptsResource = structure.structureType.acceptsResources[resourceType.id]
+
+				if (not acceptsResource) then
+					matchesAll = false
+					break
+				end
+			end
+
+            if (matchesAll) then
+				table.insert(matchedStructures, structure)
+			end
+		end
+    end
+
+	-- TODO: Get the closest structure
+	return table.Random(matchedStructures)
 end
 
 --- Removes the faction and all its units and structures
