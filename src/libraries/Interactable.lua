@@ -15,6 +15,7 @@
 --- @field interactSounds table|nil
 ---
 --- @field health number
+--- @field maxHealth number
 --- @field nextDamagableAt number
 --- @field lastDamagedBy Interactable
 --- @field lastDamagedInteractable Interactable
@@ -32,6 +33,8 @@ function Interactable:initialize(config)
 	self.health = 100
 
     table.Merge(self, config)
+
+	self.maxHealth = self.health
 
 	self.events = EventManager({
 		target = self
@@ -120,7 +123,7 @@ function Interactable:postDrawOnScreen(x, y, width, height, cameraScale)
     -- self:getBase():postDrawOnScreen(x, y, width, height, cameraScale)
 
     -- Draw the health bar above the interactable
-	if (self.health < 100) then
+	if (self.health < self.maxHealth) then
 		local healthBarWidth = width
 		local healthBarHeight = 5
 		local healthBarX = x
@@ -130,7 +133,7 @@ function Interactable:postDrawOnScreen(x, y, width, height, cameraScale)
 		love.graphics.rectangle('fill', healthBarX, healthBarY, healthBarWidth, healthBarHeight)
 
 		love.graphics.setColor(0, 1, 0)
-		love.graphics.rectangle('fill', healthBarX, healthBarY, healthBarWidth * (self.health / 100), healthBarHeight)
+		love.graphics.rectangle('fill', healthBarX, healthBarY, healthBarWidth * (self.health / self.maxHealth), healthBarHeight)
 
         love.graphics.setColor(0, 0, 0)
 		love.graphics.rectangle('line', healthBarX, healthBarY, healthBarWidth, healthBarHeight)

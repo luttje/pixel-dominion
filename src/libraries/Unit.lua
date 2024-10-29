@@ -31,7 +31,7 @@ function Unit:initialize(config)
 
     table.Merge(self, config)
 
-	self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
+	self.moveArriveAt = love.timer.getTime() + self:getMoveTime()
     self.nextX = self.x
     self.nextY = self.y
 	self.isAutoAttacking = true
@@ -41,6 +41,12 @@ function Unit:initialize(config)
 	if (self.faction) then
 		self:updateUnitImage()
 	end
+end
+
+--- Returns the move time of this unit, taking into account the health of the unit
+--- @return number
+function Unit:getMoveTime()
+	return math.min(1, GameConfig.unitMoveTimeInSeconds() / (self.health / self.maxHealth))
 end
 
 --- Sets the faction
@@ -317,7 +323,7 @@ function Unit:update(deltaTime)
     end
 
 	-- Time to move to the next tile
-    self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
+    self.moveArriveAt = love.timer.getTime() + self:getMoveTime()
 	self:setWorldPosition(self.nextX, self.nextY)
 
 	-- Update next position
@@ -403,7 +409,7 @@ function Unit:getDrawOffset()
 
 	if (self:isMoving()) then
         -- Calculate interpolation factor between the current and next tile
-		local factor = 1 - ((self.moveArriveAt - love.timer.getTime()) / GameConfig.unitMoveTimeInSeconds())
+		local factor = 1 - ((self.moveArriveAt - love.timer.getTime()) / self:getMoveTime())
 
         -- Interpolate between current position and next position
         offsetX = (self.nextX - self.x) * factor * GameConfig.tileSize
@@ -552,7 +558,7 @@ function Unit:commandTo(targetX, targetY, interactable, formation)
 
 		-- Only update the target if we're not currently moving
 		if (self.x == self.nextX and self.y == self.nextY) then
-			self.moveArriveAt = love.timer.getTime() + GameConfig.unitMoveTimeInSeconds()
+			self.moveArriveAt = love.timer.getTime() + self:getMoveTime()
 		end
 
 		if (interactable) then
