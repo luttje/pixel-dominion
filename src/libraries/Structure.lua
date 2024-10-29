@@ -360,7 +360,6 @@ function Structure:updateInteract(deltaTime, interactor)
 		local interacted = self.structureType:updateInteract(self, deltaTime, interactor)
 
         if (not interacted) then
-			print('Interact ended.')
 			interactor:stop()
 		end
 	end

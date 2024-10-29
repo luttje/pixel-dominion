@@ -97,7 +97,6 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     local inventory = interactor:getResourceInventory()
 
     if (inventory:getCurrentResources() == 0) then
-        print('unit has no resources.')
         return false
     end
 
@@ -115,7 +114,7 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
     inventory:clear()
 
     -- First go back to the last resource we came from if it has any supply left
-    if (lastResourceInstance:getSupply() > 0) then
+    if (lastResourceInstance:getSupply() > 0 and not lastResourceInstance.isRemoved) then
         interactor:commandTo(lastResourceInstance.x, lastResourceInstance.y, lastResourceInstance)
 
         return true
@@ -138,7 +137,6 @@ function STRUCTURE:updateInteract(structure, deltaTime, interactor)
 	)
 
     if (not nearestResourceInstance) then
-        print('No resource instance found. Stopping')
         return false
     end
 

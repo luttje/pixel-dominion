@@ -65,7 +65,6 @@ function Resource:stopInteract(interactor)
         if (nearestResourceInstance) then
             interactor:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
         else
-            print('No alternative resource found. Stopping')
 			interactor:stop()
 		end
 	else

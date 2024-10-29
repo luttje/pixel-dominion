@@ -228,9 +228,17 @@ function love.keyreleased(key)
 			GameConfig.gameSpeed = math.min(8192, GameConfig.gameSpeed * 2) -- Any higher seems to not work
             print('Game speed increased to ' .. GameConfig.gameSpeed)
         elseif (key == 'f12') then
-            -- Dump information about the computer players
-			for _, computerPlayer in ipairs(computerPlayers) do
-				computerPlayer:debugGoalList()
+            -- If control is also held, special debug action
+            if (love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl')) then
+				-- Remove all farmland
+				for _, structure in ipairs(playerFaction:getStructuresOfType('farmland')) do
+					structure:remove()
+				end
+			else
+				-- Dump information about the computer players
+				for _, computerPlayer in ipairs(computerPlayers) do
+					computerPlayer:debugGoalList()
+				end
 			end
 		end
 	end

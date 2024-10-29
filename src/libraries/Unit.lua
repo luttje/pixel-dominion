@@ -114,11 +114,6 @@ end
 --- Gets the current action interactable
 --- @return Interactable|nil
 function Unit:getCurrentActionInteractable()
-    if (not self.currentAction.targetInteractable
-		or self.currentAction.targetInteractable.isRemoved) then
-        return nil
-    end
-
     return self.currentAction.targetInteractable
 end
 
@@ -275,7 +270,6 @@ function Unit:updateInteract(deltaTime, interactor)
 		local interacted = self.unitType:updateInteract(self, deltaTime, interactor)
 
         if (not interacted) then
-			print('Interact ended.')
 			interactor:stop()
 		end
 	end
@@ -292,6 +286,18 @@ function Unit:update(deltaTime)
 
     -- If we have a target interactable, interact with it if we are at the same position
     local targetInteractable = self:getCurrentActionInteractable()
+
+    if (targetInteractable) then
+        if (targetInteractable.isRemoved) then
+            if (targetInteractable.stopInteract) then
+                targetInteractable:stopInteract(self)
+            else
+                self:stop()
+            end
+
+			targetInteractable = nil
+        end
+    end
 
 	if (targetInteractable and not self:isMoving()) then
 		if (targetInteractable:getDistanceTo(self.x, self.y) < 2) then
