@@ -1,6 +1,8 @@
-# Unnamed RTS (Love2D)
+# Pixel Dominion (Working Title)
 
-RTS game made with Love2D.
+A real-time strategy game where you build structures, train units, and conquer the enemy.
+
+<img src="./src/assets/images/logo-scaled.png">
 
 ## 📸 Screenshots
 
