@@ -232,9 +232,11 @@ function love.keyreleased(key)
             -- If control is also held, special debug action
             if (love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl')) then
 				-- Remove all farmland
-				for _, structure in ipairs(playerFaction:getStructuresOfType('farmland')) do
-					structure:remove()
-				end
+				-- for _, structure in ipairs(playerFaction:getStructuresOfType('farmland')) do
+				-- 	structure:remove()
+				-- end
+				-- Discover all the map
+				currentWorld:revealMapForFaction(playerFaction)
 			else
 				-- Dump information about the computer players
 				for _, computerPlayer in ipairs(computerPlayers) do

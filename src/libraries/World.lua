@@ -860,6 +860,29 @@ function World:updateFogOfWarForFaction(faction, changedTiles)
 	end
 end
 
+--- Reveals the entire map for the given faction
+--- @param faction Faction
+function World:revealMapForFaction(faction)
+	if (GameConfig.disableFogOfWar) then
+		return
+	end
+
+	if (not self.fogOfWarFactions[faction]) then
+		return
+	end
+
+	local fogOfWarMap = faction.fogOfWarMap
+	assert(fogOfWarMap, 'Fog of war map not found for faction.')
+
+	for y = 1, self.map.height do
+		for x = 1, self.map.width do
+			fogOfWarMap[y][x] = true
+		end
+	end
+
+	self:updateFogOfWarForFaction(faction)
+end
+
 --- Called to check if the interactable should be drawn for the faction, respecting the fog of war
 --- @param faction Faction
 --- @param interactable Interactable
