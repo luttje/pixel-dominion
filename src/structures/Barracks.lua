@@ -2,6 +2,7 @@ local STRUCTURE = {}
 
 STRUCTURE.id = 'barracks'
 STRUCTURE.name = 'Barracks'
+STRUCTURE.sightRange = 18
 
 STRUCTURE.imagePath = 'assets/images/structures/barracks.png'
 STRUCTURE.requiredResources = {

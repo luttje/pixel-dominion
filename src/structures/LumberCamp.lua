@@ -10,7 +10,7 @@ STRUCTURE.requiredResources = {
 }
 
 STRUCTURE.dropOffForResources = {
-	wood = 2, -- multiplied efficiency
+	wood = 2, -- multiplied efficiency -- TODO: Might be confusing, since the town hall will be preferred for drop off if it's closer
 }
 
 -- --- @type UnitGenerationInfo[]

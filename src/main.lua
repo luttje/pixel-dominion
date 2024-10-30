@@ -74,6 +74,7 @@ function love.load()
 		mapPath = 'assets/worlds/forest_8x8.lua'
     })
     currentWorld:spawnFaction(playerFaction)
+	currentWorld:addFogOfWarFaction(playerFaction)
 
     local numEnemyPlayers = 2
 

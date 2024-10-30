@@ -24,6 +24,8 @@ end)
 --- @field mapPath string # The path to the map file
 ---
 --- @field factions Faction[] # The factions in the world
+--- @field fogOfWarFactions table<Faction, boolean> # The factions that we are seeing through the fog of war for
+---
 --- @field resourceInstances Resource[] # The resource instances in the world
 ---
 --- @field spawnPoints table<number, table<number, number>> # The spawn points for the factions
@@ -38,8 +40,10 @@ function World:initialize(config)
 	assert(config.mapPath, 'Map path is required.')
 
     self.factions = {}
+    self.fogOfWarFactions = {}
+
 	self.resourceInstances = {}
-	self.spawnPoints = {}
+    self.spawnPoints = {}
 
 	table.Merge(self, config)
 
@@ -143,11 +147,11 @@ function World:loadMap()
 		end
 	end
 
-	if (GameConfig.mapLayersToRemove) then
-		for _, layerName in ipairs(GameConfig.mapLayersToRemove) do
-			self.map:removeLayer(layerName)
-		end
-	end
+    if (GameConfig.mapLayersToRemove) then
+        for _, layerName in ipairs(GameConfig.mapLayersToRemove) do
+            self.map:removeLayer(layerName)
+        end
+    end
 
     self:registerLayerCallback('Dynamic_Units', 'draw', function()
 		for _, faction in ipairs(self.factions) do
@@ -658,10 +662,215 @@ end
 --- Removes the faction from the world
 --- @param faction Faction
 function World:removeFaction(faction)
-	for i, f in ipairs(self.factions) do
-		if (f == faction) then
-			table.remove(self.factions, i)
-			return
+    for i, f in ipairs(self.factions) do
+        if (f == faction) then
+            table.remove(self.factions, i)
+            return
+        end
+    end
+end
+
+--- Adds a faction to the fog of war factions, so we can see what they see through the fog of war
+--- @param faction Faction
+function World:addFogOfWarFaction(faction)
+    if (self.fogOfWarFactions[faction]) then
+        return
+    end
+
+	self.fogOfWarFactions[faction] = true
+	self:resetFogOfWar()
+end
+
+--- Removes a faction from the fog of war factions
+--- @param faction Faction
+function World:removeFogOfWarFaction(faction)
+	if (not self.fogOfWarFactions[faction]) then
+		return
+	end
+
+	self.fogOfWarFactions[faction] = nil
+	self:resetFogOfWar()
+end
+
+--- Clears all fog of war factions
+--- @param faction Faction
+function World:clearFogOfWarFactions()
+    self.fogOfWarFactions = {}
+    self:resetFogOfWar()
+end
+
+--- Creates a fog of war map for the faction, so we can track discovered tiles
+--- @param faction Faction
+--- @return table<number, table<number, boolean>>
+function World:createFogOfWarMap(faction)
+	local map = {}
+
+	for y = 1, self.map.height do
+		map[y] = {}
+
+		for x = 1, self.map.width do
+			map[y][x] = false
+		end
+	end
+
+	return map
+end
+
+--- Reveals a section of the fog of war for the faction
+--- @param faction Faction
+--- @param fogOfWarMap table<number, table<number, boolean>>
+--- @param x number
+--- @param y number
+--- @param radius number
+function World:revealFogOfWar(faction, fogOfWarMap, x, y, radius)
+    local map = self.map
+
+	-- Circle, but looks a bit weird with single tiles at some edges:
+	-- local changedTiles = {}
+
+	-- for dy = -radius, radius do
+	-- 	for dx = -radius, radius do
+	-- 		if (dx * dx + dy * dy <= radius * radius) then
+	-- 			local nx = math.ceil(x + dx) + 1
+	-- 			local ny = math.ceil(y + dy) + 1
+
+	-- 			if (nx >= 1 and ny >= 1 and nx <= map.width and ny <= map.height) then
+	-- 				fogOfWarMap[ny][nx] = true
+	-- 				table.insert(changedTiles, { x = nx - 1, y = ny - 1 })
+	-- 			end
+	-- 		end
+	-- 	end
+    -- end
+
+	-- More smoothened circle:
+    local changedTiles = {}
+
+    for dy = -radius, radius do
+        for dx = -radius, radius do
+            local distanceSquared = dx * dx + dy * dy
+
+            -- Reveal inner circle (full radius)
+            if distanceSquared <= radius * radius then
+                local nx = math.ceil(x + dx) + 1
+                local ny = math.ceil(y + dy) + 1
+
+                if (nx >= 1 and ny >= 1 and nx <= map.width and ny <= map.height) then
+                    fogOfWarMap[ny][nx] = true
+                    table.insert(changedTiles, { x = nx - 1, y = ny - 1 })
+                end
+
+            -- Reveal outer edge to ensure a 2-pixel border (outer radius)
+            elseif distanceSquared <= (radius + 0.5) * (radius + 0.5) then
+                local nx = math.ceil(x + dx) + 1
+                local ny = math.ceil(y + dy) + 1
+
+                if (nx >= 1 and ny >= 1 and nx <= map.width and ny <= map.height) then
+                    fogOfWarMap[ny][nx] = true
+                    table.insert(changedTiles, { x = nx - 1, y = ny - 1 })
+                end
+            end
+        end
+    end
+
+	self:updateFogOfWarForFaction(faction, changedTiles)
+end
+
+--- Updates the fog of war
+function World:resetFogOfWar()
+    if (not self.map) then
+        assert(false, 'No map loaded.')
+        return
+    end
+
+    local map = self.map
+
+    local fogOfWarLayer = map.layers[GameConfig.fogOfWarLayerName]
+
+    if (not fogOfWarLayer) then
+        return
+    end
+
+    local fogOfWarTileset = map.tilesets[GameConfig.fogOfWarTilesetId]
+
+    if (not fogOfWarTileset) then
+        return
+    end
+
+	if (GameConfig.disableFogOfWar) then
+		-- Clear the fog of war
+        for y = 1, map.height do
+            for x = 1, map.width do
+                map:setLayerTile(GameConfig.fogOfWarLayerName, x, y, nil)
+            end
+        end
+
+		return
+	end
+
+    local fogOfWarTileId = fogOfWarTileset.firstgid + GameConfig.fogOfWarTileId
+
+    -- Set the fog of war for all tiles
+    for y = 1, map.height do
+        for x = 1, map.width do
+            map:setLayerTile(GameConfig.fogOfWarLayerName, x, y, fogOfWarTileId)
+        end
+    end
+
+    -- Reveal the fog of war for whatever is currently visible
+	for faction, _ in pairs(self.fogOfWarFactions) do
+		self:updateFogOfWarForFaction(faction)
+	end
+end
+
+--- Checks if the given faction is in the fog of war factions, then updates the fog of war
+--- for it.
+--- @param faction Faction
+--- @param changedTiles? table<number, table<number, number>>
+function World:updateFogOfWarForFaction(faction, changedTiles)
+    if (GameConfig.disableFogOfWar) then
+        return
+    end
+
+	if (not self.fogOfWarFactions[faction]) then
+		return
+	end
+
+	local map = self.map
+
+	local fogOfWarLayer = map.layers[GameConfig.fogOfWarLayerName]
+    assert(fogOfWarLayer, 'Fog of war layer not found.')
+
+    local fogOfWarTileset = map.tilesets[GameConfig.fogOfWarTilesetId]
+	assert(fogOfWarTileset, 'Fog of war tileset not found.')
+
+	local fogOfWarTileId = fogOfWarTileset.firstgid + GameConfig.fogOfWarTileId
+
+    local fogOfWarMap = faction.fogOfWarMap
+	assert(fogOfWarMap, 'Fog of war map not found for faction.')
+
+	-- Only update the changed tiles if we have them
+	if (changedTiles) then
+        for _, tile in ipairs(changedTiles) do
+			local x = tile.x + 1
+			local y = tile.y + 1
+
+			if (x >= 1 and y >= 1 and x <= map.width and y <= map.height) then
+				if (fogOfWarMap[y][x]) then
+					map:setLayerTile(GameConfig.fogOfWarLayerName, x, y, nil)
+				else
+					map:setLayerTile(GameConfig.fogOfWarLayerName, x, y, fogOfWarTileId)
+				end
+			end
+		end
+	else
+		for y = 1, map.height do
+			for x = 1, map.width do
+				if (fogOfWarMap[y][x]) then
+					map:setLayerTile(GameConfig.fogOfWarLayerName, x, y, nil)
+				else
+					map:setLayerTile(GameConfig.fogOfWarLayerName, x, y, fogOfWarTileId)
+				end
+			end
 		end
 	end
 end

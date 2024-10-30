@@ -24,6 +24,18 @@ GameConfig.mapLayersToRemove = {
 	'DesignTimeOnly',
 }
 
+--- The fog of war layer name.
+--- @type string
+GameConfig.fogOfWarLayerName = 'FogOfWar'
+
+--- The tileset id for the fog of war.
+--- @type number
+GameConfig.fogOfWarTilesetId = 3
+
+--- The tile id for the fog of war.
+--- @type number
+GameConfig.fogOfWarTileId = 0 -- TODO: We have tiles for all edges, corners, etc. Use them.
+
 --- Width and height of the map tiles in pixels.
 --- @type number
 GameConfig.tileSize = 8
@@ -157,5 +169,9 @@ GameConfig.debugCheatsEnabled = true
 --- Disable music for less distraction during testing.
 --- @type boolean
 GameConfig.disableMusic = true
+
+--- Disable the fog of war for testing.
+--- @type boolean
+GameConfig.disableFogOfWar = false
 
 return GameConfig

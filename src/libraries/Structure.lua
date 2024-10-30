@@ -15,6 +15,7 @@ local Structure = DeclareClassWithBase('Structure', Interactable)
 function Structure:initialize(config)
     config = config or {}
 
+	self.sightRange = 12
     table.Merge(self, config)
 
 	self.unitGenerationQueue = table.Queue({})

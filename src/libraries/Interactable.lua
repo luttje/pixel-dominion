@@ -13,6 +13,7 @@
 --- @field isRemoved boolean # Whether the interactable is removed
 ---
 --- @field interactSounds table|nil
+--- @field sightRange number
 ---
 --- @field health number
 --- @field maxHealth number
@@ -31,6 +32,7 @@ function Interactable:initialize(config)
 
 	self.isSelectable = true
 	self.health = 100
+	self.sightRange = 6
 
     table.Merge(self, config)
 
@@ -44,6 +46,10 @@ function Interactable:initialize(config)
 	NEXT_ID = NEXT_ID + 1
 
     self.world.searchTree:insert(self)
+
+	if (self.faction) then
+		self.faction:onInteractableMoved(self)
+	end
 end
 
 --- Sets the world for the interactable
@@ -156,6 +162,11 @@ function Interactable:setWorldPosition(x, y)
     self.y = y
 
     self.world.searchTree:insert(self)
+
+    -- If we have a faction, inform it of the change so it can update the fog of war
+	if (self.faction) then
+		self.faction:onInteractableMoved(self)
+	end
 end
 
 --- Checks if the interactable is in the given position
@@ -298,38 +309,45 @@ end
 --- @param interactor Interactable
 --- @return boolean # Whether the interactable was interacted with
 function Interactable:updateInteract(deltaTime, interactor)
-	if (not interactor:isOfType(Unit)) then
-		print('Cannot interact with interactable as interactor is not a unit.')
-		return false
-	end
+    if (not interactor:isOfType(Unit)) then
+        print('Cannot interact with interactable as interactor is not a unit.')
+        return false
+    end
 
-	local unitType = interactor:getUnitType()
+    local unitType = interactor:getUnitType()
 
-	if (self.isRemoved) then
-		if (unitType.damageStrength and self:canTakeDamageFrom(interactor)) then
+    if (self.isRemoved) then
+        if (unitType.damageStrength and self:canTakeDamageFrom(interactor)) then
             interactor:onInteractWithDestroyedInteractable(self)
-		end
+        end
 
         return false
     end
 
-	if (unitType.damageStrength and self:canTakeDamageFrom(interactor)) then
+    if (unitType.damageStrength and self:canTakeDamageFrom(interactor)) then
         if (self.nextDamagableAt and self.nextDamagableAt > love.timer.getTime()) then
             return false
         end
 
         self.nextDamagableAt = love.timer.getTime() + GameConfig.interactableDamageTimeInSeconds()
         self.lastDamagedBy = interactor
-		interactor.lastDamagedInteractable = self
+        interactor.lastDamagedInteractable = self
 
         if (self:damage(unitType.damageStrength, interactor)) then
             interactor:onInteractWithDestroyedInteractable(self)
         end
 
-		return false
-	end
+        return false
+    end
 
-	return true
+    return true
+end
+
+--- Gets the sight range of the interactable in tiles for the fog of war
+--- Due to us using tiles, its best to keep this as an even number
+--- @return number
+function Interactable:getSightRange()
+	return self.sightRange
 end
 
 return Interactable

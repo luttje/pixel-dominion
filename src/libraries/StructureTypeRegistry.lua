@@ -12,6 +12,7 @@ local StructureTypeRegistry = DeclareClass('StructureTypeRegistry')
 --- @field id string The unique id of the structure.
 --- @field name string The name of the structure.
 ---
+--- @field sightRange? number The sight range of the structure.
 --- @field unitGenerationInfo table[]|nil The unit types that this structure generates.
 --- @field dropOffForResources? table<string, boolean> A table of resource types that this structure can accept as a drop-off point.
 --- @field requiredResources table<string, number> The resources required to build the structure.
@@ -79,7 +80,8 @@ function StructureTypeRegistry.StructureRegistration:spawnAtTile(world, faction,
 		x = x,
 		y = y,
 		tiles = tiles,
-		world = world
+        world = world,
+		sightRange = self.sightRange,
 	})
 
     structure:onSpawn(builders)

@@ -13,6 +13,7 @@ FORCE_FREE_PLACEMENT = true
 --- @field resourceInventory ResourceInventory
 --- @field units table<number, Unit> # The units in the world
 --- @field structures table<number, Structure> # The structures in the world
+--- @field fogOfWarMap table<number, table<number, boolean>> # The fog of war map
 local Faction = DeclareClass('Faction')
 
 --- Initializes the faction
@@ -47,6 +48,8 @@ end
 function Faction:setWorld(world)
     self.world = world
     self.player:setWorld(self.world)
+
+	self.fogOfWarMap = self.world:createFogOfWarMap(self)
 end
 
 --- Gets the world for the faction
@@ -368,6 +371,20 @@ function Faction:remove()
 
 	self.world:removeFaction(self)
 	self.player:setFaction(nil)
+end
+
+--- Called when an interactable moves, so we can update the fog of war
+--- @param interactable Interactable
+function Faction:onInteractableMoved(interactable)
+    local sightRange = interactable:getSightRange()
+
+	if (sightRange == 0) then
+		return
+	end
+
+	local x, y = interactable.x, interactable.y
+
+	self:getWorld():revealFogOfWar(self, self.fogOfWarMap, x, y, sightRange * .5)
 end
 
 return Faction
