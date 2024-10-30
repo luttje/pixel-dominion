@@ -14,6 +14,7 @@ local StructureTypeRegistry = DeclareClass('StructureTypeRegistry')
 --- @field structureTilesetInfo table<number, table> The tileset information used to render the structure in the world.
 --- @field requiredResources table<string, number> The resources required to build the structure.
 --- @field imagePath string The path to the image used to render the structure.
+--- @field dropOffForResources? table<string, boolean> A table of resource types that this structure can accept as a drop-off point.
 StructureTypeRegistry.StructureRegistration = DeclareClass('StructureTypeRegistry.StructureRegistration')
 
 function StructureTypeRegistry.StructureRegistration:initialize(config)

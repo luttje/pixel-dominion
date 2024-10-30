@@ -10,7 +10,7 @@ STRUCTURE.requiredResources = {
 }
 
 -- TODO: Have this config make the structure accept resources, instead of duplicating the code below in the updateInteract function (like its the same in town_hall now)
-STRUCTURE.acceptsResources = {
+STRUCTURE.dropOffForResources = {
 	wood = true,
 }
 
@@ -68,6 +68,34 @@ STRUCTURE.structureTilesetInfo = {
 --- @param structure Structure
 --- @param builders? Unit[]
 function STRUCTURE:onSpawn(structure, builders)
+    if (not builders) then
+        return
+    end
+
+	local world = structure:getWorld()
+	local nearestResourceInstance = world:findNearestResourceInstance(
+		ResourceTypeRegistry:getResourceType('wood'),
+		structure.x,
+		structure.y,
+		function(resource)
+			local resourceFaction = resource:getFaction()
+
+			if (faction and resourceFaction and resourceFaction ~= faction) then
+				return false
+			end
+
+			return true
+		end
+	)
+
+	if (not nearestResourceInstance) then
+		return
+	end
+
+    -- Have the builders start harvesting the resource
+    for _, builder in ipairs(builders) do
+		builder:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
+	end
 end
 
 --- When an structure is interacted with by a unit.

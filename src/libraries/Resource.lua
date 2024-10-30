@@ -69,7 +69,7 @@ function Resource:stopInteract(interactor)
 		end
 	else
 		-- TODO: and go towards the resource camp, for now we will go to the town hall
-        local dropOffStructure = interactor:getFaction():getDropOffStructure(interactor:getResourceInventory())
+        local dropOffStructure = interactor:getFaction():getDropOffStructure(interactor:getResourceInventory(), interactor:getWorldPosition())
         interactor:commandTo(dropOffStructure.x, dropOffStructure.y, dropOffStructure)
 	end
 end

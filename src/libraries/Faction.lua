@@ -309,19 +309,24 @@ end
 
 --- Goes through all structures and checks their types to see if resources can be dropped off there
 --- @param resourceInventory ResourceInventory
+--- @param nearX? number
+--- @param nearY? number
 --- @return Structure
-function Faction:getDropOffStructure(resourceInventory)
+function Faction:getDropOffStructure(resourceInventory, nearX, nearY)
     local matchedStructures = {
 		self:getTownHall()
 	}
 
+    local nearestStructure
+	local nearestDistance = math.huge
+
     for _, structure in ipairs(self.structures) do
-		if (structure.structureType.acceptsResources) then
+		if (structure.structureType.dropOffForResources) then
 			local matchesAll = true
 
 			for resourceTypeId, resourceValue in pairs(resourceInventory:getAll()) do
 				local resourceType = ResourceTypeRegistry:getResourceType(resourceTypeId)
-				local acceptsResource = structure.structureType.acceptsResources[resourceType.id]
+				local acceptsResource = structure.structureType.dropOffForResources[resourceType.id]
 
 				if (not acceptsResource) then
 					matchesAll = false
@@ -330,12 +335,24 @@ function Faction:getDropOffStructure(resourceInventory)
 			end
 
             if (matchesAll) then
-				table.insert(matchedStructures, structure)
+                table.insert(matchedStructures, structure)
+
+				if (nearX and nearY) then
+					local distance = structure:getDistanceTo(nearX, nearY)
+
+					if (distance < nearestDistance) then
+						nearestStructure = structure
+						nearestDistance = distance
+					end
+				end
 			end
 		end
     end
 
-	-- TODO: Get the closest structure
+    if (nearestStructure) then
+        return nearestStructure
+    end
+
 	return table.Random(matchedStructures)
 end
 
