@@ -47,7 +47,8 @@ function Resource:stopInteract(interactor)
         -- Find another resource to go to of the same type
         local world = self:getWorld()
 		local faction = interactor:getFaction()
-        local nearestResourceInstance = world:findNearestResourceInstance(
+        local nearestResourceInstance = world:findNearestResourceInstanceForFaction(
+			faction,
             self.resourceType,
             interactor.x,
 			interactor.y,
@@ -153,7 +154,7 @@ function Resource:postDrawOnScreen(x, y, width, height, cameraScale)
         return
     end
 
-	if (not self:getWorld():isInteractableDiscoveredForPlayer(CurrentPlayer, self)) then
+	if (not self:getWorld():isInteractableDiscoveredForFaction(CurrentPlayer:getFaction(), self)) then
 		return
 	end
 

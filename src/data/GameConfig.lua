@@ -36,6 +36,19 @@ GameConfig.fogOfWarTilesetId = 3
 --- @type number
 GameConfig.fogOfWarTileId = 0 -- TODO: We have tiles for all edges, corners, etc. Use them.
 
+--- To prevent computer players from having to scout (for now) we just let them cheat in finding nearby interactables,
+--- even if obscured by the fog of war.
+--- @type boolean
+GameConfig.fogOfWarCheatForComputerPlayers = true
+
+--- The tileset id for an invisible tile, used to mark undiscovered tile collisions.
+--- @type number
+GameConfig.invisibleTilesetId = 2
+
+--- The tile id for an invisible tile, used to mark undiscovered tile collisions.
+--- @type number
+GameConfig.invisibleTileId = 0
+
 --- Width and height of the map tiles in pixels.
 --- @type number
 GameConfig.tileSize = 8

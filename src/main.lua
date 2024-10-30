@@ -170,7 +170,7 @@ function love.keyreleased(key)
                 local resourceType = ResourceTypeRegistry:getRandomResourceType(function(resourceType)
                     return resourceType:isHarvestable()
                 end)
-                local resource = currentWorld:findNearestResourceInstance(resourceType, villager.x, villager.y)
+                local resource = currentWorld:findNearestResourceInstanceForFaction(playerFaction, resourceType, villager.x, villager.y)
 
                 if (resource) then
                     villager:commandTo(resource.x, resource.y, resource)

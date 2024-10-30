@@ -58,6 +58,12 @@ function Faction:getWorld()
 	return self.world
 end
 
+--- Gets the player for the faction
+--- @return Player
+function Faction:getPlayer()
+	return self.player
+end
+
 --- Gets the resource inventory
 --- @return ResourceInventory
 function Faction:getResourceInventory()

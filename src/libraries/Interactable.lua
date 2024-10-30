@@ -56,6 +56,22 @@ function Interactable:initialize(config)
 	if (self.faction) then
 		self.faction:onInteractableMoved(self)
 	end
+
+	if (self.tiles) then
+		-- Place invisible tiles for the interactable, so we correctly update the collision map
+		-- Without this the AI players would walk through the interactable + spawn structures on top of it
+		for _, tile in ipairs(self.tiles) do
+			self.world:addTile(
+				tile.layerName,
+				GameConfig.invisibleTilesetId,
+				GameConfig.invisibleTileId,
+				tile.x,
+				tile.y
+			)
+		end
+
+		self.world:updateCollisionMap()
+	end
 end
 
 --- Sets the world for the interactable
@@ -119,7 +135,7 @@ function Interactable:remove()
 
 	local world = self:getWorld()
 
-	if (self.tiles and self.tilesDiscovered) then
+	if (self.tiles) then
         for _, tile in pairs(self.tiles) do
             world:removeTile(tile.layerName, tile.x, tile.y)
         end
@@ -149,7 +165,7 @@ function Interactable:postDrawOnScreen(x, y, width, height, cameraScale)
 
     local world = self:getWorld()
 
-    if (not world:isInteractableDiscoveredForPlayer(CurrentPlayer, self)) then
+    if (not world:isInteractableDiscoveredForFaction(CurrentPlayer:getFaction(), self)) then
         return
     end
 
@@ -157,18 +173,16 @@ function Interactable:postDrawOnScreen(x, y, width, height, cameraScale)
 	if (self.tiles and not self.tilesDiscovered) then
 		self.tilesDiscovered = true
 
-		if (world:isInteractableDiscoveredForPlayer(CurrentPlayer, self)) then
-            for _, tile in ipairs(self.tiles) do
-                world:addTile(
-                    tile.layerName,
-                    tile.tilesetId,
-                    tile.tileId,
-                    tile.x,
-                    tile.y
-                )
-            end
-
-			world:updateCollisionMap()
+		for _, tile in ipairs(self.tiles) do
+			-- Oddly the swapTile function inside setLayerTile doesn't work, so we remove and add the tile
+			world:removeTile(tile.layerName, tile.x, tile.y)
+			world:addTile(
+				tile.layerName,
+				tile.tilesetId,
+				tile.tileId,
+				tile.x,
+				tile.y
+			)
 		end
 	end
 

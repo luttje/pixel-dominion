@@ -39,11 +39,11 @@ function World:initialize(config)
 
 	assert(config.mapPath, 'Map path is required.')
 
-    self.factions = {}
-    self.fogOfWarFactions = {}
+	self.factions = {}
+	self.fogOfWarFactions = {}
 
 	self.resourceInstances = {}
-    self.spawnPoints = {}
+	self.spawnPoints = {}
 
 	table.Merge(self, config)
 
@@ -52,7 +52,7 @@ end
 
 -- Load a map exported to Lua from Tiled
 function World:loadMap()
-    local mapPath = self.mapPath
+	local mapPath = self.mapPath
 
 	self.layerCallbacks = {}
 
@@ -62,7 +62,7 @@ function World:loadMap()
 	self.world = love.physics.newWorld(0, 0)
 
 	-- Prepare collision objects
-    self.map:box2d_init(self.world)
+	self.map:box2d_init(self.world)
 
 	-- Let us search for objects in the map quickly
 	self.searchTree = QuadTree({
@@ -71,7 +71,7 @@ function World:loadMap()
 			y = self.map.offsety,
 			width = self.map.width,
 			height = self.map.height
-        },
+		},
 	})
 
 	-- Call update and draw callbacks for these layers
@@ -126,8 +126,8 @@ function World:loadMap()
 	-- Cache the static collision map
 	self:updateCollisionMap()
 
-    -- Go through all resource types and check all layers for a match of spawnAtTileId
-    local map = self.map
+	-- Go through all resource types and check all layers for a match of spawnAtTileId
+	local map = self.map
 
 	for _, resourceType in ipairs(ResourceTypeRegistry:getAllResourceTypes()) do
 		for __, layer in ipairs(map.layers) do
@@ -136,7 +136,7 @@ function World:loadMap()
 					for x = 1, map.width do
 						local tile = layer.data[y][x]
 
-                        if (tile and tile.id == resourceType.spawnAtTileId) then
+						if (tile and tile.id == resourceType.spawnAtTileId) then
 							self:addResourceInstance(
 								resourceType:spawnAtTile(self, x - 1, y - 1)
 							)
@@ -147,13 +147,13 @@ function World:loadMap()
 		end
 	end
 
-    if (GameConfig.mapLayersToRemove) then
-        for _, layerName in ipairs(GameConfig.mapLayersToRemove) do
-            self.map:removeLayer(layerName)
-        end
-    end
+	if (GameConfig.mapLayersToRemove) then
+		for _, layerName in ipairs(GameConfig.mapLayersToRemove) do
+			self.map:removeLayer(layerName)
+		end
+	end
 
-    self:registerLayerCallback('Dynamic_Units', 'draw', function()
+	self:registerLayerCallback('Dynamic_Units', 'draw', function()
 		for _, faction in ipairs(self.factions) do
 			for _, unit in ipairs(faction:getUnits()) do
 				unit:draw()
@@ -199,7 +199,7 @@ function World:update(deltaTime)
 
 	self.map:update(deltaTime)
 
-    -- Update all factions
+	-- Update all factions
 	for _, faction in ipairs(self.factions) do
 		faction:update(deltaTime)
 	end
@@ -215,10 +215,10 @@ function World:draw(translateX, translateY, scaleX, scaleY)
 	love.graphics.setColor(1, 1, 1)
 	self.map:draw(translateX, translateY, scaleX, scaleY)
 
-    if (GameConfig.debugCollisionMap) then
-        love.graphics.setColor(1, 0, 0)
-        self.map:box2d_draw(translateX, translateY, scaleX, scaleY)
-    end
+	if (GameConfig.debugCollisionMap) then
+		love.graphics.setColor(1, 0, 0)
+		self.map:box2d_draw(translateX, translateY, scaleX, scaleY)
+	end
 end
 
 --- Returns the collision map for the loaded map based on the 'collidable' property of the layers.
@@ -226,10 +226,10 @@ end
 --- @return table<number, table<number, number>>
 function World:updateCollisionMap()
 	-- Regular collision map, where we can and can't walk
-    local collisionMap = {}
+	local collisionMap = {}
 
 	-- Fallback, with layers that prefer collision, but are willing to fallback to walkable
-    local collisionMapFallback = {}
+	local collisionMapFallback = {}
 
 	-- Map of structures that block placing other structures
 	local blockPlacingStructuresMap = {}
@@ -242,11 +242,11 @@ function World:updateCollisionMap()
 	local map = self.map
 
 	for y = 1, map.height do
-        collisionMap[y] = {}
+		collisionMap[y] = {}
 		collisionMapFallback[y] = {}
 
 		for x = 1, map.width do
-            collisionMap[y][x] = WALKABLE
+			collisionMap[y][x] = WALKABLE
 			collisionMapFallback[y][x] = WALKABLE
 		end
 	end
@@ -260,17 +260,17 @@ function World:updateCollisionMap()
 					if (tile) then
 						-- Or if the entire layer is collidable, then any tile will be marked as collidable
 						if (layer.properties.collidable) then
-                            collisionMap[y][x] = NOT_WALKABLE
+							collisionMap[y][x] = NOT_WALKABLE
 
 							if (not layer.properties.notStrictAboutCollidable) then
 								collisionMapFallback[y][x] = NOT_WALKABLE
 							end
 						else
 							if (layer.properties.reserved) then
-                                -- For farmland, we want to mark it as walkable but reserved so no other farmland can be placed on it
-                                if (not blockPlacingStructuresMap[y]) then
-                                    blockPlacingStructuresMap[y] = {}
-                                end
+								-- For farmland, we want to mark it as walkable but reserved so no other farmland can be placed on it
+								if (not blockPlacingStructuresMap[y]) then
+									blockPlacingStructuresMap[y] = {}
+								end
 
 								blockPlacingStructuresMap[y][x] = true
 							end
@@ -281,21 +281,21 @@ function World:updateCollisionMap()
 		end
 	end
 
-    self.collisionMap = collisionMap
-    self.collisionGrid = Grid(collisionMap)
+	self.collisionMap = collisionMap
+	self.collisionGrid = Grid(collisionMap)
 
-    self.collisionMapFallback = collisionMapFallback
+	self.collisionMapFallback = collisionMapFallback
 	self.collisionGridFallback = Grid(collisionMapFallback)
 
-    self.pathfinder = Pathfinder(self.collisionGrid, 'ASTAR', WALKABLE)
-    self.pathfinder:setMode('ORTHOGONAL')
+	self.pathfinder = Pathfinder(self.collisionGrid, 'ASTAR', WALKABLE)
+	self.pathfinder:setMode('ORTHOGONAL')
 
 	self.pathfinderFallback = Pathfinder(self.collisionGridFallback, 'ASTAR', WALKABLE)
 	self.pathfinderFallback:setMode('ORTHOGONAL')
 
 	self.blockPlacingStructuresMap = blockPlacingStructuresMap
 
-    if (GameConfig.debugCollisionMap) then
+	if (GameConfig.debugCollisionMap) then
 		print('\nCollision Map:\n')
 		for y, row in ipairs(collisionMap) do
 			local rowString = ''
@@ -319,16 +319,16 @@ end
 --- @param withFallback? boolean # Whether to use the fallback pathfinder if the main one fails
 --- @return table<number, table<number, number>> | nil # A table of path points (0-based) or nil if no path was found
 function World:findPath(startX, startY, endX, endY, withFallback)
-    if (not self.map) then
-        assert(false, 'No map loaded.')
-        return
-    end
+	if (not self.map) then
+		assert(false, 'No map loaded.')
+		return
+	end
 
-    -- The path finder works with 1-based indexes while the map is 0-based
-    startX = startX + 1
-    startY = startY + 1
-    endX = endX + 1
-    endY = endY + 1
+	-- The path finder works with 1-based indexes while the map is 0-based
+	startX = startX + 1
+	startY = startY + 1
+	endX = endX + 1
+	endY = endY + 1
 
 	-- Ensure its within bounds of the map
 	if (startX < 1 or startY < 1 or endX < 1 or endY < 1) then
@@ -339,13 +339,13 @@ function World:findPath(startX, startY, endX, endY, withFallback)
 		return nil
 	end
 
-    -- Check if we have a cached path that is still valid
-    local cachedPath = pathCache:find({
-        startX = startX,
-        startY = startY,
-        endX = endX,
+	-- Check if we have a cached path that is still valid
+	local cachedPath = pathCache:find({
+		startX = startX,
+		startY = startY,
+		endX = endX,
 		endY = endY
-    })
+	})
 
 	local path
 
@@ -358,7 +358,7 @@ function World:findPath(startX, startY, endX, endY, withFallback)
 	end
 
 	if (not path) then
-        path = self.pathfinder:getPath(startX, startY, endX, endY)
+		path = self.pathfinder:getPath(startX, startY, endX, endY)
 
 		if (not path and withFallback) then
 			path = self.pathfinderFallback:getPath(startX, startY, endX, endY)
@@ -381,14 +381,14 @@ function World:findPath(startX, startY, endX, endY, withFallback)
 		})
 	end
 
-    -- Convert back to 0-based indexes
-    local points = {}
+	-- Convert back to 0-based indexes
+	local points = {}
 
-    for node, count in path:nodes() do
-        table.insert(points, { x = node:getX() - 1, y = node:getY() - 1 })
-    end
+	for node, count in path:nodes() do
+		table.insert(points, { x = node:getX() - 1, y = node:getY() - 1 })
+	end
 
-    return points
+	return points
 end
 
 --- Checks if the tile at the given position is occupied.
@@ -409,15 +409,15 @@ function World:isTileOccupied(x, y, isPlacingStructure, withFallback)
 		return false
 	end
 
-    if (x < 0 or y < 0 or x >= #collisionMap[1] or y >= #collisionMap) then
-        return true
-    end
+	if (x < 0 or y < 0 or x >= #collisionMap[1] or y >= #collisionMap) then
+		return true
+	end
 
-    x = x + 1
+	x = x + 1
 	y = y + 1
 
 	if (isPlacingStructure) then
-        if (self.blockPlacingStructuresMap[y] and self.blockPlacingStructuresMap[y][x]) then
+		if (self.blockPlacingStructuresMap[y] and self.blockPlacingStructuresMap[y][x]) then
 			return true
 		end
 	end
@@ -444,23 +444,23 @@ end
 --- @param x number
 --- @param y number
 function World:addTile(layerName, tilesetIndex, tileIndex, x, y)
-    if (not self.map) then
-        assert(false, 'No map loaded.')
-        return
-    end
+	if (not self.map) then
+		assert(false, 'No map loaded.')
+		return
+	end
 
-    local layer = self.map.layers[layerName]
+	local layer = self.map.layers[layerName]
 
-    if (not layer) then
-        assert(false, 'Layer not found: ' .. layerName)
-        return
-    end
+	if (not layer) then
+		assert(false, 'Layer not found: ' .. layerName)
+		return
+	end
 
-    -- Calculate the global tile ID (gid)
-    local firstgid = self.map.tilesets[tilesetIndex].firstgid
-    local gid = firstgid + tileIndex
+	-- Calculate the global tile ID (gid)
+	local firstgid = self.map.tilesets[tilesetIndex].firstgid
+	local gid = firstgid + tileIndex
 
-    self.map:setLayerTile(layerName, x + 1, y + 1, gid)
+	self.map:setLayerTile(layerName, x + 1, y + 1, gid)
 end
 
 --- Removes the tile at the given position from the specified layer.
@@ -480,10 +480,10 @@ function World:removeTile(layerName, x, y)
 		return
 	end
 
-    x = x + 1
+	x = x + 1
 	y = y + 1
 
-    self.map:setLayerTile(layerName, x, y, nil)
+	self.map:setLayerTile(layerName, x, y, nil)
 end
 
 --- Adds a resource instance to the world
@@ -493,18 +493,22 @@ function World:addResourceInstance(resource)
 end
 
 --- Find nearest resource instance to the given position
+--- @param faction Faction
 --- @param resourceType ResourceTypeRegistry.ResourceRegistration
 --- @param x number
 --- @param y number
 --- @param filter? fun(resource: Resource): boolean
 --- @return Resource|nil
-function World:findNearestResourceInstance(resourceType, x, y, filter)
+function World:findNearestResourceInstanceForFaction(faction, resourceType, x, y, filter)
 	local nearestResourceInstance = nil
 	local nearestDistance = nil
 
 	-- This currently finds all resources of the given type, but that will cause farmland of other factions to be used.
 	for _, resource in ipairs(self.resourceInstances) do
-		if (resource.resourceType == resourceType and (not filter or filter(resource))) then
+		if (self:isInteractableDiscoveredForFaction(faction, resource)
+				and resource.resourceType == resourceType
+				and (not filter or filter(resource))
+			) then
 			local distance = math.sqrt((resource.x - x) ^ 2 + (resource.y - y) ^ 2)
 
 			if (not nearestDistance or distance < nearestDistance) then
@@ -557,7 +561,7 @@ end
 --- @param resource Resource
 function World:removeResourceInstance(resource)
 	for i, instance in ipairs(self.resourceInstances) do
-        if (instance == resource) then
+		if (instance == resource) then
 			table.remove(self.resourceInstances, i)
 			return
 		end
@@ -591,7 +595,7 @@ end
 --- @return Unit|Structure|Resource|nil
 function World:getInteractableUnderPosition(x, y)
 	for _, resource in ipairs(self.resourceInstances) do
-        if (resource:isInPosition(x, y)) then
+		if (resource:isInPosition(x, y)) then
 			return resource
 		end
 	end
@@ -604,7 +608,7 @@ function World:getInteractableUnderPosition(x, y)
 		end
 	end
 
-    for _, faction in ipairs(self.factions) do
+	for _, faction in ipairs(self.factions) do
 		for _, structure in ipairs(faction:getStructures()) do
 			if (structure:isInPosition(x, y)) then
 				return structure
@@ -650,11 +654,11 @@ function World:spawnFaction(faction)
 	assert(not self:hasFaction(faction), 'Faction already in the world.')
 	self:addFaction(faction)
 
-    local townHallStructureType = StructureTypeRegistry:getStructureType('town_hall')
-    local townHall = faction:spawnStructure(townHallStructureType, spawnpoint.x, spawnpoint.y, nil, FORCE_FREE_PLACEMENT)
+	local townHallStructureType = StructureTypeRegistry:getStructureType('town_hall')
+	local townHall = faction:spawnStructure(townHallStructureType, spawnpoint.x, spawnpoint.y, nil, FORCE_FREE_PLACEMENT)
 
 	townHall.events:on('structureRemoved', function()
-        print('Town hall removed, faction lost.')
+		print('Town hall removed, faction lost.')
 		faction:remove()
 	end)
 end
@@ -662,20 +666,20 @@ end
 --- Removes the faction from the world
 --- @param faction Faction
 function World:removeFaction(faction)
-    for i, f in ipairs(self.factions) do
-        if (f == faction) then
-            table.remove(self.factions, i)
-            return
-        end
-    end
+	for i, f in ipairs(self.factions) do
+		if (f == faction) then
+			table.remove(self.factions, i)
+			return
+		end
+	end
 end
 
 --- Adds a faction to the fog of war factions, so we can see what they see through the fog of war
 --- @param faction Faction
 function World:addFogOfWarFaction(faction)
-    if (self.fogOfWarFactions[faction]) then
-        return
-    end
+	if (self.fogOfWarFactions[faction]) then
+		return
+	end
 
 	self.fogOfWarFactions[faction] = true
 	self:resetFogOfWar()
@@ -695,8 +699,8 @@ end
 --- Clears all fog of war factions
 --- @param faction Faction
 function World:clearFogOfWarFactions()
-    self.fogOfWarFactions = {}
-    self:resetFogOfWar()
+	self.fogOfWarFactions = {}
+	self:resetFogOfWar()
 end
 
 --- Creates a fog of war map for the faction, so we can track discovered tiles
@@ -723,100 +727,81 @@ end
 --- @param y number
 --- @param radius number
 function World:revealFogOfWar(faction, fogOfWarMap, x, y, radius)
-    local map = self.map
+	local map = self.map
+	local changedTiles = {}
 
-	-- Circle, but looks a bit weird with single tiles at some edges:
-	-- local changedTiles = {}
+	for dy = -radius, radius do
+		for dx = -radius, radius do
+			local distanceSquared = dx * dx + dy * dy
 
-	-- for dy = -radius, radius do
-	-- 	for dx = -radius, radius do
-	-- 		if (dx * dx + dy * dy <= radius * radius) then
-	-- 			local nx = math.ceil(x + dx) + 1
-	-- 			local ny = math.ceil(y + dy) + 1
+			-- Reveal inner circle (full radius)
+			if distanceSquared <= radius * radius then
+				local nx = math.ceil(x + dx) + 1
+				local ny = math.ceil(y + dy) + 1
 
-	-- 			if (nx >= 1 and ny >= 1 and nx <= map.width and ny <= map.height) then
-	-- 				fogOfWarMap[ny][nx] = true
-	-- 				table.insert(changedTiles, { x = nx - 1, y = ny - 1 })
-	-- 			end
-	-- 		end
-	-- 	end
-    -- end
+				if (nx >= 1 and ny >= 1 and nx <= map.width and ny <= map.height) then
+					fogOfWarMap[ny][nx] = true
+					table.insert(changedTiles, { x = nx - 1, y = ny - 1 })
+				end
 
-	-- More smoothened circle:
-    local changedTiles = {}
+				-- Reveal outer edge to ensure a 2-pixel border (outer radius)
+			elseif distanceSquared <= (radius + 0.5) * (radius + 0.5) then
+				local nx = math.ceil(x + dx) + 1
+				local ny = math.ceil(y + dy) + 1
 
-    for dy = -radius, radius do
-        for dx = -radius, radius do
-            local distanceSquared = dx * dx + dy * dy
-
-            -- Reveal inner circle (full radius)
-            if distanceSquared <= radius * radius then
-                local nx = math.ceil(x + dx) + 1
-                local ny = math.ceil(y + dy) + 1
-
-                if (nx >= 1 and ny >= 1 and nx <= map.width and ny <= map.height) then
-                    fogOfWarMap[ny][nx] = true
-                    table.insert(changedTiles, { x = nx - 1, y = ny - 1 })
-                end
-
-            -- Reveal outer edge to ensure a 2-pixel border (outer radius)
-            elseif distanceSquared <= (radius + 0.5) * (radius + 0.5) then
-                local nx = math.ceil(x + dx) + 1
-                local ny = math.ceil(y + dy) + 1
-
-                if (nx >= 1 and ny >= 1 and nx <= map.width and ny <= map.height) then
-                    fogOfWarMap[ny][nx] = true
-                    table.insert(changedTiles, { x = nx - 1, y = ny - 1 })
-                end
-            end
-        end
-    end
+				if (nx >= 1 and ny >= 1 and nx <= map.width and ny <= map.height) then
+					fogOfWarMap[ny][nx] = true
+					table.insert(changedTiles, { x = nx - 1, y = ny - 1 })
+				end
+			end
+		end
+	end
 
 	self:updateFogOfWarForFaction(faction, changedTiles)
 end
 
 --- Updates the fog of war
 function World:resetFogOfWar()
-    if (not self.map) then
-        assert(false, 'No map loaded.')
-        return
-    end
+	if (not self.map) then
+		assert(false, 'No map loaded.')
+		return
+	end
 
-    local map = self.map
+	local map = self.map
 
-    local fogOfWarLayer = map.layers[GameConfig.fogOfWarLayerName]
+	local fogOfWarLayer = map.layers[GameConfig.fogOfWarLayerName]
 
-    if (not fogOfWarLayer) then
-        return
-    end
+	if (not fogOfWarLayer) then
+		return
+	end
 
-    local fogOfWarTileset = map.tilesets[GameConfig.fogOfWarTilesetId]
+	local fogOfWarTileset = map.tilesets[GameConfig.fogOfWarTilesetId]
 
-    if (not fogOfWarTileset) then
-        return
-    end
+	if (not fogOfWarTileset) then
+		return
+	end
 
 	if (GameConfig.disableFogOfWar) then
 		-- Clear the fog of war
-        for y = 1, map.height do
-            for x = 1, map.width do
-                map:setLayerTile(GameConfig.fogOfWarLayerName, x, y, nil)
-            end
-        end
+		for y = 1, map.height do
+			for x = 1, map.width do
+				map:setLayerTile(GameConfig.fogOfWarLayerName, x, y, nil)
+			end
+		end
 
 		return
 	end
 
-    local fogOfWarTileId = fogOfWarTileset.firstgid + GameConfig.fogOfWarTileId
+	local fogOfWarTileId = fogOfWarTileset.firstgid + GameConfig.fogOfWarTileId
 
-    -- Set the fog of war for all tiles
-    for y = 1, map.height do
-        for x = 1, map.width do
-            map:setLayerTile(GameConfig.fogOfWarLayerName, x, y, fogOfWarTileId)
-        end
-    end
+	-- Set the fog of war for all tiles
+	for y = 1, map.height do
+		for x = 1, map.width do
+			map:setLayerTile(GameConfig.fogOfWarLayerName, x, y, fogOfWarTileId)
+		end
+	end
 
-    -- Reveal the fog of war for whatever is currently visible
+	-- Reveal the fog of war for whatever is currently visible
 	for faction, _ in pairs(self.fogOfWarFactions) do
 		self:updateFogOfWarForFaction(faction)
 	end
@@ -827,9 +812,9 @@ end
 --- @param faction Faction
 --- @param changedTiles? table<number, table<number, number>>
 function World:updateFogOfWarForFaction(faction, changedTiles)
-    if (GameConfig.disableFogOfWar) then
-        return
-    end
+	if (GameConfig.disableFogOfWar) then
+		return
+	end
 
 	if (not self.fogOfWarFactions[faction]) then
 		return
@@ -838,19 +823,19 @@ function World:updateFogOfWarForFaction(faction, changedTiles)
 	local map = self.map
 
 	local fogOfWarLayer = map.layers[GameConfig.fogOfWarLayerName]
-    assert(fogOfWarLayer, 'Fog of war layer not found.')
+	assert(fogOfWarLayer, 'Fog of war layer not found.')
 
-    local fogOfWarTileset = map.tilesets[GameConfig.fogOfWarTilesetId]
+	local fogOfWarTileset = map.tilesets[GameConfig.fogOfWarTilesetId]
 	assert(fogOfWarTileset, 'Fog of war tileset not found.')
 
 	local fogOfWarTileId = fogOfWarTileset.firstgid + GameConfig.fogOfWarTileId
 
-    local fogOfWarMap = faction.fogOfWarMap
+	local fogOfWarMap = faction.fogOfWarMap
 	assert(fogOfWarMap, 'Fog of war map not found for faction.')
 
 	-- Only update the changed tiles if we have them
 	if (changedTiles) then
-        for _, tile in ipairs(changedTiles) do
+		for _, tile in ipairs(changedTiles) do
 			local x = tile.x + 1
 			local y = tile.y + 1
 
@@ -875,16 +860,19 @@ function World:updateFogOfWarForFaction(faction, changedTiles)
 	end
 end
 
---- Called to check if the interactable should be drawn for the player, respecting the fog of war
---- @param player Player
+--- Called to check if the interactable should be drawn for the faction, respecting the fog of war
+--- @param faction Faction
 --- @param interactable Interactable
 --- @return boolean
-function World:isInteractableDiscoveredForPlayer(player, interactable)
+function World:isInteractableDiscoveredForFaction(faction, interactable)
 	if (GameConfig.disableFogOfWar) then
 		return true
 	end
 
-	local faction = player:getFaction()
+	if (GameConfig.fogOfWarCheatForComputerPlayers and faction:getPlayer():isOfType(PlayerComputer)) then
+		return true
+	end
+
 	local fogOfWarMap = faction.fogOfWarMap
 	assert(fogOfWarMap, 'Fog of war map not found for faction.')
 

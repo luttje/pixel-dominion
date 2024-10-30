@@ -125,7 +125,8 @@ function GOAL:setVillagersToGatherResources(player, villagers)
                     end
                 else
                     -- Put the villager to work
-                    local resource = villager:getWorld():findNearestResourceInstance(
+					local resource = villager:getWorld():findNearestResourceInstanceForFaction(
+						faction,
                         resourceType,
                         villager.x,
                         villager.y,

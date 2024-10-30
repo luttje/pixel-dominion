@@ -33,7 +33,8 @@ function Structure:onSpawn(builders)
 		while (not resourceTypes:isEmpty()) do
 			local resourceTypeId = resourceTypes:pop()
 			local world = self:getWorld()
-			local nearestResourceInstance = world:findNearestResourceInstance(
+			local nearestResourceInstance = world:findNearestResourceInstanceForFaction(
+				faction,
 				ResourceTypeRegistry:getResourceType(resourceTypeId),
 				self.x,
 				self.y,
@@ -104,7 +105,7 @@ function Structure:postDrawOnScreen(x, y, width, height, cameraScale)
         return
     end
 
-    if (not self:getWorld():isInteractableDiscoveredForPlayer(CurrentPlayer, self)) then
+    if (not self:getWorld():isInteractableDiscoveredForFaction(CurrentPlayer:getFaction(), self)) then
         return
     end
 
@@ -446,7 +447,8 @@ function Structure:updateInteract(deltaTime, interactor)
 			end
 
 			-- Find the nearest resource instance of the same type
-			local nearestResourceInstance = world:findNearestResourceInstance(
+			local nearestResourceInstance = world:findNearestResourceInstanceForFaction(
+				faction,
 				lastResourceInstance:getResourceType(),
 				self.x,
 				self.y,
