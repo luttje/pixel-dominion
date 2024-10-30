@@ -149,7 +149,7 @@ function Interactable:postDrawOnScreen(x, y, width, height, cameraScale)
 
     local world = self:getWorld()
 
-    if (not world:shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
+    if (not world:isInteractableDiscoveredForPlayer(CurrentPlayer, self)) then
         return
     end
 
@@ -157,7 +157,7 @@ function Interactable:postDrawOnScreen(x, y, width, height, cameraScale)
 	if (self.tiles and not self.tilesDiscovered) then
 		self.tilesDiscovered = true
 
-		if (world:shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
+		if (world:isInteractableDiscoveredForPlayer(CurrentPlayer, self)) then
             for _, tile in ipairs(self.tiles) do
                 world:addTile(
                     tile.layerName,

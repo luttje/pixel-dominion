@@ -113,7 +113,12 @@ function WorldMap:performUpdate(deltaTime)
 			end)
 		else
 			local worldX, worldY = self:screenToWorld(pointerX, pointerY, true)
-			local interactable = self.world:getInteractableUnderPosition(worldX, worldY)
+            local interactable = self.world:getInteractableUnderPosition(worldX, worldY)
+
+            -- If we haven't discovered the tile yet, don't allow interaction
+			if (interactable and not self.world:isInteractableDiscoveredForPlayer(CurrentPlayer, interactable)) then
+				interactable = nil
+			end
 
 			if (love.mouse.isDown(1)) then
 				if (

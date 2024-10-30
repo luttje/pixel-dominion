@@ -590,6 +590,12 @@ end
 --- @param y number
 --- @return Unit|Structure|Resource|nil
 function World:getInteractableUnderPosition(x, y)
+	for _, resource in ipairs(self.resourceInstances) do
+        if (resource:isInPosition(x, y)) then
+			return resource
+		end
+	end
+
 	for _, faction in ipairs(self.factions) do
 		for _, unit in ipairs(faction:getUnits()) do
 			if (unit:isInPosition(x, y)) then
@@ -603,12 +609,6 @@ function World:getInteractableUnderPosition(x, y)
 			if (structure:isInPosition(x, y)) then
 				return structure
 			end
-		end
-	end
-
-	for _, resource in ipairs(self.resourceInstances) do
-        if (resource:isInPosition(x, y)) then
-			return resource
 		end
 	end
 
@@ -879,7 +879,7 @@ end
 --- @param player Player
 --- @param interactable Interactable
 --- @return boolean
-function World:shouldDrawInteractableForPlayer(player, interactable)
+function World:isInteractableDiscoveredForPlayer(player, interactable)
 	if (GameConfig.disableFogOfWar) then
 		return true
 	end

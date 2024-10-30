@@ -153,7 +153,7 @@ function Resource:postDrawOnScreen(x, y, width, height, cameraScale)
         return
     end
 
-	if (not self:getWorld():shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
+	if (not self:getWorld():isInteractableDiscoveredForPlayer(CurrentPlayer, self)) then
 		return
 	end
 

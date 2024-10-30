@@ -154,7 +154,7 @@ function Unit:draw()
         return
     end
 
-	if (not self:getWorld():shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
+	if (not self:getWorld():isInteractableDiscoveredForPlayer(CurrentPlayer, self)) then
 		return
 	end
 
@@ -187,7 +187,7 @@ function Unit:postDrawOnScreen(x, y, width, height, cameraScale)
 	-- 	love.graphics.setColor(1, 1, 1, 0.25)
 	-- 	self.unitType:draw(self, self:getCurrentActionAnimation())
 	-- end)
-	if (not self:getWorld():shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
+	if (not self:getWorld():isInteractableDiscoveredForPlayer(CurrentPlayer, self)) then
 		return
 	end
 
