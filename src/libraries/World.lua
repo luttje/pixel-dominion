@@ -674,6 +674,12 @@ function World:removeFaction(faction)
 	end
 end
 
+--- Returns all factions in the world
+--- @return Faction[]
+function World:getFactions()
+	return self.factions
+end
+
 --- Adds a faction to the fog of war factions, so we can see what they see through the fog of war
 --- @param faction Faction
 function World:addFogOfWarFaction(faction)

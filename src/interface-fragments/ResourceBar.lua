@@ -7,11 +7,26 @@ local ResourceBar = DeclareClassWithBase('ResourceBar', InterfaceFragment)
 function ResourceBar:initialize(config)
     assert(CurrentPlayer, 'Player is required.')
 
-    table.Merge(self, config)
+	table.Merge(self, config)
+
+	self.factionProfileIndicator = FactionProfileIndicator({
+		faction = CurrentPlayer:getFaction(),
+
+		x = 0,
+		y = 0,
+
+		width = '100%',
+		height = '50%',
+
+		isWithoutBackground = true,
+		isWithoutText = true,
+	})
+	self.childFragments:add(self.factionProfileIndicator)
 
     self.resourceIndicators = {}
 
     local types = ResourceTypeRegistry:getAllResourceTypes()
+	local shadowHeight = Sizes.padding()
 	local percentageWidth = 1 / #types * 100
 
     for i, resourceType in ipairs(types) do
@@ -20,10 +35,12 @@ function ResourceBar:initialize(config)
 			faction = CurrentPlayer:getFaction(),
 
             x = 0,
-			y = 0,
+			anchorVertically = 'end',
+			alignVertically = 'end',
+			anchorMargins = { bottom = shadowHeight },
 
             width = percentageWidth .. '%',
-			height = '100%',
+			height = '50%',
 		})
 
 		self.childFragments:add(resourceIndicator)
@@ -35,13 +52,11 @@ end
 --- @param deltaTime number
 --- @param isPointerWithin boolean
 function ResourceBar:performUpdate(deltaTime, isPointerWithin)
-	local shadowHeight = Sizes.padding()
 	local x = 0
 
 	for _, resourceIndicator in ipairs(self.resourceIndicators) do
 		local width = resourceIndicator:getWidth()
         resourceIndicator:setX(x)
-		resourceIndicator:setHeight(self:getHeight() - shadowHeight)
 
 		x = x + width
 	end

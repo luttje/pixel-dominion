@@ -78,9 +78,17 @@ function love.load()
 
     local numEnemyPlayers = 2
 
+	local enemyPlayerFactions = {
+		'barbarians',
+		'emperials',
+		'horsemasters',
+		'warlords',
+	}
+
 	-- For future reference:
 	assert(numEnemyPlayers <= 6, "Cannot have more than 6 enemy players since there's only that many spawn point markers.")
 	assert(numEnemyPlayers <= #Colors.factionColors, "Cannot have more than " .. #Colors.factionColors .. " enemy players since there's only that many faction colors.")
+	assert(numEnemyPlayers <= #enemyPlayerFactions, "Cannot have more than " .. #enemyPlayerFactions .. " enemy players since there's only that many factions.")
 
 	for i = 1, numEnemyPlayers do
 		local enemyPlayer = PlayerComputer({
@@ -88,7 +96,7 @@ function love.load()
 		})
 		table.insert(computerPlayers, enemyPlayer)
 		local enemyFaction = Faction({
-			factionType = FactionTypeRegistry:getFactionType('bandits'),
+			factionType = FactionTypeRegistry:getFactionType(enemyPlayerFactions[i]),
             player = enemyPlayer,
 			color = Colors.factionColors[i + 1]('table'),
 		})

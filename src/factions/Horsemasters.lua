@@ -1,9 +1,8 @@
 local FACTION = {}
 
-FACTION.id = 'homelanders'
-FACTION.name = 'Homelanders'
+FACTION.id = 'horsemasters'
+FACTION.name = 'Horsemasters'
 
--- TODO: Let players choose their own profile image
 FACTION.profileImagePath = 'assets/images/faction-profiles/horsemaster.png'
 
 return FACTION

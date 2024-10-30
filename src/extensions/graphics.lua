@@ -175,3 +175,63 @@ function love.graphics.drawProgressCircle(x, y, radius, progress)
 	-- Restore the graphics state
 	love.graphics.pop()
 end
+
+--- Draws a rounded rectangle
+--- Source: https://gist.github.com/gvx/9072860
+function love.graphics.roundRect(mode, x, y, width, height, horizontalRoundingOrBoth, verticalRounding)
+	verticalRounding = verticalRounding or horizontalRoundingOrBoth
+
+	assert(horizontalRoundingOrBoth >= 0, 'horizontalRoundingOrBoth must be greater than or equal to 0')
+	assert(verticalRounding >= 0, 'verticalRounding must be greater than or equal to 0')
+
+	if (horizontalRoundingOrBoth == 0 and verticalRounding == 0) then
+		love.graphics.rectangle(mode, x, y, width, height)
+		return
+	end
+
+	assert(horizontalRoundingOrBoth > 10 and verticalRounding > 10, 'love.graphics.roundRect works best with rounding values greater than 10')
+
+
+	local points = {}
+	local precision = (horizontalRoundingOrBoth + verticalRounding) * .1
+	local halfPi = math.pi * .5
+
+	if horizontalRoundingOrBoth > width * .5 then
+		horizontalRoundingOrBoth = width * .5
+	end
+
+	if verticalRounding > height * .5 then
+		verticalRounding = height * .5
+	end
+
+	local X1, Y1, X2, Y2 = x + horizontalRoundingOrBoth,
+		y + verticalRounding,
+		x + width - horizontalRoundingOrBoth,
+		y + height - verticalRounding
+
+	for i = 0, precision do
+		local a = (i / precision - 1) * halfPi
+		table.insert(points, X2 + horizontalRoundingOrBoth * math.cos(a))
+		table.insert(points, Y1 + verticalRounding * math.sin(a))
+	end
+
+	for i = 0, precision do
+		local a = (i / precision) * halfPi
+		table.insert(points, X2 + horizontalRoundingOrBoth * math.cos(a))
+		table.insert(points, Y2 + verticalRounding * math.sin(a))
+	end
+
+	for i = 0, precision do
+		local a = (i / precision + 1) * halfPi
+		table.insert(points, X1 + horizontalRoundingOrBoth * math.cos(a))
+		table.insert(points, Y2 + verticalRounding * math.sin(a))
+	end
+
+	for i = 0, precision do
+		local a = (i / precision + 2) * halfPi
+		table.insert(points, X1 + horizontalRoundingOrBoth * math.cos(a))
+		table.insert(points, Y1 + verticalRounding * math.sin(a))
+	end
+
+	love.graphics.polygon(mode, unpack(points))
+end

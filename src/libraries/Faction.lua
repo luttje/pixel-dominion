@@ -79,7 +79,7 @@ end
 --- Gets the faction's color
 --- @return table, table # The color and highlight color
 function Faction:getColors()
-	return self.color, self.colorHighlight
+	return table.Copy(self.color), table.Copy(self.colorHighlight)
 end
 
 --- Spawns a unit of the given type at the given position

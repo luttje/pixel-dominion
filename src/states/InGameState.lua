@@ -18,7 +18,7 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, worl
 	local resourceBar = ResourceBar({
 		anchorHorizontally = 'fill',
         anchorVertically = 'start',
-		height = 64,
+		height = 96,
 		world = world
 	})
     fragments:add(resourceBar)
@@ -36,6 +36,16 @@ function InGameState:onSetupInterface(fragments, windowWidth, windowHeight, worl
 		worldMap = self.worldMap
 	})
 	fragments:add(selectionOverlay)
+
+	-- Draw the faction profiles at the bottom
+	local factionProfiles = FactionProfiles({
+		anchorHorizontally = 'fill',
+		anchorVertically = 'end',
+		alignVertically = 'end',
+		height = math.min(96, windowHeight * 0.25),
+		anchorMargins = Sizes.margin()
+	})
+	fragments:add(factionProfiles)
 end
 
 function InGameState:onEnter()
