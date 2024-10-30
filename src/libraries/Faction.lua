@@ -1,3 +1,5 @@
+local SpeechLog = require('libraries.SpeechLog')
+
 --- Clear constant to show that placement is free
 FORCE_FREE_PLACEMENT = true
 
@@ -14,6 +16,7 @@ FORCE_FREE_PLACEMENT = true
 --- @field units table<number, Unit> # The units in the world
 --- @field structures table<number, Structure> # The structures in the world
 --- @field fogOfWarMap table<number, table<number, boolean>> # The fog of war map
+--- @field speechLog SpeechLog
 local Faction = DeclareClass('Faction')
 
 --- Initializes the faction
@@ -30,6 +33,8 @@ function Faction:initialize(config)
 	self.structures = {}
 
     table.Merge(self, config)
+
+	self.speechLog = SpeechLog()
 
     -- If there's no highlight color, use a brighter version of the color
     if (not self.colorHighlight) then
@@ -80,6 +85,12 @@ end
 --- @return table, table # The color and highlight color
 function Faction:getColors()
 	return table.Copy(self.color), table.Copy(self.colorHighlight)
+end
+
+--- Says the given message
+--- @param message string
+function Faction:say(message)
+	self.speechLog:addSpeech(message)
 end
 
 --- Spawns a unit of the given type at the given position
@@ -391,6 +402,34 @@ function Faction:onInteractableMoved(interactable)
 	local x, y = interactable.x, interactable.y
 
 	self:getWorld():revealFogOfWar(self, self.fogOfWarMap, x, y, sightRange * .5)
+end
+
+--- Called when a computer player completes a behavior goal
+--- @param goal BehaviorGoal
+function Faction:onBehaviorGoalCompleted(goal)
+	if (GameConfig.aiAnnounceRawGoalCompletion) then
+		self:say('Goal completed: ' .. currentGoal:getInfoString())
+		return
+	end
+
+	if (self.factionType.onGoalCompleted) then
+		local speech = self.factionType:onGoalCompleted(self, goal)
+
+		if (speech) then
+			self:say(table.Random(speech))
+		end
+	end
+
+	if (not self.factionType.goalSpeeches) then
+		return
+	end
+
+	-- See if the faction has a speech for the goal
+	local speech = self.factionType.goalSpeeches[goal.id]
+
+	if (speech) then
+		self:say(table.Random(speech))
+	end
 end
 
 return Faction

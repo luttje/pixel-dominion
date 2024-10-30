@@ -10,6 +10,7 @@ local FactionTypeRegistry = DeclareClass('FactionTypeRegistry')
 --- @field name string The name of the faction.
 --- @field profileImage Image The profile image of the faction.
 --- @field profileImageQuad Quad The quad determining which part of the profile image to display.
+--- @field goalSpeeches table<string, table> A table of things the faction can say when a goal is completed.
 FactionTypeRegistry.FactionRegistration = DeclareClass('FactionTypeRegistry.FactionRegistration')
 
 local QUAD_SIZE = 32

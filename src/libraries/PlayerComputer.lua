@@ -330,7 +330,8 @@ function PlayerComputer:update(deltaTime)
 	local isGoalCompleted = currentGoal:run(self)
 
     if (isGoalCompleted) then
-        self:removeFirstGoal()
+		self:removeFirstGoal()
+		self.faction:onBehaviorGoalCompleted(currentGoal)
     end
 
     -- Run the queuedUpdate function for all goals so they can still do logic
