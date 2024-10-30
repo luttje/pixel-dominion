@@ -279,6 +279,10 @@ function Unit:updateInteract(deltaTime, interactor)
         return false
     end
 
+    if (self.isRemoved) then
+        return false
+    end
+
 	if (self.unitType.updateInteract) then
 		local interacted = self.unitType:updateInteract(self, deltaTime, interactor)
 

@@ -411,6 +411,10 @@ function Structure:updateInteract(deltaTime, interactor)
         return false
     end
 
+    if (self.isRemoved) then
+        return false
+    end
+
 	-- Have compatible structures take any resources from the unit and place them in the faction inventory
     if (interactor:getFaction() == self:getFaction() and self.structureType.dropOffForResources and interactor) then
 		local inventory = interactor:getResourceInventory()

@@ -237,6 +237,8 @@ function Faction:removeStructure(structure)
 		if (factionStructure == structure) then
 			table.remove(self.structures, i)
 
+			self:onStructureRemoved(structure)
+
 			return true
 		end
 	end
@@ -260,13 +262,15 @@ function Faction:getStructuresOfType(structureType)
 end
 
 --- Gets the town hall, always the first structure
---- @return Structure
+--- @return Structure?
 function Faction:getTownHall()
-	local townHall = self:getStructures()[1]
+	local structure = self:getStructures()[1]
 
-	assert(townHall, 'No town hall found.')
+	if (not structure or structure.structureType.id ~= 'town_hall') then
+		return nil
+	end
 
-	return townHall
+	return structure
 end
 
 --- Called to perform logic on the faction
@@ -334,46 +338,46 @@ end
 --- @return Structure
 function Faction:getDropOffStructure(resourceInventory, nearX, nearY)
     local matchedStructures = {
-		self:getTownHall()
-	}
+        self:getTownHall()
+    }
 
     local nearestStructure
-	local nearestDistance = math.huge
+    local nearestDistance = math.huge
 
     for _, structure in ipairs(self.structures) do
-		if (structure.structureType.dropOffForResources) then
-			local matchesAll = true
+        if (structure.structureType.dropOffForResources) then
+            local matchesAll = true
 
-			for resourceTypeId, resourceValue in pairs(resourceInventory:getAll()) do
-				local resourceType = ResourceTypeRegistry:getResourceType(resourceTypeId)
-				local acceptsResource = structure.structureType.dropOffForResources[resourceType.id]
+            for resourceTypeId, resourceValue in pairs(resourceInventory:getAll()) do
+                local resourceType = ResourceTypeRegistry:getResourceType(resourceTypeId)
+                local acceptsResource = structure.structureType.dropOffForResources[resourceType.id]
 
-				if (not acceptsResource) then
-					matchesAll = false
-					break
-				end
-			end
+                if (not acceptsResource) then
+                    matchesAll = false
+                    break
+                end
+            end
 
             if (matchesAll) then
                 table.insert(matchedStructures, structure)
 
-				if (nearX and nearY) then
-					local distance = structure:getDistanceTo(nearX, nearY)
+                if (nearX and nearY) then
+                    local distance = structure:getDistanceTo(nearX, nearY)
 
-					if (distance < nearestDistance) then
-						nearestStructure = structure
-						nearestDistance = distance
-					end
-				end
-			end
-		end
+                    if (distance < nearestDistance) then
+                        nearestStructure = structure
+                        nearestDistance = distance
+                    end
+                end
+            end
+        end
     end
 
     if (nearestStructure) then
         return nearestStructure
     end
 
-	return table.Random(matchedStructures)
+    return table.Random(matchedStructures)
 end
 
 --- Removes the faction and all its units and structures
@@ -382,12 +386,50 @@ function Faction:remove()
         self.units[i]:remove()
     end
 
-	for i = #self.structures, 1, -1 do
-		self.structures[i]:remove()
+    for i = #self.structures, 1, -1 do
+        self.structures[i]:remove()
+    end
+
+    self.world:removeFaction(self)
+	self.isDefeated = true
+end
+
+--- Checks if we should just surrender, because we're nearly dead
+--- @return boolean
+function Faction:shouldSurrender()
+	local units = self:getUnits()
+	local resourceInventory = self:getResourceInventory()
+    local townHall = self:getTownHall()
+	local generationInfo = townHall and townHall.structureType:getUnitGenerationInfo('villager')
+    local canGenerateVillager = generationInfo and resourceInventory:hasCosts(generationInfo.costs)
+
+	-- No chance to recover if we have no town hall or no units and can't generate a villager
+    if (not townHall or (not canGenerateVillager and #units == 0)) then
+        return true
+    end
+
+	if (self.factionType.checkShouldSurrender) then
+		local shouldSurrender = self.factionType:checkShouldSurrender(self)
+
+		if (shouldSurrender) then
+			return true
+		end
 	end
 
-	self.world:removeFaction(self)
-	self.player:setFaction(nil)
+	return false
+end
+
+--- Surrenders, calls onSurrender on the type to give a final speech
+function Faction:surrender()
+    if (self.factionType.onSurrender) then
+        local speech = self.factionType:onSurrender(self)
+
+        if (speech) then
+            self:say(table.Random(speech))
+        end
+    end
+
+    self:remove()
 end
 
 --- Called when an interactable moves, so we can update the fog of war
@@ -430,6 +472,11 @@ function Faction:onBehaviorGoalCompleted(goal)
 	if (speech) then
 		self:say(table.Random(speech))
 	end
+end
+
+--- Called when a structure is removed
+--- @param structure Structure
+function Faction:onStructureRemoved(structure)
 end
 
 return Faction

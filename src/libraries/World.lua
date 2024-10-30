@@ -655,12 +655,7 @@ function World:spawnFaction(faction)
 	self:addFaction(faction)
 
 	local townHallStructureType = StructureTypeRegistry:getStructureType('town_hall')
-	local townHall = faction:spawnStructure(townHallStructureType, spawnpoint.x, spawnpoint.y, nil, FORCE_FREE_PLACEMENT)
-
-	townHall.events:on('structureRemoved', function()
-		print('Town hall removed, faction lost.')
-		faction:remove()
-	end)
+	faction:spawnStructure(townHallStructureType, spawnpoint.x, spawnpoint.y, nil, FORCE_FREE_PLACEMENT)
 end
 
 --- Removes the faction from the world

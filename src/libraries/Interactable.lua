@@ -116,11 +116,8 @@ function Interactable:damage(damage, interactor)
     self.health = self.health - damage
 
     if (self.health <= 0) then
-        print('Interactable destroyed.')
         self:remove()
         return true
-    else
-        print('Interactable health:', self.health)
     end
 
     return false

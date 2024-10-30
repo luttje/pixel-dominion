@@ -191,4 +191,16 @@ function FACTION:onGoalCompleted(faction, goal)
 	end
 end
 
+--- Called when the faction surrenders
+--- @param faction Faction
+--- @return string[] # A list of strings to be randomly chosen from
+function FACTION:onSurrender(faction)
+	return {
+		'The Warlords will not be forgotten!',
+		'The tribe will rise from the ashes!',
+		'We will return to claim our vengeance!',
+		'The tribe will not be broken!',
+	}
+end
+
 return FACTION

@@ -50,8 +50,13 @@ function FactionProfileIndicator:performDraw(x, y, width, height)
 		local roundedColors = {
 			{ 0, 0, 0, 0.4 },
 		}
-		local color, highlightColor = self.faction:getColors()
-		color[4] = 0.5
+        local color, highlightColor = self.faction:getColors()
+
+		if (faction.isDefeated) then
+			color[4] = 0.1
+		else
+			color[4] = 0.5
+		end
 
 		table.insert(roundedColors, color)
 
@@ -69,7 +74,7 @@ function FactionProfileIndicator:performDraw(x, y, width, height)
 	end
 
 	love.graphics.setColor(1, 1, 1)
-	faction.factionType:drawProfileImage(iconX, iconY, iconSize, iconSize)
+	faction.factionType:drawProfileImage(faction, iconX, iconY, iconSize, iconSize)
 
 	if (not self.isWithoutText) then
 		love.graphics.setColor(Colors.text())

@@ -91,8 +91,11 @@ function GOAL:run(player)
 					end
 
 					-- TODO: How do we get the resource, if none are in the world and we don't have a structure that spawns them?
-					-- TODO: Should the AI surrender?
-					assert(structureTypeForResource, 'No structure type found for resource type')
+					-- TODO: For now we surrender, double-check if this is desired later
+					if (not structureTypeForResource) then
+						faction:surrender()
+						return false
+					end
 
 					local structuresToBeBuilt = player:countGoals('BuildStructure', {
 						structureTypeId = structureTypeForResource.id,

@@ -239,10 +239,15 @@ function love.keyreleased(key)
         elseif (key == 'f12') then
             -- If control is also held, special debug action
             if (love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl')) then
-				-- Remove all farmland
-				-- for _, structure in ipairs(playerFaction:getStructuresOfType('farmland')) do
-				-- 	structure:remove()
-				-- end
+				-- -- Remove all enemy structures
+				-- for _, computerPlayer in ipairs(computerPlayers) do
+				-- 	local faction = computerPlayer:getFaction()
+
+				-- 	for _, structure in ipairs(faction:getStructures()) do
+				-- 		structure:remove()
+				-- 	end
+                -- end
+
 				-- Discover all the map
 				currentWorld:revealMapForFaction(playerFaction)
 			else

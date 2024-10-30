@@ -126,6 +126,19 @@ function ResourceInventory:has(resourceTypeOrId, amount)
     return self.resourceValues[resourceTypeId].value >= amount
 end
 
+--- Checks if the faction has enough resources for the given costs
+--- @param costs table<string, number> # A table of resource type IDs and their costs
+--- @return boolean
+function ResourceInventory:hasCosts(costs)
+	for resourceTypeId, cost in pairs(costs) do
+		if (not self:has(resourceTypeId, cost)) then
+			return false
+		end
+	end
+
+	return true
+end
+
 --- Returns all resource values that are not zero
 --- @return ResourceValue[]
 function ResourceInventory:getAll()

@@ -315,27 +315,27 @@ end
 --- If the goals change while we are working on the current goal, we will work on the new current goal
 --- the next update
 function PlayerComputer:update(deltaTime)
-    if (not self:getFaction()) then
-		-- Don't think if we don't have a faction (since we died)
+    if (self:getFaction().isDefeated) then
+        -- Don't think if we don't have a faction (since we died/surrendered)
         return
     end
 
-	local currentGoal = self:getCurrentGoal()
+    local currentGoal = self:getCurrentGoal()
 
     if (not currentGoal) then
         self:generateNewGoals()
         return
     end
 
-	local isGoalCompleted = currentGoal:run(self)
+    local isGoalCompleted = currentGoal:run(self)
 
     if (isGoalCompleted) then
-		self:removeFirstGoal()
-		self.faction:onBehaviorGoalCompleted(currentGoal)
+        self:removeFirstGoal()
+        self.faction:onBehaviorGoalCompleted(currentGoal)
     end
 
     -- Run the queuedUpdate function for all goals so they can still do logic
-	local goalsToRemove = {}
+    local goalsToRemove = {}
     for i, goal in ipairs(self.blackboard.goals) do
         if (goal.queuedUpdate) then
             if (goal:queuedUpdate(self) == true) then
@@ -344,12 +344,18 @@ function PlayerComputer:update(deltaTime)
         end
     end
 
-	for i = #goalsToRemove, 1, -1 do
-		table.remove(self.blackboard.goals, goalsToRemove[i])
-	end
+    for i = #goalsToRemove, 1, -1 do
+        table.remove(self.blackboard.goals, goalsToRemove[i])
+    end
 
-	self:generateImportantNewGoals()
-	self:optimizeGoals()
+    self:generateImportantNewGoals()
+    self:optimizeGoals()
+
+    local faction = self:getFaction()
+
+	if (faction:shouldSurrender()) then
+		faction:surrender()
+	end
 end
 
 function PlayerComputer:findIdleUnits(unitTypeId)
