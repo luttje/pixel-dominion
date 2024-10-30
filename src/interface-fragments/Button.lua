@@ -109,24 +109,18 @@ function Button:refreshIconImage()
 	end
 end
 
-function Button:performUpdate(deltaTime)
-	self.isHovered = self:isPointerWithin()
-
-	if (not self.isHovered and CurrentPlayer:getWorldInputBlocker() == self) then
-		CurrentPlayer:setWorldInputBlockedBy(nil)
-	end
-
+--- @param deltaTime number
+--- @param isPointerWithin boolean
+function Button:performUpdate(deltaTime, isPointerWithin)
 	if (not self:getEnabled()) then
 		return
 	end
 
+	self.isHovered = isPointerWithin
+
     -- Don't allow clicking on the button if the player is blocked from input
 	if (CurrentPlayer:isInputBlocked()) then
 		return
-	end
-
-	if (self.isHovered) then
-		CurrentPlayer:setWorldInputBlockedBy(self)
 	end
 
 	local isDown = love.mouse.isDown(1)

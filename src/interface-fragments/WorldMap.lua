@@ -11,6 +11,7 @@ function WorldMap:initialize(config)
 	self.dragging = false
 	self.dragStart = { x = 0, y = 0 }
 
+	self.clickThroughToWorld = true
 	self.finishHoldAt = nil
 	self.heldInteractable = nil
 	self.isHolding = false
@@ -93,12 +94,14 @@ function WorldMap:worldToScreen(x, y)
 		y * GameConfig.tileSize * self:getCameraWorldScale() - self.camera.y * self:getCameraWorldScale()
 end
 
-function WorldMap:performUpdate(deltaTime)
+--- @param deltaTime number
+--- @param isPointerWithin boolean
+function WorldMap:performUpdate(deltaTime, isPointerWithin)
 	local pointerX, pointerY = Input.GetPointerPosition()
 
 	self.world:update(deltaTime)
 
-	if (CurrentPlayer:getWorldInputBlocker()) then
+	if (not self.dragging and CurrentPlayer:getWorldInputBlocker()) then
 		return
 	end
 

@@ -14,13 +14,14 @@
 --- @field isVisible boolean
 --- @field isClippingDisabled boolean
 --- @field isDestroyed boolean
+--- @field clickThroughToWorld boolean
 ---
 --- @field events EventManager
 ---
 --- @field childFragments InterfaceFragmentContainer Contains the children of the fragment
 --- @field parentContainer InterfaceFragmentContainer The parent container this fragment is in
 ---
---- @field performUpdate fun(self: InterfaceFragment, deltaTime: number)
+--- @field performUpdate fun(self: InterfaceFragment, deltaTime: number, isPointerWithin: boolean)
 --- @field performDraw fun(self: InterfaceFragment, x: number, y: number, width: number, height: number)
 ---
 --- @field alignHorizontally 'start' | 'center' | 'end' # How the element aligns itself on its position (e.g: center will ensure half of the element will be to the left of x and half to the right)
@@ -43,6 +44,7 @@ function InterfaceFragment:initialize(config)
 
 	self.isVisible = true
 	self.isClippingDisabled = false
+	self.clickThroughToWorld = false
 
 	-- Easily apply the same margin to all sides
 	if (config.anchorMargins and type(config.anchorMargins) == 'number') then
@@ -66,9 +68,27 @@ end
 --- Updates the InterfaceFragment.
 --- @param deltaTime number
 function InterfaceFragment:update(deltaTime)
+	-- Check it once, then pass it on to performUpdate for efficiency
+	local isPointerWithin = self:isPointerWithin()
+
+	if (not self.clickThroughToWorld and not isPointerWithin and CurrentPlayer:getWorldInputBlocker() == self) then
+		CurrentPlayer:setWorldInputBlockedBy(nil)
+	end
+
+    -- Don't allow clicking on the button if the player is blocked from input
+	if (not self.clickThroughToWorld and not CurrentPlayer:isInputBlocked()) then
+		if (isPointerWithin) then
+			-- TODO: This only works 1 parent level deep, we should check if the current WorldInputBlocker is a parent of this fragment
+			if (not self.parentContainer or CurrentPlayer:getWorldInputBlocker() ~= self.parentContainer.ownerFragment) then
+				CurrentPlayer:setWorldInputBlockedBy(self)
+				isPointerWithin = true
+			end
+		end
+	end
+
 	-- Override the performUpdate method in your InterfaceFragment implementation
 	if (self.performUpdate) then
-		self:performUpdate(deltaTime)
+		self:performUpdate(deltaTime, isPointerWithin)
 	end
 
 	self.childFragments:update(deltaTime)

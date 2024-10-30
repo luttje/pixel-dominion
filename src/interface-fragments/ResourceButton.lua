@@ -51,7 +51,8 @@ end
 
 --- On update we stack the resource indicators next to each other
 --- @param deltaTime number
-function ResourceButton:performUpdate(deltaTime)
+--- @param isPointerWithin boolean
+function ResourceButton:performUpdate(deltaTime, isPointerWithin)
 	local x = 0
 
     for _, resourceIndicator in ipairs(self.resourceIndicators) do
@@ -63,7 +64,7 @@ function ResourceButton:performUpdate(deltaTime)
         x = x + width
     end
 
-	self:getBase():performUpdate(deltaTime)
+	self:getBase():performUpdate(deltaTime, isPointerWithin)
 end
 
 return ResourceButton

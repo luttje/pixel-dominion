@@ -21,7 +21,8 @@ end
 
 --- Updates the fragment
 --- @param deltaTime number @ The time in seconds since the last update
-function SelectionOverlay:performUpdate(deltaTime)
+--- @param isPointerWithin boolean
+function SelectionOverlay:performUpdate(deltaTime, isPointerWithin)
     -- Keep track of the last unit type, if its different, refresh the unit actions.
     local firstSelectedInteractable = self.selectedInteractables[1]
 

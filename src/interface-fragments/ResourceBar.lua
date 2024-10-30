@@ -33,7 +33,8 @@ end
 
 --- On update we stack the resource indicators next to each other
 --- @param deltaTime number
-function ResourceBar:performUpdate(deltaTime)
+--- @param isPointerWithin boolean
+function ResourceBar:performUpdate(deltaTime, isPointerWithin)
 	local shadowHeight = Sizes.padding()
 	local x = 0
 
