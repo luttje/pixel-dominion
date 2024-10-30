@@ -358,12 +358,12 @@ end
 
 --- Removes the faction and all its units and structures
 function Faction:remove()
-	for _, unit in ipairs(self.units) do
-		unit:remove()
-	end
+    for i = #self.units, 1, -1 do
+        self.units[i]:remove()
+    end
 
-	for _, structure in ipairs(self.structures) do
-		structure:remove()
+	for i = #self.structures, 1, -1 do
+		self.structures[i]:remove()
 	end
 
 	self.world:removeFaction(self)
