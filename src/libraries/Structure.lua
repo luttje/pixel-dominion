@@ -23,6 +23,55 @@ end
 --- Called when the structure spawns
 --- @param builders? Unit[]
 function Structure:onSpawn(builders)
+    if (builders and self.structureType.dropOffForResources) then
+        local resourceTypes = table.Stack(table.Keys(self.structureType.dropOffForResources))
+		local buildersToAssign = #builders
+		local buildersPerResource = math.ceil(buildersToAssign / resourceTypes:size())
+		local buildersAssigned = 0
+
+		while (not resourceTypes:isEmpty()) do
+			local resourceTypeId = resourceTypes:pop()
+			local world = self:getWorld()
+			local nearestResourceInstance = world:findNearestResourceInstance(
+				ResourceTypeRegistry:getResourceType(resourceTypeId),
+				self.x,
+				self.y,
+				function(resource)
+					local resourceFaction = resource:getFaction()
+
+					if (faction and resourceFaction and resourceFaction ~= faction) then
+						return false
+					end
+
+					return true
+				end
+			)
+
+            if (not nearestResourceInstance) then
+                break
+            end
+
+			-- Have the builders start harvesting the resource
+			for i = 1, buildersPerResource do
+				local builder = builders[buildersAssigned + i]
+
+				if (builder) then
+					builder:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
+				end
+
+				buildersAssigned = buildersAssigned + 1
+
+				if (buildersAssigned >= buildersToAssign) then
+					break
+				end
+			end
+
+			if (buildersAssigned >= buildersToAssign) then
+				break
+			end
+		end
+    end
+
 	if (self.structureType.onSpawn) then
 		self.structureType:onSpawn(self, builders)
 	end
@@ -355,6 +404,65 @@ function Structure:updateInteract(deltaTime, interactor)
     if (not self:getBase():updateInteract(deltaTime, interactor)) then
         return false
     end
+
+	-- Have compatible structures take any resources from the unit and place them in the faction inventory
+    if (interactor:getFaction() == self:getFaction() and self.structureType.dropOffForResources and interactor) then
+		local inventory = interactor:getResourceInventory()
+
+		if (inventory:getCurrentResources() > 0) then
+			local faction = self:getFaction()
+			local factionInventory = faction:getResourceInventory()
+			local lastResourceInstance = interactor:getLastResourceInstance()
+			local world = faction:getWorld()
+
+			assert(lastResourceInstance, 'No last resource instance found.')
+
+			for resourceTypeId, resourceValue in pairs(inventory:getAll()) do
+				local value = resourceValue.value
+
+				-- Remove only the resources that the structure can drop off
+				if (self.structureType.dropOffForResources[resourceTypeId]) then
+					local dropOffMultiplier = tonumber(self.structureType.dropOffForResources[resourceTypeId])
+
+					if (dropOffMultiplier) then
+						value = value * dropOffMultiplier
+					end
+
+					factionInventory:add(resourceTypeId, value)
+					inventory:remove(resourceTypeId, value)
+				end
+			end
+
+			-- First go back to the last resource we came from if it has any supply left
+			if (lastResourceInstance:getSupply() > 0 and not lastResourceInstance.isRemoved) then
+				interactor:commandTo(lastResourceInstance.x, lastResourceInstance.y, lastResourceInstance)
+
+				return true
+			end
+
+			-- Find the nearest resource instance of the same type
+			local nearestResourceInstance = world:findNearestResourceInstance(
+				lastResourceInstance:getResourceType(),
+				self.x,
+				self.y,
+				function(resource)
+					local resourceFaction = resource:getFaction()
+
+					if (faction and resourceFaction and resourceFaction ~= faction) then
+						return false
+					end
+
+					return true
+				end
+			)
+
+			if (nearestResourceInstance) then
+				interactor:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
+
+				return true
+			end
+		end
+	end
 
 	if (self.structureType.updateInteract) then
 		local interacted = self.structureType:updateInteract(self, deltaTime, interactor)

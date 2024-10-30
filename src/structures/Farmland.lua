@@ -114,6 +114,7 @@ function STRUCTURE:canBeBuiltByFaction(faction)
 end
 
 --- When an structure is interacted with by a unit.
+--- This is not called if the interactor dropped off resources at the structure.
 --- @param structure Structure
 --- @param deltaTime number
 --- @param interactor Interactable

@@ -8,13 +8,19 @@ local StructureTypeRegistry = DeclareClass('StructureTypeRegistry')
 --]]
 
 --- @class StructureTypeRegistry.StructureRegistration
+---
 --- @field id string The unique id of the structure.
 --- @field name string The name of the structure.
+---
 --- @field unitGenerationInfo table[]|nil The unit types that this structure generates.
---- @field structureTilesetInfo table<number, table> The tileset information used to render the structure in the world.
---- @field requiredResources table<string, number> The resources required to build the structure.
---- @field imagePath string The path to the image used to render the structure.
 --- @field dropOffForResources? table<string, boolean> A table of resource types that this structure can accept as a drop-off point.
+--- @field requiredResources table<string, number> The resources required to build the structure.
+---
+--- @field structureTilesetInfo table<number, table> The tileset information used to render the structure in the world.
+--- @field imagePath string The path to the image used to render the structure.
+---
+--- @field updateInteract? fun(structureType: StructureTypeRegistry.StructureRegistration, structure: Structure, deltaTime: number, interactor: Interactable): boolean A function that is called when the structure is interacted with.
+---
 StructureTypeRegistry.StructureRegistration = DeclareClass('StructureTypeRegistry.StructureRegistration')
 
 function StructureTypeRegistry.StructureRegistration:initialize(config)

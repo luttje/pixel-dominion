@@ -8,7 +8,6 @@ STRUCTURE.isInternal = true
 
 STRUCTURE.imagePath = 'assets/images/structures/town-hall.png'
 
--- TODO: Have this config make the structure accept resources, instead of duplicating the code below in the updateInteract function (like its the same in lumber_camp now)
 STRUCTURE.dropOffForResources = {
     wood = true,
     stone = true,
@@ -86,71 +85,6 @@ STRUCTURE.structureTilesetInfo = {
 function STRUCTURE:onSpawn(structure, builders)
 	-- Start with 1 villager
     structure:generateUnit('villager')
-end
-
---- When an structure is interacted with by a unit.
---- @param structure Structure
---- @param deltaTime number
---- @param interactor Interactable
---- @return boolean # Whether the interaction was successful, false stops the unit
-function STRUCTURE:updateInteract(structure, deltaTime, interactor)
-    local unitType = interactor:getUnitType()
-
-	if (unitType.id ~= 'villager') then
-        print('Unit cannot interact with the town hall.')
-        return false
-    end
-
-    -- Take any resources from the unit and place them in the faction inventory
-    local inventory = interactor:getResourceInventory()
-
-    if (inventory:getCurrentResources() == 0) then
-        return false
-    end
-
-    local faction = structure:getFaction()
-    local factionInventory = faction:getResourceInventory()
-    local lastResourceInstance = interactor:getLastResourceInstance()
-	local world = faction:getWorld()
-
-	assert(lastResourceInstance, 'No last resource instance found.')
-
-    for resourceTypeId, resourceValue in pairs(inventory:getAll()) do
-        factionInventory:add(resourceTypeId, resourceValue.value)
-    end
-
-    inventory:clear()
-
-    -- First go back to the last resource we came from if it has any supply left
-    if (lastResourceInstance:getSupply() > 0 and not lastResourceInstance.isRemoved) then
-        interactor:commandTo(lastResourceInstance.x, lastResourceInstance.y, lastResourceInstance)
-
-        return true
-    end
-
-	-- Find the nearest resource instance of the same type
-    local nearestResourceInstance = world:findNearestResourceInstance(
-        lastResourceInstance:getResourceType(),
-        structure.x,
-        structure.y,
-		function(resource)
-			local resourceFaction = resource:getFaction()
-
-			if (faction and resourceFaction and resourceFaction ~= faction) then
-				return false
-			end
-
-			return true
-		end
-	)
-
-    if (not nearestResourceInstance) then
-        return false
-    end
-
-    interactor:commandTo(nearestResourceInstance.x, nearestResourceInstance.y, nearestResourceInstance)
-
-	return true
 end
 
 --- Returns whether the structure can be built by the faction. Resources are checked
