@@ -875,4 +875,22 @@ function World:updateFogOfWarForFaction(faction, changedTiles)
 	end
 end
 
+--- Called to check if the interactable should be drawn for the player, respecting the fog of war
+--- @param player Player
+--- @param interactable Interactable
+--- @return boolean
+function World:shouldDrawInteractableForPlayer(player, interactable)
+	if (GameConfig.disableFogOfWar) then
+		return true
+	end
+
+	local faction = player:getFaction()
+	local fogOfWarMap = faction.fogOfWarMap
+	assert(fogOfWarMap, 'Fog of war map not found for faction.')
+
+	local x, y = interactable:getWorldPosition()
+
+	return fogOfWarMap[y + 1][x + 1]
+end
+
 return World

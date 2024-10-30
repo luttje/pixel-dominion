@@ -68,14 +68,6 @@ function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
 		local worldX = x + (tileInfo.offsetX or 0)
 		local worldY = y + (tileInfo.offsetY or 0)
 
-		world:addTile(
-			tileInfo.targetLayer,
-			tileInfo.tilesetId,
-			tileInfo.tileId,
-			worldX,
-			worldY
-		)
-
 		-- Track the tiles that belong to this resource so they can be removed later
 		tiles[#tiles + 1] = {
 			layerName = tileInfo.targetLayer,
@@ -87,8 +79,6 @@ function ResourceTypeRegistry.ResourceRegistration:spawnAtTile(world, x, y)
 			offsetY = tileInfo.offsetY or 0
 		}
 	end
-
-	world:updateCollisionMap()
 
 	local resource = Resource({
 		resourceType = self,

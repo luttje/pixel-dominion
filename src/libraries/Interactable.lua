@@ -15,6 +15,9 @@
 --- @field interactSounds table|nil
 --- @field sightRange number
 ---
+--- @field tiles? table
+--- @field tilesDiscovered boolean
+---
 --- @field health number
 --- @field maxHealth number
 --- @field nextDamagableAt number
@@ -33,6 +36,9 @@ function Interactable:initialize(config)
 	self.isSelectable = true
 	self.health = 100
 	self.sightRange = 6
+
+	self.tiles = nil
+    self.tilesDiscovered = false
 
     table.Merge(self, config)
 
@@ -106,7 +112,20 @@ end
 
 --- Removes the interactable from the world
 function Interactable:remove()
-	-- Override this in the child class
+    -- Override this in the child class and call this with
+    -- self:getBase():remove()
+
+    self.isRemoved = true
+
+	local world = self:getWorld()
+
+	if (self.tiles and self.tilesDiscovered) then
+        for _, tile in pairs(self.tiles) do
+            world:removeTile(tile.layerName, tile.x, tile.y)
+        end
+
+		world:updateCollisionMap()
+	end
 end
 
 --- Draws the interactable on the hud
@@ -127,6 +146,31 @@ end
 function Interactable:postDrawOnScreen(x, y, width, height, cameraScale)
 	-- Override this in the child class and call the base class like:
     -- self:getBase():postDrawOnScreen(x, y, width, height, cameraScale)
+
+    local world = self:getWorld()
+
+    if (not world:shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
+        return
+    end
+
+	-- If the tiles have not been discovered through the fog of war, draw them and update the collision map
+	if (self.tiles and not self.tilesDiscovered) then
+		self.tilesDiscovered = true
+
+		if (world:shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
+            for _, tile in ipairs(self.tiles) do
+                world:addTile(
+                    tile.layerName,
+                    tile.tilesetId,
+                    tile.tileId,
+                    tile.x,
+                    tile.y
+                )
+            end
+
+			world:updateCollisionMap()
+		end
+	end
 
     -- Draw the health bar above the interactable
 	if (self.health < self.maxHealth) then

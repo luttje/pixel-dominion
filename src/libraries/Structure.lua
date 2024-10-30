@@ -5,7 +5,6 @@ local Interactable = require('libraries.Interactable')
 ---
 --- @field structureType StructureTypeRegistry.StructureRegistration
 --- @field supply number
---- @field tiles table
 ---
 --- @field unitGenerationQueue Queue<UnitTypeRegistry.UnitRegistration>
 local Structure = DeclareClassWithBase('Structure', Interactable)
@@ -16,6 +15,7 @@ function Structure:initialize(config)
     config = config or {}
 
 	self.sightRange = 12
+
     table.Merge(self, config)
 
 	self.unitGenerationQueue = table.Queue({})
@@ -101,6 +101,10 @@ end
 --- @param cameraScale number
 function Structure:postDrawOnScreen(x, y, width, height, cameraScale)
     if (self.isRemoved) then
+        return
+    end
+
+    if (not self:getWorld():shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
         return
     end
 
@@ -482,15 +486,7 @@ function Structure:remove()
         return
     end
 
-    self.isRemoved = true
-
-	local world = self:getWorld()
-
-    for _, tile in pairs(self.tiles) do
-        world:removeTile(tile.layerName, tile.x, tile.y)
-    end
-
-    world:updateCollisionMap()
+	self:getBase():remove()
 
 	if (self.structureType.onRemove) then
 		self.structureType:onRemove(self)

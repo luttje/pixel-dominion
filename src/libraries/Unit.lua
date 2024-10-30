@@ -154,6 +154,10 @@ function Unit:draw()
         return
     end
 
+	if (not self:getWorld():shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
+		return
+	end
+
 	love.graphics.setColor(1, 1, 1)
     self.unitType:draw(self, self:getCurrentActionAnimation())
 end
@@ -183,6 +187,9 @@ function Unit:postDrawOnScreen(x, y, width, height, cameraScale)
 	-- 	love.graphics.setColor(1, 1, 1, 0.25)
 	-- 	self.unitType:draw(self, self:getCurrentActionAnimation())
 	-- end)
+	if (not self:getWorld():shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
+		return
+	end
 
     self:getBase():postDrawOnScreen(x, y, width, height, cameraScale)
 
@@ -588,7 +595,7 @@ function Unit:remove()
         return
     end
 
-    self.isRemoved = true
+	self:getBase():remove()
 
 	if (self.unitType.onRemove) then
 		self.unitType:onRemove(self)

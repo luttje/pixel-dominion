@@ -4,7 +4,6 @@ local Interactable = require('libraries.Interactable')
 --- @class Resource : Interactable
 --- @field resourceType ResourceTypeRegistry.ResourceRegistration
 --- @field supply number
---- @field tiles table
 local Resource = DeclareClassWithBase('Resource', Interactable)
 
 --- Initializes the resource
@@ -128,19 +127,11 @@ function Resource:remove()
         return
     end
 
-    self.isRemoved = true
+	self:getBase():remove()
 
 	local world = self:getWorld()
 
     world:removeResourceInstance(self)
-
-    if (self.tiles) then
-        for _, tile in pairs(self.tiles) do
-            world:removeTile(tile.layerName, tile.x, tile.y)
-        end
-    end
-
-	world:updateCollisionMap()
 
     if (self.resourceType.onRemove) then
         self.resourceType:onRemove(self)
@@ -156,14 +147,20 @@ end
 --- @param height number
 --- @param cameraScale number
 function Resource:postDrawOnScreen(x, y, width, height, cameraScale)
-	if (self.supply == self.startSupply) then
+    self:getBase():postDrawOnScreen(x, y, width, height, cameraScale)
+
+    if (self.supply == self.startSupply) then
+        return
+    end
+
+	if (not self:getWorld():shouldDrawInteractableForPlayer(CurrentPlayer, self)) then
 		return
 	end
 
 	local progress = self.supply / self.startSupply
 	local radius = width * .25
 
-	love.graphics.drawProgressCircle(x + width * .5, y + height * .5, radius, progress)
+    love.graphics.drawProgressCircle(x + width * .5, y + height * .5, radius, progress)
 end
 
 return Resource
