@@ -1,16 +1,16 @@
---- @type BehaviorGoal
-local GOAL = {}
+--- @type Directive
+local DIRECTIVE = {}
 
---- Called when the goal is added to the goal list.
+--- Called when the directive is added to the directive list.
 --- @param player PlayerComputer
-function GOAL:init(player)
-    local unitTypeId = self.goalInfo.unitTypeId
+function DIRECTIVE:init(player)
+    local unitTypeId = self.directiveInfo.unitTypeId
 
     if (type(unitTypeId) == 'function') then
         unitTypeId = unitTypeId()
     end
 
-    local amount = self.goalInfo.amount
+    local amount = self.directiveInfo.amount
 
 	if (type(amount) == 'function') then
 		amount = amount()
@@ -20,27 +20,27 @@ function GOAL:init(player)
 
 	assert(amount, 'Invalid amount')
 
-	assert(self.goalInfo.structureType, 'Missing structure type')
-	assert(self.goalInfo.structureType:isOfType(StructureTypeRegistry.StructureRegistration), 'Invalid structure type')
+	assert(self.directiveInfo.structureType, 'Missing structure type')
+	assert(self.directiveInfo.structureType:isOfType(StructureTypeRegistry.StructureRegistration), 'Invalid structure type')
 
-    self.goalInfo.unitTypeId = unitTypeId
-	self.goalInfo.amount = amount
+    self.directiveInfo.unitTypeId = unitTypeId
+	self.directiveInfo.amount = amount
 end
 
---- Returns a string representation of the goal
+--- Returns a string representation of the directive
 --- @return string
-function GOAL:getInfoString()
-	return 'Have ' .. self.goalInfo.amount .. ' of ' .. self.goalInfo.unitTypeId
+function DIRECTIVE:getInfoString()
+	return 'Have ' .. self.directiveInfo.amount .. ' of ' .. self.directiveInfo.unitTypeId
 end
 
---- Called while the AI is working on the goal.
+--- Called while the AI is working on the directive.
 --- @param player PlayerComputer
---- @return boolean # Whether the goal has been completed
-function GOAL:run(player)
+--- @return boolean # Whether the directive has been completed
+function DIRECTIVE:run(player)
 	local faction = player:getFaction()
-	local unitTypeId = self.goalInfo.unitTypeId
-	local amount = self.goalInfo.amount
-	local structureType = self.goalInfo.structureType
+	local unitTypeId = self.directiveInfo.unitTypeId
+	local amount = self.directiveInfo.amount
+	local structureType = self.directiveInfo.structureType
 
 	local units = faction:getUnitsOfType(unitTypeId)
 
@@ -53,8 +53,8 @@ function GOAL:run(player)
 
 	-- If we don't have the structure that will give us the units, we need to build it
 	if (not structure) then
-		player:prependGoal(
-			player:createGoal('BuildStructure', {
+		player:prependDirective(
+			player:createDirective('BuildStructure', {
 				structureTypeId = structureType.id,
 			})
 		)
@@ -71,8 +71,8 @@ function GOAL:run(player)
 	-- Check if we have enough resources to create a new unit
 	for resourceTypeId, amount in pairs(resourcesNeeded) do
 		if (not faction:getResourceInventory():has(resourceTypeId, amount)) then
-			player:prependGoal(
-				player:createGoal('HaveGatheredResources', {
+			player:prependDirective(
+				player:createDirective('HaveGatheredResources', {
 					resourceTypeId = resourceTypeId,
 					desiredAmount = amount,
 				})
@@ -89,10 +89,10 @@ function GOAL:run(player)
 	-- We have the resources, but do we have the housing?
 	local housing = faction:getResourceInventory():getValue('housing')
 
-	-- We try creating one unit at a time, since this goal will be called again
+	-- We try creating one unit at a time, since this directive will be called again
     if (#units + amount > housing) then
-        player:prependGoal(
-            player:createGoal('BuildStructure', {
+        player:prependDirective(
+            player:createDirective('BuildStructure', {
                 structureTypeId = 'house',
             })
         )
@@ -111,4 +111,4 @@ function GOAL:run(player)
 	return false
 end
 
-return GOAL
+return DIRECTIVE

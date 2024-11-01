@@ -1,12 +1,12 @@
---- @type BehaviorGoal
-local GOAL = {}
+--- @type Directive
+local DIRECTIVE = {}
 
-GOAL.requiresVillagers = true
+DIRECTIVE.requiresVillagers = true
 
---- Called when the goal is added to the goal list.
+--- Called when the directive is added to the directive list.
 --- @param player PlayerComputer
-function GOAL:init(player)
-	local structureTypeId = self.goalInfo.structureTypeId
+function DIRECTIVE:init(player)
+	local structureTypeId = self.directiveInfo.structureTypeId
 
 	if (type(structureTypeId) == 'function') then
 		structureTypeId = structureTypeId()
@@ -18,28 +18,28 @@ function GOAL:init(player)
 
 	assert(structureType, 'Invalid structure type id')
 
-	self.goalInfo.structureType = structureType
+	self.directiveInfo.structureType = structureType
 end
 
---- Returns a string representation of the goal
+--- Returns a string representation of the directive
 --- @return string
-function GOAL:getInfoString()
-	return 'Build ' .. self.goalInfo.structureType.id
+function DIRECTIVE:getInfoString()
+	return 'Build ' .. self.directiveInfo.structureType.id
 end
 
---- Called while the AI is working on the goal.
+--- Called while the AI is working on the directive.
 --- @param player PlayerComputer
---- @return boolean # Whether the goal has been completed
-function GOAL:run(player)
+--- @return boolean # Whether the directive has been completed
+function DIRECTIVE:run(player)
     local faction = player:getFaction()
-    local structureType = self.goalInfo.structureType
+    local structureType = self.directiveInfo.structureType
 
-	-- If we can't build this structure because we don't have the resources, add a goal to get the resources
+	-- If we can't build this structure because we don't have the resources, add a directive to get the resources
     if (not structureType:canBeBuilt(faction)) then
         for resourceTypeId, amount in pairs(structureType.requiredResources) do
             if (not faction:getResourceInventory():has(resourceTypeId, amount)) then
-                player:prependGoal(
-                    player:createGoal('HaveGatheredResources', {
+                player:prependDirective(
+                    player:createDirective('HaveGatheredResources', {
                         resourceTypeId = resourceTypeId,
                         desiredAmount = amount,
                     })
@@ -50,12 +50,12 @@ function GOAL:run(player)
 		return false
     end
 
-    local villagers = self.goalInfo.builders or player:findIdleOrRandomUnits('villager')
+    local villagers = self.directiveInfo.builders or player:findIdleOrRandomUnits('villager')
 
 	if (#villagers == 0) then
 		-- If we don't have a villager, ensure we generate one
-		player:prependGoal(
-			player:createGoal('HaveUnitsOfType', {
+		player:prependDirective(
+			player:createDirective('HaveUnitsOfType', {
 				unitTypeId = 'villager',
 				structureType = StructureTypeRegistry:getStructureType('town_hall'),
 				amount = 1,
@@ -74,4 +74,4 @@ function GOAL:run(player)
 	return true
 end
 
-return GOAL
+return DIRECTIVE

@@ -446,28 +446,28 @@ function Faction:onInteractableMoved(interactable)
 	self:getWorld():revealFogOfWar(self, self.fogOfWarMap, x, y, sightRange * .5)
 end
 
---- Called when a computer player completes a behavior goal
---- @param goal BehaviorGoal
-function Faction:onBehaviorGoalCompleted(goal)
-	if (GameConfig.aiAnnounceRawGoalCompletion) then
-		self:say('Goal completed: ' .. currentGoal:getInfoString())
+--- Called when a computer player completes a behavior directive
+--- @param directive Directive
+function Faction:onBehaviorDirectiveCompleted(directive)
+	if (GameConfig.aiAnnounceRawDirectiveCompletion) then
+		self:say('Directive completed: ' .. currentDirective:getInfoString())
 		return
 	end
 
-	if (self.factionType.onGoalCompleted) then
-		local speech = self.factionType:onGoalCompleted(self, goal)
+	if (self.factionType.onDirectiveCompleted) then
+		local speech = self.factionType:onDirectiveCompleted(self, directive)
 
 		if (speech) then
 			self:say(table.Random(speech))
 		end
 	end
 
-	if (not self.factionType.goalSpeeches) then
+	if (not self.factionType.directiveSpeeches) then
 		return
 	end
 
-	-- See if the faction has a speech for the goal
-	local speech = self.factionType.goalSpeeches[goal.id]
+	-- See if the faction has a speech for the directive
+	local speech = self.factionType.directiveSpeeches[directive.id]
 
 	if (speech) then
 		self:say(table.Random(speech))

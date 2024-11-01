@@ -12,28 +12,28 @@ function PlayerComputer:initialize(config)
     --- The blackboard for the AI where it can store information
 	--- @type table
     self.blackboard = {
-        --- The goals the AI is working on
-		--- @type BehaviorGoal[]
-        goals = {},
+        --- The directives the AI is working on
+		--- @type Directive[]
+        directives = {},
 	}
 end
 
---- Generates new goals for the AI to work on
-function PlayerComputer:generateNewGoals()
+--- Generates new directives for the AI to work on
+function PlayerComputer:generateNewDirectives()
 	local faction = self:getFaction()
     local currentVillagers = #faction:getUnitsOfType('villager')
     local currentWarriors = #faction:getUnitsOfType('warrior')
 
-    -- The AI should handle this goal to reach a certain population by:
+    -- The AI should handle this directive to reach a certain population by:
     -- - Checking if we can create a new villager, if we can, create it
     -- - If we can't create a new villager, because we have enough food, but not enough housing, build a house
     -- - If we can't build a house, because we don't have enough resources, ensure we're gathering resources (wood)
     -- - If we can't create a villager, because we don't have enough food, ensure we're gathering food
     -- - If we have no food to gather, create a farm
 	-- - If we have no wood for a farm, ensure we're gathering wood
-	-- Those sub-goals are prepended to the goal list, so they are handled first
-    self:appendGoal(
-		self:createGoal('HaveUnitsOfType', {
+	-- Those sub-directives are prepended to the directive list, so they are handled first
+    self:appendDirective(
+		self:createDirective('HaveUnitsOfType', {
 			unitTypeId = 'villager',
 			structureType = StructureTypeRegistry:getStructureType('town_hall'),
 			amount = currentVillagers + 5,
@@ -42,8 +42,8 @@ function PlayerComputer:generateNewGoals()
 
     -- Create a warrior (the AI will think of what it needs to to do to get there)
 	-- Like building barracks first (since those generate warriors)
-	self:appendGoal(
-		self:createGoal('HaveUnitsOfType', {
+	self:appendDirective(
+		self:createDirective('HaveUnitsOfType', {
 			unitTypeId = 'warrior',
 			structureType = StructureTypeRegistry:getStructureType('barracks'),
 			amount = currentWarriors + 1,
@@ -53,26 +53,26 @@ function PlayerComputer:generateNewGoals()
     -- Always stockpile these resources
     local factionInventory = faction:getResourceInventory()
 
-	self:appendGoal(
-		self:createGoal('HaveGatheredResources', {
+	self:appendDirective(
+		self:createDirective('HaveGatheredResources', {
 			resourceTypeId = 'food',
 			desiredAmount = 150 + factionInventory:getValue('food'),
 		})
 	)
-	self:appendGoal(
-		self:createGoal('HaveGatheredResources', {
+	self:appendDirective(
+		self:createDirective('HaveGatheredResources', {
 			resourceTypeId = 'wood',
 			desiredAmount = 100 + factionInventory:getValue('wood'),
 		})
 	)
-	self:appendGoal(
-		self:createGoal('HaveGatheredResources', {
+	self:appendDirective(
+		self:createDirective('HaveGatheredResources', {
 			resourceTypeId = 'stone',
 			desiredAmount = 100 + factionInventory:getValue('stone'),
 		})
 	)
-	self:appendGoal(
-		self:createGoal('HaveGatheredResources', {
+	self:appendDirective(
+		self:createDirective('HaveGatheredResources', {
 			resourceTypeId = 'gold',
 			desiredAmount = 50 + factionInventory:getValue('gold'),
 		})
@@ -80,8 +80,8 @@ function PlayerComputer:generateNewGoals()
 
 end
 
---- Generates important new goals for the AI to work on, like when the AI is under attack
-function PlayerComputer:generateImportantNewGoals()
+--- Generates important new directives for the AI to work on, like when the AI is under attack
+function PlayerComputer:generateImportantNewDirectives()
 	-- Check if we're under attack
 	local attackingUnits = self.faction:getAttackingUnits()
 
@@ -89,111 +89,111 @@ function PlayerComputer:generateImportantNewGoals()
 		return
 	end
 
-	if (self:hasGoal('AttackUnits')) then
+	if (self:hasDirective('AttackUnits')) then
 		return
 	end
 
-	-- Force warriors to attack the enemy (which will automatically add goals to create warriors if we don't have them)
+	-- Force warriors to attack the enemy (which will automatically add directives to create warriors if we don't have them)
 	-- TODO: Split our warriors into multiple groups, so we can defend from multiple locations
-	self:prependGoal(
-		self:createGoal('AttackUnits', {
+	self:prependDirective(
+		self:createDirective('AttackUnits', {
 			units = attackingUnits,
 		})
 	)
 end
 
---- Optimizes the goals where possible, by combining them where possible
---- For example multiple sequential HaveGatheredResources goals will be merged into HaveGatheredMultipleResources
-function PlayerComputer:optimizeGoals()
-    local newGoals = {}
-    local currentGatherGoals = {}
+--- Optimizes the directives where possible, by combining them where possible
+--- For example multiple sequential HaveGatheredResources directives will be merged into HaveGatheredMultipleResources
+function PlayerComputer:optimizeDirectives()
+    local newDirectives = {}
+    local currentGatherDirectives = {}
 
-	local function createMergedGoal(currentGatherGoals)
+	local function createMergedDirective(currentGatherDirectives)
 		local resourceRequirements = {}
 
-		for _, gatherGoal in ipairs(currentGatherGoals) do
+		for _, gatherDirective in ipairs(currentGatherDirectives) do
 			table.insert(resourceRequirements, {
-				resourceTypeId = gatherGoal.goalInfo.resourceTypeId,
-				desiredAmount = gatherGoal.goalInfo.desiredAmount,
+				resourceTypeId = gatherDirective.directiveInfo.resourceTypeId,
+				desiredAmount = gatherDirective.directiveInfo.desiredAmount,
 			})
 		end
 
-		local newGoal = self:createGoal('HaveGatheredMultipleResources', {
+		local newDirective = self:createDirective('HaveGatheredMultipleResources', {
             requirements = resourceRequirements,
 		})
-		newGoal:init(self)
-        table.insert(newGoals, newGoal)
+		newDirective:init(self)
+        table.insert(newDirectives, newDirective)
 	end
 
-    -- Collect goals and identify optimization opportunities
-    for _, goal in ipairs(self.blackboard.goals) do
-        if (goal.id == 'HaveGatheredResources') then
-            table.insert(currentGatherGoals, goal)
+    -- Collect directives and identify optimization opportunities
+    for _, directive in ipairs(self.blackboard.directives) do
+        if (directive.id == 'HaveGatheredResources') then
+            table.insert(currentGatherDirectives, directive)
         else
-            -- Process any accumulated gather goals before adding the non-gather goal
-            if #currentGatherGoals > 1 then
-				createMergedGoal(currentGatherGoals)
-            elseif (#currentGatherGoals == 1) then
-                -- Just add the single gather goal as is
-                table.insert(newGoals, currentGatherGoals[1])
+            -- Process any accumulated gather directives before adding the non-gather directive
+            if #currentGatherDirectives > 1 then
+				createMergedDirective(currentGatherDirectives)
+            elseif (#currentGatherDirectives == 1) then
+                -- Just add the single gather directive as is
+                table.insert(newDirectives, currentGatherDirectives[1])
             end
 
-            -- Add the non-gather goal
-			table.insert(newGoals, goal)
+            -- Add the non-gather directive
+			table.insert(newDirectives, directive)
 
-            -- Reset gather goals collection
-            currentGatherGoals = {}
+            -- Reset gather directives collection
+            currentGatherDirectives = {}
         end
     end
 
-    -- Handle any remaining gather goals at the end
-    if (#currentGatherGoals > 1) then
-		createMergedGoal(currentGatherGoals)
-    elseif #currentGatherGoals == 1 then
-        table.insert(newGoals, currentGatherGoals[1])
+    -- Handle any remaining gather directives at the end
+    if (#currentGatherDirectives > 1) then
+		createMergedDirective(currentGatherDirectives)
+    elseif #currentGatherDirectives == 1 then
+        table.insert(newDirectives, currentGatherDirectives[1])
     end
 
-    -- Replace the old goals with the optimized ones
-	self.blackboard.goals = newGoals
+    -- Replace the old directives with the optimized ones
+	self.blackboard.directives = newDirectives
 end
 
---- Adds a goal to the AI blackboard at the specified index
---- @param goal BehaviorGoal
+--- Adds a directive to the AI blackboard at the specified index
+--- @param directive Directive
 --- @param index number
-function PlayerComputer:addGoalAt(goal, index)
-	table.insert(self.blackboard.goals, index, goal)
+function PlayerComputer:addDirectiveAt(directive, index)
+	table.insert(self.blackboard.directives, index, directive)
 
-    -- Initialize any goal-specific data
-    if (goal.init) then
-        goal:init(self)
+    -- Initialize any directive-specific data
+    if (directive.init) then
+        directive:init(self)
     end
 end
 
---- Appends a goal to the end of the AI blackboard goal list
---- @param goal BehaviorGoal
-function PlayerComputer:appendGoal(goal)
-	self:addGoalAt(goal, #self.blackboard.goals + 1)
+--- Appends a directive to the end of the AI blackboard directive list
+--- @param directive Directive
+function PlayerComputer:appendDirective(directive)
+	self:addDirectiveAt(directive, #self.blackboard.directives + 1)
 end
 
---- Prepends a goal to the front of the AI blackboard goal list
---- @param goal BehaviorGoal
-function PlayerComputer:prependGoal(goal)
-    self:addGoalAt(goal, 1)
+--- Prepends a directive to the front of the AI blackboard directive list
+--- @param directive Directive
+function PlayerComputer:prependDirective(directive)
+    self:addDirectiveAt(directive, 1)
 end
 
---- Checks if there is a goal with the specified id in the AI blackboard goal list
---- @param goalId string
---- @param goalInfo? table
+--- Checks if there is a directive with the specified id in the AI blackboard directive list
+--- @param directiveId string
+--- @param directiveInfo? table
 --- @return boolean
-function PlayerComputer:hasGoal(goalId, goalInfo)
-	for _, goal in ipairs(self.blackboard.goals) do
-		if (goal.id == goalId) then
-			if (goalInfo) then
-				-- Check if the goal info is the same
+function PlayerComputer:hasDirective(directiveId, directiveInfo)
+	for _, directive in ipairs(self.blackboard.directives) do
+		if (directive.id == directiveId) then
+			if (directiveInfo) then
+				-- Check if the directive info is the same
 				local isSame = true
 
-				for key, value in pairs(goalInfo) do
-					if (goal.goalInfo[key] ~= value) then
+				for key, value in pairs(directiveInfo) do
+					if (directive.directiveInfo[key] ~= value) then
 						isSame = false
 						break
 					end
@@ -211,21 +211,21 @@ function PlayerComputer:hasGoal(goalId, goalInfo)
 	return false
 end
 
---- Counts the amount of goals with the specified id in the AI blackboard goal list
---- @param goalId string
---- @param goalInfo? table
+--- Counts the amount of directives with the specified id in the AI blackboard directive list
+--- @param directiveId string
+--- @param directiveInfo? table
 --- @return number
-function PlayerComputer:countGoals(goalId, goalInfo)
+function PlayerComputer:countDirectives(directiveId, directiveInfo)
 	local count = 0
 
-	for _, goal in ipairs(self.blackboard.goals) do
-		if (goal.id == goalId) then
-			if (goalInfo) then
-				-- Check if the goal info is the same
+	for _, directive in ipairs(self.blackboard.directives) do
+		if (directive.id == directiveId) then
+			if (directiveInfo) then
+				-- Check if the directive info is the same
 				local isSame = true
 
-				for key, value in pairs(goalInfo) do
-					if (goal.goalInfo[key] ~= value) then
+				for key, value in pairs(directiveInfo) do
+					if (directive.directiveInfo[key] ~= value) then
 						isSame = false
 						break
 					end
@@ -243,76 +243,76 @@ function PlayerComputer:countGoals(goalId, goalInfo)
 	return count
 end
 
---- Removes the first goal from the AI blackboard goal list
---- @return BehaviorGoal
-function PlayerComputer:removeFirstGoal()
-    local goal = table.remove(self.blackboard.goals, 1)
+--- Removes the first directive from the AI blackboard directive list
+--- @return Directive
+function PlayerComputer:removeFirstDirective()
+    local directive = table.remove(self.blackboard.directives, 1)
 
-    return goal
+    return directive
 end
 
---- Gets the current goal the AI is working on
---- @return BehaviorGoal
-function PlayerComputer:getCurrentGoal()
-    return self.blackboard.goals[1]
+--- Gets the current directive the AI is working on
+--- @return Directive
+function PlayerComputer:getCurrentDirective()
+    return self.blackboard.directives[1]
 end
 
---- Gets the goal list
---- @return BehaviorGoal[]
-function PlayerComputer:getGoalList()
-	return self.blackboard.goals
+--- Gets the directive list
+--- @return Directive[]
+function PlayerComputer:getDirectiveList()
+	return self.blackboard.directives
 end
 
---- Prints the current goal list
-function PlayerComputer:debugGoalList()
+--- Prints the current directive list
+function PlayerComputer:debugDirectiveList()
 	print('-----------------------------------')
-    if (#self.blackboard.goals > 0) then
-        print('Goals for player: ', self:getName())
+    if (#self.blackboard.directives > 0) then
+        print('Directives for player: ', self:getName())
 
-		for i, goal in ipairs(self.blackboard.goals) do
-			print(i, goal.id, goal:getInfoString())
+		for i, directive in ipairs(self.blackboard.directives) do
+			print(i, directive.id, directive:getInfoString())
 		end
 	else
-		print('No goals for player: ', self:getName())
+		print('No directives for player: ', self:getName())
 	end
 	print('\n')
 end
 
---- Creates a goal for the AI
---- @param goalModuleName string
---- @param goalInfo? table
---- @return BehaviorGoal
-function PlayerComputer:createGoal(goalModuleName, goalInfo)
-	-- We copy so the goal info can differ between goals of the same type
-	local goalDesign = table.Copy(require('ai.goals.' .. goalModuleName))
+--- Creates a directive for the AI
+--- @param directiveModuleName string
+--- @param directiveInfo? table
+--- @return Directive
+function PlayerComputer:createDirective(directiveModuleName, directiveInfo)
+	-- We copy so the directive info can differ between directives of the same type
+	local directiveDesign = table.Copy(require('directives.' .. directiveModuleName))
 
-    --- @class BehaviorGoal
+    --- @class Directive
     --- @field blackboard table
     --- @field player PlayerComputer
-    --- @field goalInfo table
-    --- @field init fun(self: BehaviorGoal, player: PlayerComputer)
-    --- @field run fun(self: BehaviorGoal, player: PlayerComputer): boolean
-	--- @field queuedUpdate? fun(self: BehaviorGoal, player: PlayerComputer): boolean
-    --- @field getInfoString fun(self: BehaviorGoal): string
-    local goal = goalDesign
+    --- @field directiveInfo table
+    --- @field init fun(self: Directive, player: PlayerComputer)
+    --- @field run fun(self: Directive, player: PlayerComputer): boolean
+	--- @field queuedUpdate? fun(self: Directive, player: PlayerComputer): boolean
+    --- @field getInfoString fun(self: Directive): string
+    local directive = directiveDesign
 
-	goal.id = goalModuleName
-	goal.goalInfo = goalInfo or {}
-	goal.blackboard = self.blackboard
-	goal.player = self
-    goal.getInfoString = goal.getInfoString or function(goal)
+	directive.id = directiveModuleName
+	directive.directiveInfo = directiveInfo or {}
+	directive.blackboard = self.blackboard
+	directive.player = self
+    directive.getInfoString = directive.getInfoString or function(directive)
         return ''
     end
 
-	goal.debugPrint = function(goalNode, ...)
-		print('[AI Goal] ', self:getName(), ' | ', ...)
+	directive.debugPrint = function(directiveNode, ...)
+		print('[AI Directive] ', self:getName(), ' | ', ...)
 	end
 
-	return goal
+	return directive
 end
 
---- Will call the run function of the current goal the AI is working on
---- If the goals change while we are working on the current goal, we will work on the new current goal
+--- Will call the run function of the current directive the AI is working on
+--- If the directives change while we are working on the current directive, we will work on the new current directive
 --- the next update
 function PlayerComputer:update(deltaTime)
     if (self:getFaction().isDefeated) then
@@ -320,36 +320,36 @@ function PlayerComputer:update(deltaTime)
         return
     end
 
-    local currentGoal = self:getCurrentGoal()
+    local currentDirective = self:getCurrentDirective()
 
-    if (not currentGoal) then
-        self:generateNewGoals()
+    if (not currentDirective) then
+        self:generateNewDirectives()
         return
     end
 
-    local isGoalCompleted = currentGoal:run(self)
+    local isDirectiveCompleted = currentDirective:run(self)
 
-    if (isGoalCompleted) then
-        self:removeFirstGoal()
-        self.faction:onBehaviorGoalCompleted(currentGoal)
+    if (isDirectiveCompleted) then
+        self:removeFirstDirective()
+        self.faction:onBehaviorDirectiveCompleted(currentDirective)
     end
 
-    -- Run the queuedUpdate function for all goals so they can still do logic
-    local goalsToRemove = {}
-    for i, goal in ipairs(self.blackboard.goals) do
-        if (goal.queuedUpdate) then
-            if (goal:queuedUpdate(self) == true) then
-                table.insert(goalsToRemove, i)
+    -- Run the queuedUpdate function for all directives so they can still do logic
+    local directivesToRemove = {}
+    for i, directive in ipairs(self.blackboard.directives) do
+        if (directive.queuedUpdate) then
+            if (directive:queuedUpdate(self) == true) then
+                table.insert(directivesToRemove, i)
             end
         end
     end
 
-    for i = #goalsToRemove, 1, -1 do
-        table.remove(self.blackboard.goals, goalsToRemove[i])
+    for i = #directivesToRemove, 1, -1 do
+        table.remove(self.blackboard.directives, directivesToRemove[i])
     end
 
-    self:generateImportantNewGoals()
-    self:optimizeGoals()
+    self:generateImportantNewDirectives()
+    self:optimizeDirectives()
 
     local faction = self:getFaction()
 

@@ -1,25 +1,25 @@
-local GOAL = {}
+local DIRECTIVE = {}
 
---- Called when the goal is added to the goal list.
+--- Called when the directive is added to the directive list.
 --- @param player PlayerComputer
-function GOAL:init(player)
-    local units = self.goalInfo.units
+function DIRECTIVE:init(player)
+    local units = self.directiveInfo.units
 
     assert(units, 'Invalid units')
 end
 
---- Returns a string representation of the goal
+--- Returns a string representation of the directive
 --- @return string
-function GOAL:getInfoString()
+function DIRECTIVE:getInfoString()
 	return 'Attack units'
 end
 
---- Called while the AI is working on the goal.
+--- Called while the AI is working on the directive.
 --- @param player PlayerComputer
---- @return boolean # Whether the goal has been completed
-function GOAL:run(player)
+--- @return boolean # Whether the directive has been completed
+function DIRECTIVE:run(player)
     local faction = player:getFaction()
-    local unitsToAttack = self.goalInfo.units
+    local unitsToAttack = self.directiveInfo.units
     local warriors = faction:getUnitsOfType('warrior')
 
     -- Filter out already dead units
@@ -40,8 +40,8 @@ function GOAL:run(player)
 
     if (#warriors < targetWarriorCount) then
         -- We don't have warriors, so we need to create them
-        player:prependGoal(
-            player:createGoal('HaveUnitsOfType', {
+        player:prependDirective(
+            player:createDirective('HaveUnitsOfType', {
                 unitTypeId = 'warrior',
                 structureType = StructureTypeRegistry:getStructureType('barracks'),
                 amount = targetWarriorCount,
@@ -58,13 +58,13 @@ function GOAL:run(player)
     return false
 end
 
---- Called while other goals are being worked on, but we're in the goal list.
+--- Called while other directives are being worked on, but we're in the directive list.
 --- @param player PlayerComputer
---- @return boolean # Whether the goal has been completed
-function GOAL:queuedUpdate(player)
+--- @return boolean # Whether the directive has been completed
+function DIRECTIVE:queuedUpdate(player)
     -- If we're under attack and gathering resources, we still want to ensure our warriors are attacking
     local faction = player:getFaction()
-    local unitsToAttack = self.goalInfo.units
+    local unitsToAttack = self.directiveInfo.units
     local warriors = faction:getUnitsOfType('warrior')
 
     -- Filter out already dead units
@@ -94,7 +94,7 @@ end
 --- @param player PlayerComputer
 --- @param warriors table
 --- @param unitsToAttack table
-function GOAL:setWarriorsToAttack(player, warriors, unitsToAttack)
+function DIRECTIVE:setWarriorsToAttack(player, warriors, unitsToAttack)
 	for _, warrior in ipairs(warriors) do
         local isAttacking, victim = warrior:attacking()
 
@@ -112,4 +112,4 @@ function GOAL:setWarriorsToAttack(player, warriors, unitsToAttack)
 	end
 end
 
-return GOAL
+return DIRECTIVE

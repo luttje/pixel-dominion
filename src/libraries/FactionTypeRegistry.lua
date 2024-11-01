@@ -13,7 +13,7 @@ local FactionTypeRegistry = DeclareClass('FactionTypeRegistry')
 --- @field profileImage Image The profile image of the faction.
 --- @field profileImageQuad Quad The quad determining which part of the profile image to display.
 ---
---- @field goalSpeeches table<string, table> A table of things the faction can say when a goal is completed.
+--- @field directiveSpeeches table<string, table> A table of things the faction can say when a directive is completed.
 --- @field checkShouldSurrender? fun(factionType: FactionTypeRegistry.FactionRegistration, faction: Faction): boolean A function that determines if the faction should surrender.
 --- @field onSurrender? fun(factionType: FactionTypeRegistry.FactionRegistration, faction: Faction): table A function that is called when the faction surrenders, returning a table of things the faction can say.
 FactionTypeRegistry.FactionRegistration = DeclareClass('FactionTypeRegistry.FactionRegistration')

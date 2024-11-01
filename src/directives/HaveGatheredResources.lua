@@ -1,13 +1,13 @@
---- @type BehaviorGoal
-local GOAL = {}
+--- @type Directive
+local DIRECTIVE = {}
 
-GOAL.requiresVillagers = true
+DIRECTIVE.requiresVillagers = true
 
---- Called when the goal is added to the goal list.
+--- Called when the directive is added to the directive list.
 --- @param player PlayerComputer
-function GOAL:init(player)
-    local resourceTypeId = self.goalInfo.resourceTypeId
-    local desiredAmount = self.goalInfo.desiredAmount
+function DIRECTIVE:init(player)
+    local resourceTypeId = self.directiveInfo.resourceTypeId
+    local desiredAmount = self.directiveInfo.desiredAmount
 
     if (type(desiredAmount) == 'function') then
         desiredAmount = desiredAmount()
@@ -22,23 +22,23 @@ function GOAL:init(player)
 
 	assert(resourceType, 'Invalid resource type id')
 
-	self.goalInfo.resourceType = resourceType
-    self.goalInfo.desiredAmount = desiredAmount
+	self.directiveInfo.resourceType = resourceType
+    self.directiveInfo.desiredAmount = desiredAmount
 end
 
---- Returns a string representation of the goal
+--- Returns a string representation of the directive
 --- @return string
-function GOAL:getInfoString()
-	return 'Gather ' .. self.goalInfo.desiredAmount .. ' of ' .. self.goalInfo.resourceType.id
+function DIRECTIVE:getInfoString()
+	return 'Gather ' .. self.directiveInfo.desiredAmount .. ' of ' .. self.directiveInfo.resourceType.id
 end
 
---- Called while the AI is working on the goal.
+--- Called while the AI is working on the directive.
 --- @param player PlayerComputer
---- @return boolean # Whether the goal has been completed
-function GOAL:run(player)
+--- @return boolean # Whether the directive has been completed
+function DIRECTIVE:run(player)
     local faction = player:getFaction()
-    local resourceType = self.goalInfo.resourceType
-    local desiredAmount = self.goalInfo.desiredAmount
+    local resourceType = self.directiveInfo.resourceType
+    local desiredAmount = self.directiveInfo.desiredAmount
 
     if (faction:getResourceInventory():has(resourceType.id, desiredAmount)) then
         return true
@@ -97,7 +97,7 @@ function GOAL:run(player)
 						return false
 					end
 
-					local structuresToBeBuilt = player:countGoals('BuildStructure', {
+					local structuresToBeBuilt = player:countDirectives('BuildStructure', {
 						structureTypeId = structureTypeForResource.id,
 					})
 
@@ -106,9 +106,9 @@ function GOAL:run(player)
 						return false
 					end
 
-					-- Add a goal to build the structure that spawns the resource
-					player:prependGoal(
-						player:createGoal('BuildStructure', {
+					-- Add a directive to build the structure that spawns the resource
+					player:prependDirective(
+						player:createDirective('BuildStructure', {
 							structureTypeId = structureTypeForResource.id,
 							builders = {villager},
 						})
@@ -124,4 +124,4 @@ function GOAL:run(player)
     return false
 end
 
-return GOAL
+return DIRECTIVE

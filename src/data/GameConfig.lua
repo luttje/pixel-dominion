@@ -187,8 +187,8 @@ GameConfig.disableMusic = true
 --- @type boolean
 GameConfig.disableFogOfWar = false
 
---- Have the computer players announce their completed goals.
+--- Have the computer players announce their completed directives.
 --- @type boolean
-GameConfig.aiAnnounceRawGoalCompletion = false
+GameConfig.aiAnnounceRawDirectiveCompletion = false
 
 return GameConfig

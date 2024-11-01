@@ -5,13 +5,13 @@ FACTION.name = 'Warlords'
 
 FACTION.profileImagePath = 'assets/images/faction-profiles/warlord.png'
 
---- Called when a goal is completed and the faction can say something about it.
+--- Called when a directive is completed and the faction can say something about it.
 --- @param faction Faction
---- @param goal BehaviorGoal
---- @return string[]|nil # A list of strings to be randomly chosen from, or nil if the faction has nothing to say about the goal
-function FACTION:onGoalCompleted(faction, goal)
-	if (goal.id == 'BuildStructure') then
-		if (goal.goalInfo.structureTypeId == 'barracks') then
+--- @param directive Directive
+--- @return string[]|nil # A list of strings to be randomly chosen from, or nil if the faction has nothing to say about the directive
+function FACTION:onDirectiveCompleted(faction, directive)
+	if (directive.id == 'BuildStructure') then
+		if (directive.directiveInfo.structureTypeId == 'barracks') then
 			return {
 				'Warriors of wrath arise here!',
 				'This ground shall breed champions of war!',
@@ -28,7 +28,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'Blood and iron fuel our might!',
 				'Legends rise from these halls!',
 			}
-		elseif (goal.goalInfo.structureTypeId == 'farmland') then
+		elseif (directive.directiveInfo.structureTypeId == 'farmland') then
 			return {
 				'The earth feeds our power!',
 				'Fields will fuel our bloodlust!',
@@ -45,7 +45,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'The earth bends to our might!',
 				'Strength grows in every crop!',
 			}
-		elseif (goal.goalInfo.structureTypeId == 'lumber_camp') then
+		elseif (directive.directiveInfo.structureTypeId == 'lumber_camp') then
 			return {
 				'The forest falls to our axes!',
 				'Timber for strength and siege!',
@@ -62,7 +62,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'The forest bows before us!',
 				'Our horde\'s might rises with each timber!',
 			}
-		elseif (goal.goalInfo.structureTypeId == 'gold_mine') then
+		elseif (directive.directiveInfo.structureTypeId == 'gold_mine') then
 			return {
 				'Treasures fuel our rage!',
 				'Our strength shines like gold!',
@@ -79,7 +79,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'We claim the wealth of the world!',
 				'Our gold glimmers with violence!',
 			}
-		elseif (goal.goalInfo.structureTypeId == 'stone_mine') then
+		elseif (directive.directiveInfo.structureTypeId == 'stone_mine') then
 			return {
 				'The bones of the earth belong to us!',
 				'We rise, unbreakable as stone!',
@@ -96,7 +96,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'Immovable as the mountains!',
 				'Our stones form our fury!',
 			}
-		elseif (goal.goalInfo.structureTypeId == 'house') then
+		elseif (directive.directiveInfo.structureTypeId == 'house') then
 			return {
 				'The tribe grows in power and number!',
 				'Halls for our ruthless kin!',
@@ -114,8 +114,8 @@ function FACTION:onGoalCompleted(faction, goal)
 				'Our kin thrive to conquer!',
 			}
 		end
-	elseif (goal.id == 'AttackUnits' and goal.goalInfo.units[1]) then
-		local isPlayerFaction = goal.goalInfo.units[1]:getFaction() == CurrentPlayer:getFaction()
+	elseif (directive.id == 'AttackUnits' and directive.directiveInfo.units[1]) then
+		local isPlayerFaction = directive.directiveInfo.units[1]:getFaction() == CurrentPlayer:getFaction()
 
 		if (isPlayerFaction) then
 			return {
@@ -152,8 +152,8 @@ function FACTION:onGoalCompleted(faction, goal)
 				'They fall like withered leaves!',
 			}
 		end
-	elseif (goal.id == 'HaveUnitsOfType') then
-		if (goal.goalInfo.unitTypeId == 'warrior') then
+	elseif (directive.id == 'HaveUnitsOfType') then
+		if (directive.directiveInfo.unitTypeId == 'warrior') then
 			return {
 				'The ranks swell with warriors of fury!',
 				'Warlord strength unmatched!',
@@ -170,7 +170,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'Warlords in flesh and blood!',
 				'Legends rise within our ranks!',
 			}
-		elseif (goal.goalInfo.unitTypeId == 'villager') then
+		elseif (directive.directiveInfo.unitTypeId == 'villager') then
 			return {
 				'The tribe grows with fierce hands!',
 				'Warlords work, Warlords fight!',

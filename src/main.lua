@@ -253,7 +253,7 @@ function love.keyreleased(key)
 			else
 				-- Dump information about the computer players
 				for _, computerPlayer in ipairs(computerPlayers) do
-					computerPlayer:debugGoalList()
+					computerPlayer:debugDirectiveList()
 				end
 			end
 		end

@@ -1,18 +1,18 @@
 --[[
 	This works similar to HaveGatheredResources, but we can gather multiple resources at once.
-	However where HaveGatheredResources forces all villagers to gather the same resource, this goal
+	However where HaveGatheredResources forces all villagers to gather the same resource, this directive
 	will split the resources among the villagers.
 --]]
 
---- @type BehaviorGoal
-local GOAL = {}
+--- @type Directive
+local DIRECTIVE = {}
 
-GOAL.requiresVillagers = true
+DIRECTIVE.requiresVillagers = true
 
---- Called when the goal is added to the goal list.
+--- Called when the directive is added to the directive list.
 --- @param player PlayerComputer
-function GOAL:init(player)
-	local requirements = self.goalInfo.requirements
+function DIRECTIVE:init(player)
+	local requirements = self.directiveInfo.requirements
 
 	assert(requirements and type(requirements) == 'table', 'Invalid requirements table')
 
@@ -45,28 +45,28 @@ function GOAL:init(player)
 		totalAmount = totalAmount + desiredAmount
 	end
 
-	self.goalInfo.resourceRequirements = resourceRequirements
-	self.goalInfo.totalAmount = totalAmount
+	self.directiveInfo.resourceRequirements = resourceRequirements
+	self.directiveInfo.totalAmount = totalAmount
 end
 
---- Returns a string representation of the goal
+--- Returns a string representation of the directive
 --- @return string
-function GOAL:getInfoString()
+function DIRECTIVE:getInfoString()
 	local faction = self.player:getFaction()
 	local factionInventory = faction:getResourceInventory()
 	local requirements = {}
 
-	for _, requirement in ipairs(self.goalInfo.resourceRequirements) do
+	for _, requirement in ipairs(self.directiveInfo.resourceRequirements) do
 		table.insert(requirements, factionInventory:getValue(requirement.resourceType) .. '/' .. requirement.desiredAmount .. ' of ' .. requirement.resourceType.id)
 	end
 
 	return 'Gather ' .. table.concat(requirements, ' and ')
 end
 
---- Called while the AI is working on the goal.
+--- Called while the AI is working on the directive.
 --- @param player PlayerComputer
---- @return boolean # Whether the goal has been completed
-function GOAL:run(player)
+--- @return boolean # Whether the directive has been completed
+function DIRECTIVE:run(player)
     local faction = player:getFaction()
 
     -- local villagers = player:findIdleOrRandomUnits('villager', allResources / 10)
@@ -81,9 +81,9 @@ function GOAL:run(player)
     return false
 end
 
-function GOAL:setVillagersToGatherResources(player, villagers)
+function DIRECTIVE:setVillagersToGatherResources(player, villagers)
     local faction = player:getFaction()
-    local resourceRequirements = self.goalInfo.resourceRequirements
+    local resourceRequirements = self.directiveInfo.resourceRequirements
     local resourcesToStillGet = {}
 
     for _, requirement in ipairs(resourceRequirements) do
@@ -158,7 +158,7 @@ function GOAL:setVillagersToGatherResources(player, villagers)
 							return false
 						end
 
-                        local structuresToBeBuilt = player:countGoals('BuildStructure', {
+                        local structuresToBeBuilt = player:countDirectives('BuildStructure', {
                             structureTypeId = structureTypeForResource.id,
                         })
 
@@ -167,9 +167,9 @@ function GOAL:setVillagersToGatherResources(player, villagers)
                             return false
                         end
 
-                        -- Add a goal to build the structure that spawns the resource
-                        player:prependGoal(
-                            player:createGoal('BuildStructure', {
+                        -- Add a directive to build the structure that spawns the resource
+                        player:prependDirective(
+                            player:createDirective('BuildStructure', {
                                 structureTypeId = structureTypeForResource.id,
                                 builders = { villager },
                             })
@@ -183,42 +183,42 @@ function GOAL:setVillagersToGatherResources(player, villagers)
     end
 end
 
---- Called while other goals are being worked on, but we're in the goal list.
+--- Called while other directives are being worked on, but we're in the directive list.
 --- @param player PlayerComputer
---- @return boolean # Whether the goal has been completed
-function GOAL:queuedUpdate(player)
-    -- If all goals before us require no villagers and we have idle villagers, we should work on this goal
+--- @return boolean # Whether the directive has been completed
+function DIRECTIVE:queuedUpdate(player)
+    -- If all directives before us require no villagers and we have idle villagers, we should work on this directive
     local villagers = player:findIdleUnits('villager')
 
 	if (#villagers == 0) then
 		return false
 	end
 
-    local goalList = player:getGoalList()
-	local goalIndex = table.IndexOf(goalList, self)
+    local directiveList = player:getDirectiveList()
+	local directiveIndex = table.IndexOf(directiveList, self)
 
-    for i = goalIndex - 1, 1, -1 do
-        local goal = goalList[i]
+    for i = directiveIndex - 1, 1, -1 do
+        local directive = directiveList[i]
 
-        if (goal.requiresVillagers) then
+        if (directive.requiresVillagers) then
             return false
         end
     end
 
 	local villagerCount = #villagers
 
-    -- No goals before us require villagers, so we can set those idle villagers to work
+    -- No directives before us require villagers, so we can set those idle villagers to work
     if (self:setVillagersToGatherResources(player, villagers)) then
-        self:debugPrint('All resources gathered! Generating new goals...')
-        player:generateNewGoals()
+        self:debugPrint('All resources gathered! Generating new directives...')
+        player:generateNewDirectives()
 
-        -- Returning true to remove this goal from the list
+        -- Returning true to remove this directive from the list
         return true
     else
-        -- self:debugPrint("No goals before us require villagers, so we've set " .. villagerCount .. " villagers to gather resources!")
+        -- self:debugPrint("No directives before us require villagers, so we've set " .. villagerCount .. " villagers to gather resources!")
     end
 
 	return false
 end
 
-return GOAL
+return DIRECTIVE

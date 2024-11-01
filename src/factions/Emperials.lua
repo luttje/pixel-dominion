@@ -5,13 +5,13 @@ FACTION.name = 'Emperials'
 
 FACTION.profileImagePath = 'assets/images/faction-profiles/emperial.png'
 
---- Called when a goal is completed and the faction can say something about it.
+--- Called when a directive is completed and the faction can say something about it.
 --- @param faction Faction
---- @param goal BehaviorGoal
---- @return string[]|nil # A list of strings to be randomly chosen from, or nil if the faction has nothing to say about the goal
-function FACTION:onGoalCompleted(faction, goal)
-    if (goal.id == 'BuildStructure') then
-        if (goal.goalInfo.structureTypeId == 'barracks') then
+--- @param directive Directive
+--- @return string[]|nil # A list of strings to be randomly chosen from, or nil if the faction has nothing to say about the directive
+function FACTION:onDirectiveCompleted(faction, directive)
+    if (directive.id == 'BuildStructure') then
+        if (directive.directiveInfo.structureTypeId == 'barracks') then
             return {
                 'Our warriors are forged here.',
                 'Strength rises from these walls.',
@@ -24,7 +24,7 @@ function FACTION:onGoalCompleted(faction, goal)
                 'A sanctuary for the brave.',
                 'The path to victory is paved here.',
             }
-        elseif (goal.goalInfo.structureTypeId == 'farmland') then
+        elseif (directive.directiveInfo.structureTypeId == 'farmland') then
             return {
                 'The land answers our call.',
                 'Fields of prosperity for our people.',
@@ -37,7 +37,7 @@ function FACTION:onGoalCompleted(faction, goal)
                 'Food for our people; power for our empire.',
                 'Let the harvest be plentiful.',
             }
-        elseif (goal.goalInfo.structureTypeId == 'lumber_camp') then
+        elseif (directive.directiveInfo.structureTypeId == 'lumber_camp') then
             return {
                 'The forest yields to our will.',
                 'Wood for our mighty empire.',
@@ -50,7 +50,7 @@ function FACTION:onGoalCompleted(faction, goal)
                 'The empire grows with each tree felled.',
                 'Our people, one with the land.',
             }
-        elseif (goal.goalInfo.structureTypeId == 'gold_mine') then
+        elseif (directive.directiveInfo.structureTypeId == 'gold_mine') then
             return {
                 'Treasure for our people.',
                 'The empire\'s wealth grows.',
@@ -63,7 +63,7 @@ function FACTION:onGoalCompleted(faction, goal)
                 'Our wealth knows no bounds.',
                 'Shining prosperity is ours.',
             }
-        elseif (goal.goalInfo.structureTypeId == 'stone_mine') then
+        elseif (directive.directiveInfo.structureTypeId == 'stone_mine') then
             return {
                 'The strength of stone is ours.',
                 'Our empire is built upon rock.',
@@ -76,7 +76,7 @@ function FACTION:onGoalCompleted(faction, goal)
                 'The land offers its bones.',
                 'With stone, we rise unbreakable.',
             }
-        elseif (goal.goalInfo.structureTypeId == 'house') then
+        elseif (directive.directiveInfo.structureTypeId == 'house') then
             return {
                 'Homes for our loyal subjects.',
                 'A sanctuary for the Emperial heart.',
@@ -90,8 +90,8 @@ function FACTION:onGoalCompleted(faction, goal)
                 'The empire\'s strength starts here.',
             }
         end
-    elseif (goal.id == 'AttackUnits' and goal.goalInfo.units[1]) then
-        local isPlayerFaction = goal.goalInfo.units[1]:getFaction() == CurrentPlayer:getFaction()
+    elseif (directive.id == 'AttackUnits' and directive.directiveInfo.units[1]) then
+        local isPlayerFaction = directive.directiveInfo.units[1]:getFaction() == CurrentPlayer:getFaction()
 
         if (isPlayerFaction) then
             return {
@@ -120,8 +120,8 @@ function FACTION:onGoalCompleted(faction, goal)
                 'Let them feel our might.',
             }
         end
-    elseif (goal.id == 'HaveUnitsOfType') then
-        if (goal.goalInfo.unitTypeId == 'warrior') then
+    elseif (directive.id == 'HaveUnitsOfType') then
+        if (directive.directiveInfo.unitTypeId == 'warrior') then
             return {
                 'Our warriors stand unwavering.',
                 'The Emperial force is ready.',
@@ -134,7 +134,7 @@ function FACTION:onGoalCompleted(faction, goal)
                 'Warriors uphold the empire\'s name.',
                 'Ready to bring glory to our cause.',
             }
-        elseif (goal.goalInfo.unitTypeId == 'villager') then
+        elseif (directive.directiveInfo.unitTypeId == 'villager') then
             return {
                 'The people build our legacy.',
                 'Each hand strengthens the empire.',

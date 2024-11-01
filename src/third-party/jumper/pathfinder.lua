@@ -58,7 +58,7 @@ if (...) then
 	-- @see Pathfinder:getModes
   local searchModes = {['DIAGONAL'] = true, ['ORTHOGONAL'] = true}
 
-  -- Performs a traceback from the goal node to the start node
+  -- Performs a traceback from the directive node to the start node
   -- Only happens when the path was found
 
 	--- The `Pathfinder` class.<br/>
@@ -331,8 +331,8 @@ if (...) then
   -- @class function
   -- @tparam int startX the x-coordinate for the starting location
   -- @tparam int startY the y-coordinate for the starting location
-  -- @tparam int endX the x-coordinate for the goal location
-  -- @tparam int endY the y-coordinate for the goal location
+  -- @tparam int endX the x-coordinate for the directive location
+  -- @tparam int endY the y-coordinate for the directive location
   -- @tparam int clearance the amount of clearance (i.e the pathing agent size) to consider
   -- @treturn path a path (array of nodes) when found, otherwise nil
 	-- @usage local path = myFinder:getPath(1,1,5,5)

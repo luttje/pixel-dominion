@@ -5,13 +5,13 @@ FACTION.name = 'Horsemasters'
 
 FACTION.profileImagePath = 'assets/images/faction-profiles/horsemaster.png'
 
---- Called when a goal is completed and the faction can say something about it.
+--- Called when a directive is completed and the faction can say something about it.
 --- @param faction Faction
---- @param goal BehaviorGoal
---- @return string[]|nil # A list of strings to be randomly chosen from, or nil if the faction has nothing to say about the goal
-function FACTION:onGoalCompleted(faction, goal)
-	if (goal.id == 'BuildStructure') then
-		if (goal.goalInfo.structureTypeId == 'barracks') then
+--- @param directive Directive
+--- @return string[]|nil # A list of strings to be randomly chosen from, or nil if the faction has nothing to say about the directive
+function FACTION:onDirectiveCompleted(faction, directive)
+	if (directive.id == 'BuildStructure') then
+		if (directive.directiveInfo.structureTypeId == 'barracks') then
 			return {
 				'From here, the riders shall emerge!',
 				'Our cavalry grows strong!',
@@ -28,7 +28,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'Let the barracks fill with life!',
 				'Our strength flows from this ground!',
 			}
-		elseif (goal.goalInfo.structureTypeId == 'farmland') then
+		elseif (directive.directiveInfo.structureTypeId == 'farmland') then
 			return {
 				'The fields will sustain our riders!',
 				'The land nourishes our spirit!',
@@ -45,7 +45,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'The earth yields to Horsemasters!',
 				'Let the land sustain our strength!',
 			}
-		elseif (goal.goalInfo.structureTypeId == 'lumber_camp') then
+		elseif (directive.directiveInfo.structureTypeId == 'lumber_camp') then
 			return {
 				'Wood to build, wood for the journey!',
 				'The forest bends to our needs!',
@@ -61,7 +61,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'The forest yields to our strength!',
 				'The trees support our journey!',
 			}
-		elseif (goal.goalInfo.structureTypeId == 'gold_mine') then
+		elseif (directive.directiveInfo.structureTypeId == 'gold_mine') then
 			return {
 				'Gold to make our warriors gleam!',
 				'Treasure for the Horsemasters!',
@@ -77,7 +77,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'The gold shall empower our horde!',
 				'Our wealth grows as vast as the plains!',
 			}
-		elseif (goal.goalInfo.structureTypeId == 'stone_mine') then
+		elseif (directive.directiveInfo.structureTypeId == 'stone_mine') then
 			return {
 				'Stone to fortify our paths!',
 				'The bones of the earth support us!',
@@ -93,7 +93,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'Our walls are as steadfast as riders!',
 				'Stone supports our journey!',
 			}
-		elseif (goal.goalInfo.structureTypeId == 'house') then
+		elseif (directive.directiveInfo.structureTypeId == 'house') then
 			return {
 				'Shelter for our mighty tribe!',
 				'The Horsemasters grow in number!',
@@ -111,8 +111,8 @@ function FACTION:onGoalCompleted(faction, goal)
 				'Our strength is in every tent and yurt!',
 			}
 		end
-	elseif (goal.id == 'AttackUnits' and goal.goalInfo.units[1]) then
-		local isPlayerFaction = goal.goalInfo.units[1]:getFaction() == CurrentPlayer:getFaction()
+	elseif (directive.id == 'AttackUnits' and directive.directiveInfo.units[1]) then
+		local isPlayerFaction = directive.directiveInfo.units[1]:getFaction() == CurrentPlayer:getFaction()
 
 		if (isPlayerFaction) then
 			return {
@@ -149,8 +149,8 @@ function FACTION:onGoalCompleted(faction, goal)
 				'They are dust in the wind of battle!',
 			}
 		end
-	elseif (goal.id == 'HaveUnitsOfType') then
-		if (goal.goalInfo.unitTypeId == 'warrior') then
+	elseif (directive.id == 'HaveUnitsOfType') then
+		if (directive.directiveInfo.unitTypeId == 'warrior') then
 			return {
 				'Our ranks swell with riders!',
 				'Warriors of the plains, unmatched!',
@@ -167,7 +167,7 @@ function FACTION:onGoalCompleted(faction, goal)
 				'The heart of the tribe beats in every rider!',
 				'Our warriors are the spirit of the plains!',
 			}
-		elseif (goal.goalInfo.unitTypeId == 'villager') then
+		elseif (directive.directiveInfo.unitTypeId == 'villager') then
 			return {
 				'Our people grow strong together!',
 				'Every hand builds our strength!',

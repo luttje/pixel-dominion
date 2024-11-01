@@ -1,5 +1,5 @@
 --- The Path class.
--- The `path` class is a structure which represents a path (ordered set of nodes) from a start location to a goal.
+-- The `path` class is a structure which represents a path (ordered set of nodes) from a start location to a directive.
 -- An instance from this class would be a result of a request addressed to `Pathfinder:getPath`.
 --
 -- This module is internally used by the library on purpose.
@@ -8,15 +8,15 @@
 
 
 if (...) then
-	
+
   -- Dependencies
 	local _PATH = (...):match('(.+)%.path$')
   local Heuristic = require (_PATH .. '.heuristics')
-	
+
 	 -- Local references
   local abs, max = math.abs, math.max
 	local t_insert, t_remove = table.insert, table.remove
-	
+
 	--- The `Path` class.<br/>
 	-- This class is callable.
 	-- Therefore, <em><code>Path(...)</code></em> acts as a shortcut to <em><code>Path:new(...)</code></em>.
@@ -51,20 +51,20 @@ if (...) then
       end
     end
   end
-  
+
   --- Iterates on each single `node` along a `path`. At each step of iteration,
   -- returns a `node` plus a count value. Alias for @{Path:iter}
   -- @class function
 	-- @name Path:nodes
   -- @treturn node a `node`
   -- @treturn int the count for the number of nodes
-	-- @see Path:iter	
+	-- @see Path:iter
 	-- @usage
 	-- for node, count in p:nodes() do
 	--   ...
-	-- end	
+	-- end
 	Path.nodes = Path.iter
-	
+
   --- Evaluates the `path` length
   -- @class function
   -- @treturn number the `path` length
@@ -76,7 +76,7 @@ if (...) then
     end
     return len
   end
-	
+
 	--- Counts the number of steps.
 	-- Returns the number of waypoints (nodes) in the current path.
 	-- @class function
@@ -89,13 +89,13 @@ if (...) then
 		t_insert(self._nodes, index, node)
 		return self
 	end
-	
-	
+
+
   --- `Path` filling modifier. Interpolates between non contiguous nodes along a `path`
   -- to build a fully continuous `path`. This maybe useful when using search algorithms such as Jump Point Search.
   -- Does the opposite of @{Path:filter}
   -- @class function
-	-- @treturn path self (the calling `path` itself, can be chained)	
+	-- @treturn path self (the calling `path` itself, can be chained)
   -- @see Path:filter
 	-- @usage p:fill()
   function Path:fill()
@@ -118,10 +118,10 @@ if (...) then
 		return self
   end
 
-  --- `Path` compression modifier. Given a `path`, eliminates useless nodes to return a lighter `path` 
+  --- `Path` compression modifier. Given a `path`, eliminates useless nodes to return a lighter `path`
 	-- consisting of straight moves. Does the opposite of @{Path:fill}
   -- @class function
-	-- @treturn path self (the calling `path` itself, can be chained)	
+	-- @treturn path self (the calling `path` itself, can be chained)
   -- @see Path:fill
 	-- @usage p:filter()
   function Path:filter()
@@ -143,17 +143,17 @@ if (...) then
     end
 		return self
   end
-	
+
   --- Clones a `path`.
   -- @class function
   -- @treturn path a `path`
-	-- @usage local p = path:clone()	
+	-- @usage local p = path:clone()
 	function Path:clone()
 		local p = Path:new()
 		for node in self:nodes() do p:addNode(node) end
 		return p
 	end
-	
+
   --- Checks if a `path` is equal to another. It also supports *filtered paths* (see @{Path:filter}).
   -- @class function
 	-- @tparam path p2 a path
@@ -166,33 +166,33 @@ if (...) then
 			if not p2._nodes[count] then return false end
 			local n = p2._nodes[count]
 			if n._x~=node._x or n._y~=node._y then return false end
-		end	
+		end
 		return true
 	end
-	
+
   --- Reverses a `path`.
   -- @class function
 	-- @treturn path self (the calling `path` itself, can be chained)
-	-- @usage myPath:reverse()	
+	-- @usage myPath:reverse()
 	function Path:reverse()
 		local _nodes = {}
 		for i = #self._nodes,1,-1 do
-			_nodes[#_nodes+1] = self._nodes[i]		
+			_nodes[#_nodes+1] = self._nodes[i]
 		end
 		self._nodes = _nodes
 		return self
-	end	
+	end
 
   --- Appends a given `path` to self.
   -- @class function
 	-- @tparam path p a path
 	-- @treturn path self (the calling `path` itself, can be chained)
-	-- @usage myPath:append(anotherPath)		
+	-- @usage myPath:append(anotherPath)
 	function Path:append(p)
 		for node in p:nodes() do self:addNode(node)	end
 		return self
 	end
-	
+
   return setmetatable(Path,
     {__call = function(self,...)
       return Path:new(...)
