@@ -80,7 +80,7 @@ function love.load()
 
 	local enemyPlayerFactions = {
 		'barbarians',
-		'emperials',
+		'imperials',
 		'horsemasters',
 		'warlords',
 	}

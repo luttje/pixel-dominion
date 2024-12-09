@@ -1,9 +1,9 @@
 local FACTION = {}
 
-FACTION.id = 'emperials'
-FACTION.name = 'Emperials'
+FACTION.id = 'imperials'
+FACTION.name = 'Imperials'
 
-FACTION.profileImagePath = 'assets/images/faction-profiles/emperial.png'
+FACTION.profileImagePath = 'assets/images/faction-profiles/imperial.png'
 
 --- Called when a directive is completed and the faction can say something about it.
 --- @param faction Faction
@@ -32,7 +32,7 @@ function FACTION:onDirectiveCompleted(faction, directive)
                 'Bounty blesses the loyal.',
                 'The soil is our silent ally.',
                 'Nourishment for future battles.',
-                'The fields serve the Emperial cause.',
+                'The fields serve the Imperial cause.',
                 'From soil, strength shall grow.',
                 'Food for our people; power for our empire.',
                 'Let the harvest be plentiful.',
@@ -43,7 +43,7 @@ function FACTION:onDirectiveCompleted(faction, directive)
                 'Wood for our mighty empire.',
                 'Our hands shape the trees.',
                 'Timber strengthens our walls.',
-                'The forest serves the Emperial cause.',
+                'The forest serves the Imperial cause.',
                 'Each log builds our future.',
                 'A kingdom of stone and wood.',
                 'Lumber fuels our ambition.',
@@ -79,7 +79,7 @@ function FACTION:onDirectiveCompleted(faction, directive)
         elseif (directive.directiveInfo.structureTypeId == 'house') then
             return {
                 'Homes for our loyal subjects.',
-                'A sanctuary for the Emperial heart.',
+                'A sanctuary for the Imperial heart.',
                 'Our empire grows in strength and number.',
                 'Shelter for those who serve.',
                 'Our people find peace here.',
@@ -98,11 +98,11 @@ function FACTION:onDirectiveCompleted(faction, directive)
                 'Your resistance is futile.',
                 'We are the unyielding storm.',
                 'None shall withstand the empire.',
-                'The Emperial fury is upon you.',
+                'The Imperial fury is upon you.',
                 'Prepare to face your end.',
                 'Our blades show no mercy.',
                 'You will fall before us.',
-                'Fear the Emperial might.',
+                'Fear the Imperial might.',
                 'We are unstoppable.',
                 'Victory is inevitable.',
             }
@@ -111,7 +111,7 @@ function FACTION:onDirectiveCompleted(faction, directive)
                 'Our enemies will tremble.',
                 'They face the empire\'s wrath.',
                 'Their defeat is certain.',
-                'The Emperial strike is swift and sure.',
+                'The Imperial strike is swift and sure.',
                 'They will bow before us.',
                 'We bring ruin to their gates.',
                 'Their lands shall know our strength.',
@@ -124,7 +124,7 @@ function FACTION:onDirectiveCompleted(faction, directive)
         if (directive.directiveInfo.unitTypeId == 'warrior') then
             return {
                 'Our warriors stand unwavering.',
-                'The Emperial force is ready.',
+                'The Imperial force is ready.',
                 'Strength swells in our ranks.',
                 'Disciplined and unbreakable.',
                 'Our warriors are our honor.',
@@ -168,12 +168,12 @@ function FACTION:onSurrender(faction)
     return {
         'The empire bows to your might.',
         'Our strength is yours to command.',
-        'The Emperial cause is yours.',
+        'The Imperial cause is yours.',
         'Our empire is yours to shape.',
         'Your victory is our surrender.',
         'The empire yields to your power.',
         'Our fate is in your hands.',
-        'The Emperial legacy is yours.',
+        'The Imperial legacy is yours.',
         'Our empire is yours to rule.',
     }
 end
