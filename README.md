@@ -1,6 +1,9 @@
-# Pixel Dominion (Working Title)
+# Pixel Dominion
 
-A real-time strategy game where you build structures, train units, and conquer the enemy.
+A tiny real-time strategy game where you build structures, train units, and conquer the enemy. It is intended to be played on a phone (portrait mode) but it works on desktop as well.
+
+> [!NOTE]
+> This game is a work in progress and it has no end goal yet. I may or may not continue working on it.
 
 <img src="./src/assets/images/logo-scaled.png">
 

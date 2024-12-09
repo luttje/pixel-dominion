@@ -18,7 +18,7 @@ CommandStagger = Stagger({
 })
 
 function love.load()
-    love.window.setIcon(love.image.newImageData('assets/images/game-icon-64.png'))
+    love.window.setIcon(love.image.newImageData('assets/images/game-icon-24.png'))
 
     local config = {}
 	config.minwidth = 320
