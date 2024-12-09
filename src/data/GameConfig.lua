@@ -6,7 +6,7 @@ local GameConfig = {}
 
 --- The name of the game.
 --- @type string
-GameConfig.name = 'Unnamed RTS'
+GameConfig.name = 'Pixel Dominion'
 
 --[[
 	Game functionality settings
