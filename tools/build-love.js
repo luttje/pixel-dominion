@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'url';
-import archiver from 'archiver';
+import { ZipArchive } from 'archiver';
 import process from 'process';
 import chalk from 'chalk';
 import fs from 'fs';
@@ -17,7 +17,7 @@ async function packageLoveGame(sourceDir, outputFile) {
 
   // Create write stream and archive
   const output = fs.createWriteStream(outputFile);
-  const archive = archiver('zip', {
+  const archive = new ZipArchive({
     zlib: { level: 9 } // Maximum compression
   });
 

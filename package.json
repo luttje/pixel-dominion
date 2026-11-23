@@ -10,8 +10,8 @@
         "build": "npm run build:love && npm run build:web"
     },
     "devDependencies": {
-        "archiver": "^7.0.1",
-        "chalk": "^5.3.0",
-        "serve": "^14.2.3"
+        "archiver": "^8.0.0",
+        "chalk": "^6.0.1",
+        "serve": "^14.2.8"
     }
 }
